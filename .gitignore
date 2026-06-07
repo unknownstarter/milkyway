@@ -51,3 +51,6 @@ app.*.map.json
 android/app/key.properties
 android/app/*.jks
 android/app/*.keystore
+
+# Claude Code local settings (개인 권한 설정)
+.claude/settings.local.json
