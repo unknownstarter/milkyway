@@ -283,6 +283,7 @@ class HomeEmptyState extends ConsumerWidget {
         // 관련 provider 무효화
         ref.invalidate(userBooksProvider);
         ref.invalidate(recentBooksProvider);
+        ref.invalidate(homeBooksProvider);
 
         // 책 상세 화면으로 이동
         if (context.mounted) {

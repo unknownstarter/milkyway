@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:developer';
 import '../../../../core/providers/supabase_client_provider.dart';
 import '../../../../core/utils/response_cache.dart';
+import '../../../home/presentation/providers/book_provider.dart';
 
 final memoRepositoryProvider = Provider((ref) {
   return MemoRepository(Supabase.instance.client);
@@ -38,6 +39,8 @@ void invalidateMemoProviders(
   ref.invalidate(allMemosProvider);
   ref.invalidate(paginatedMemosProvider(bookId));
   ref.invalidate(paginatedMemosProvider(null));
+  // 홈 책 정렬은 최근 메모 작성 시점 기반이므로 메모 CRUD마다 재정렬 필요
+  ref.invalidate(homeBooksProvider);
 
   // 메모 상세 화면 갱신 (updateMemo, deleteMemo에서만 필요)
   if (memoId != null) {

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../domain/models/book.dart';
-import '../../../books/presentation/providers/user_books_provider.dart';
+import '../providers/book_provider.dart';
 import '../providers/selected_book_provider.dart';
 import '../../../../core/presentation/widgets/add_floating_action_button.dart';
 import '../widgets/reading_section_delegate.dart';
@@ -49,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _scrollController.removeListener(_onScrollChanged);
     _scrollController.addListener(_onScrollChanged);
 
-    final userBooksAsync = ref.read(userBooksProvider);
+    final userBooksAsync = ref.read(homeBooksProvider);
     userBooksAsync.whenData((books) {
       final selectedBookId = ref.read(selectedBookIdProvider);
       
@@ -118,7 +118,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _syncPageControllerToSelectedBook() {
     if (!_pageController.hasClients) return;
     
-    final booksAsync = ref.read(userBooksProvider);
+    final booksAsync = ref.read(homeBooksProvider);
     booksAsync.whenData((books) {
       if (books.isEmpty || !_pageController.hasClients) return;
 
@@ -153,7 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userBooksAsync = ref.watch(userBooksProvider);
+    final userBooksAsync = ref.watch(homeBooksProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF181818),

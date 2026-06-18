@@ -99,6 +99,7 @@ class BookDetailController extends StateNotifier<AsyncValue<Book>> {
       await _repository.updateBookStatus(bookId, status);
       // Books 스크린의 userBooksProvider도 갱신
       _ref.invalidate(userBooksProvider);
+      _ref.invalidate(homeBooksProvider);
       // 상태 변경 후 책 정보 새로고침 (재시도 로직 포함)
       await loadBook();
     } catch (e, st) {

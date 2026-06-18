@@ -659,6 +659,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       ref.invalidate(bookDetailProvider(book.id));
       ref.invalidate(userBooksProvider);
       ref.invalidate(recentBooksProvider);
+      ref.invalidate(homeBooksProvider);
       ref.invalidate(bookMemosProvider(book.id));
       ref.invalidate(recentMemosProvider);
       ref.invalidate(homeRecentMemosProvider);

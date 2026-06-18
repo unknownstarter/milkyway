@@ -102,6 +102,7 @@ class Auth extends _$Auth {
     // 책 관련 provider
     ref.invalidate(userBooksProvider);
     ref.invalidate(recentBooksProvider);
+    ref.invalidate(homeBooksProvider);
 
     // 메모 관련 provider
     ref.invalidate(recentMemosProvider);

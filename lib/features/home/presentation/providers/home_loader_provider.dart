@@ -21,15 +21,17 @@ class HomeLoaderNotifier extends AsyncNotifier<void> {
         // 인증 실패시 모든 캐시 초기화
         ref.invalidate(userBooksProvider);
         ref.invalidate(recentBooksProvider);
+        ref.invalidate(homeBooksProvider);
         ref.invalidate(recentMemosProvider);
         if (onAuthFailed != null) onAuthFailed!();
         return;
       }
       // 데이터 리프레시
       ref.invalidate(recentBooksProvider);
+      ref.invalidate(homeBooksProvider);
       ref.invalidate(recentMemosProvider);
       // 인증된 유저만 데이터 로드
-      final books = await ref.read(recentBooksProvider.future);
+      final books = await ref.read(homeBooksProvider.future);
       if (books.isNotEmpty) {
         ref.read(selectedBookIdProvider.notifier).state = books.first.id;
       }

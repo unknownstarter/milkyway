@@ -30,6 +30,30 @@ class BookRepository {
         .toList();
   }
 
+  /// 홈 화면 전용: 최근 메모 작성 활동순으로 정렬된 사용자 책 목록.
+  ///
+  /// 메모가 있는 책은 가장 최근 메모 작성 시점(DESC)이 앞쪽,
+  /// 메모가 없는 책은 책 등록 시점(DESC)으로 그 뒤에 배치됨.
+  /// 정렬 로직은 Postgres RPC `get_home_books_by_last_activity`에서 처리.
+  Future<List<Book>> getHomeBooksByLastActivity() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not logged in');
+
+      final response = await _client.rpc(
+        'get_home_books_by_last_activity',
+        params: {'p_user_id': userId},
+      ) as List<dynamic>;
+
+      return response
+          .map((item) => Book.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('Error getting home books by last activity: $e');
+      rethrow;
+    }
+  }
+
   Future<Book> getBookDetail(String bookId) async {
     final response = await _client
         .from('books')

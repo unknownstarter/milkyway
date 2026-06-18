@@ -5,7 +5,7 @@ import '../../domain/models/naver_book.dart';
 import '../providers/user_books_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../home/presentation/providers/book_provider.dart'
-    show recentBooksProvider;
+    show recentBooksProvider, homeBooksProvider;
 import '../providers/book_detail_provider.dart';
 import 'dart:developer';
 
@@ -61,6 +61,7 @@ class BookRegisterNotifier extends StateNotifier<AsyncValue<void>> {
 
       _ref.invalidate(userBooksProvider);
       _ref.invalidate(recentBooksProvider);
+      _ref.invalidate(homeBooksProvider);
       // 책 상세 정보 provider 무효화 (재등록 시 캐시 문제 해결)
       _ref.invalidate(bookDetailProvider(book.id));
 
@@ -81,6 +82,7 @@ class BookRegisterNotifier extends StateNotifier<AsyncValue<void>> {
       await _repository.createUserBookConnection(bookId, userId);
       _ref.invalidate(userBooksProvider);
       _ref.invalidate(recentBooksProvider);
+      _ref.invalidate(homeBooksProvider);
       // 책 상세 정보 provider 무효화
       _ref.invalidate(bookDetailProvider(bookId));
       state = const AsyncValue.data(null);
