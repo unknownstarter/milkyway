@@ -132,8 +132,16 @@ class NotificationService {
       // 알림 탭 핸들러 설정
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-      // 앱이 종료된 상태에서 알림 탭으로 앱 실행된 경우 처리
-      final initialMessage = await _messaging.getInitialMessage();
+      // 앱이 종료된 상태에서 알림 탭으로 앱 실행된 경우 처리.
+      // iOS 26 시뮬레이터 등 APNS 미지원 환경에서 무한 hang 방지 위해 3s timeout.
+      // 실기기는 보통 100ms 이내 응답.
+      final initialMessage = await _messaging.getInitialMessage().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          log.w('getInitialMessage timeout (iOS 시뮬레이터 또는 APNS 미준비)');
+          return null;
+        },
+      );
       if (initialMessage != null) {
         _handleNotificationTap(initialMessage);
       }
