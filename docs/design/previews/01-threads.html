@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>.q{font-size:18px;line-height:1.6;} .tribe{padding:14px 20px 0;font-size:12px;color:var(--dim);}
+.tribe b{color:var(--accent);font-weight:600;}</style></head>
+<body><div class="phone space">
+  <div class="stars" style="height:100%"></div>
+  <div class="hdr px"><div class="wordmark">milkyway</div><div class="hdr-meta">사유 <b>128</b> · 팔로잉 42</div></div>
+
+  <!-- 니치 부족 신호 -->
+  <div class="tribe">오늘 밤 함께 깨어 읽는 <b>128명</b>의 사유가 흐르고 있어요.</div>
+
+  <!-- SegmentFilter -->
+  <div class="seg">
+    <div class="chip on">팔로잉</div><div class="chip">발견</div><div class="chip">이 책</div><div class="chip">Lyra</div>
+  </div>
+
+  <!-- 사유 피드 (ThreadCard 반복 = 하나의 문법) -->
+  <div style="margin-top:8px;position:relative;z-index:2">
+
+    <div class="thread">
+      <div class="thread-top"><div class="av md">서연</div>
+        <div><div class="nm">서연</div><div class="mt">2시간 전 · 3일째 함께 읽는 중</div></div></div>
+      <div class="q"><span class="mk">“</span>우리는 물고기가 없다는 걸 알기 위해, 물고기라는 말부터 지워야 했다<span class="mk">”</span></div>
+      <div class="src"><b>물고기는 존재하지 않는다</b> · p142</div>
+      <div class="acts">
+        <div class="a on"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.4 4 1.2 6L12 16.9 6.6 19.3l1.2-6L3.4 9.3l6-.7z"/></svg>별 12</div>
+        <div class="a"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="2.4"/><circle cx="17" cy="17" r="2.4"/><path d="M9 9l6 6"/></svg>잇기 3</div>
+        <div class="a"><svg viewBox="0 0 24 24"><path d="M7 4h10v16l-5-4-5 4z"/></svg>담기</div>
+      </div>
+    </div>
+
+    <div class="thread">
+      <div class="thread-top"><div class="av md">준호</div>
+        <div><div class="nm">준호</div><div class="mt">어제 · 처음 마주친 사유</div></div>
+        <div class="foll">팔로우</div></div>
+      <div class="q"><span class="mk">“</span>경계에 서 본 사람만이 양쪽 세계를 안다<span class="mk">”</span></div>
+      <div class="src"><b>물고기는 존재하지 않는다</b> · p88</div>
+      <div class="acts">
+        <div class="a"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.4 4 1.2 6L12 16.9 6.6 19.3l1.2-6L3.4 9.3l6-.7z"/></svg>별 5</div>
+        <div class="a"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="2.4"/><circle cx="17" cy="17" r="2.4"/><path d="M9 9l6 6"/></svg>잇기</div>
+        <div class="a"><svg viewBox="0 0 24 24"><path d="M7 4h10v16l-5-4-5 4z"/></svg>담기</div>
+      </div>
+    </div>
+
+    <!-- Lyra 답신 카드 (강조) -->
+    <div class="thread" style="background:linear-gradient(180deg,rgba(72,255,0,.05),transparent)">
+      <div class="thread-top">
+        <div class="av md" style="background:var(--accent-soft);border-color:rgba(72,255,0,.4);color:var(--accent)">L</div>
+        <div><div class="nm" style="color:var(--accent)">Lyra</div><div class="mt">어젯밤 도착 · 노아의 문장에</div></div>
+        <span class="badge info" style="margin-left:auto">답신</span></div>
+      <div class="q" style="font-size:16px;color:var(--text)">그 문장에 오래 머물렀어요. 어느 쪽에도 완전히 속하지 못한다는 건 두 세계를 다 품는 일이기도 하죠. <span style="color:var(--bright)">지금 노아는 어느 경계 위에 있나요?</span></div>
+    </div>
+
+  </div>
+
+  <div style="height:12px"></div>
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+</div></body></html>

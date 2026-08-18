@@ -122,4 +122,14 @@ class AnalyticsService {
       // Analytics 에러는 무시
     }
   }
+
+  /// 범용 이벤트. 계측 확장용(온보딩 KPI 등).
+  Future<void> logEvent(String name, [Map<String, Object>? params]) async {
+    if (_analytics == null) return;
+    try {
+      await _analytics.logEvent(name: name, parameters: params);
+    } catch (e) {
+      // Analytics 에러는 무시
+    }
+  }
 }

@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>
+  .hb{margin:8px 20px 0;height:186px;border-radius:var(--r-card);position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#1a2338,#141824);border:1px solid var(--line-2);}
+  .hb .scrim{position:absolute;inset:0;background:linear-gradient(to right,rgba(12,13,18,.75),transparent 80%);z-index:2;}
+  .hb .c{position:absolute;left:18px;right:60px;bottom:18px;z-index:3;}
+  .hb .k{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.4px;margin-bottom:8px;}
+  .hb .t{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--bright);line-height:1.45;word-break:keep-all;}
+  .hb .n{font-size:12px;color:var(--dim);margin-top:10px;}
+</style></head>
+<body><div class="phone space">
+  <div class="stars" style="height:340px"></div>
+  <div class="hdr px" style="position:relative;z-index:20"><div class="wordmark">milkyway</div><div class="hdr-meta">오늘의 큐레이션</div></div>
+
+  <!-- HeroBanner (Lyra 큐레이션) -->
+  <div class="hb">
+    <div class="cluster b" style="width:150px;height:150px;right:-30px;top:-20px"></div>
+    <div class="scrim"></div>
+    <div class="c">
+      <div class="k">LYRA가 고른 오늘의 문장</div>
+      <div class="t">“읽는다는 건, 타인의 사유에<br>내 밤을 포개는 일이다”</div>
+      <div class="n">신형철 · 정확한 사랑의 실험</div>
+    </div>
+  </div>
+
+  <!-- SegmentFilter -->
+  <div class="seg"><div class="chip on">전체</div><div class="chip">함께 읽는 책</div><div class="chip">팔로잉</div><div class="chip">발견</div></div>
+
+  <!-- RankCard 3열: 오늘 많이 이어진 문장 -->
+  <div class="sec tight">
+    <div class="sh"><h2>오늘 많이 이어진 문장</h2><span class="badge info">TOP 3</span></div>
+    <div class="rank">
+      <div class="rc"><div class="cluster a" style="width:80px;height:80px;left:20px;top:10px"></div>
+        <span class="badge rank b">1</span><div class="lab">“우리는 물고기라는 말부터 지워야 했다”</div><div class="n">잇기 34</div></div>
+      <div class="rc"><div class="cluster b" style="width:80px;height:80px;left:20px;top:20px"></div>
+        <span class="badge rank b">2</span><div class="lab">“경계에 서 본 사람만이 안다”</div><div class="n">잇기 21</div></div>
+      <div class="rc"><div class="cluster c" style="width:80px;height:80px;left:20px;top:16px"></div>
+        <span class="badge rank b">3</span><div class="lab">“밤은 사유가 가장 깊어지는 시간”</div><div class="n">잇기 18</div></div>
+    </div>
+  </div>
+
+  <!-- ListRow: 팔로잉의 사유 -->
+  <div class="sec">
+    <div class="sh"><h2>팔로잉의 사유</h2><span class="more">더보기</span></div>
+    <div class="row"><div class="av md">서연</div>
+      <div class="rt"><div class="t" style="font-family:var(--serif);font-weight:500;font-size:15px">“물고기라는 말부터 지워야 했다”</div>
+        <div class="d">서연 · 물고기는 존재하지 않는다 · p142</div>
+        <div class="m">별 12 · 잇기 3</div></div></div>
+    <div class="row"><div class="av md">준호</div>
+      <div class="rt"><div class="t" style="font-family:var(--serif);font-weight:500;font-size:15px">“경계에 서 본 사람만이 안다”</div>
+        <div class="d">준호 · 물고기는 존재하지 않는다 · p88</div>
+        <div class="m">별 5 · 잇기 1</div></div></div>
+  </div>
+
+  <!-- 색면 배너 -->
+  <div class="sec">
+    <div class="banner"><div class="cluster c" style="width:120px;height:120px;right:-20px;top:-30px"></div>
+      <div class="t">이번 주, 함께 읽는 책</div>
+      <div class="d">‘물고기는 존재하지 않는다’를 312명이 같은 밤에 넘기고 있어요.</div></div>
+  </div>
+
+  <div class="sec tight tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+</div></body></html>

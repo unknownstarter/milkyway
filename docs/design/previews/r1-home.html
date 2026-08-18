@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--surface2:#242424;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .hdr{height:60px;display:flex;align-items:center;padding:0 20px;}
+  .logo{font-size:21px;font-weight:800;letter-spacing:-.5px;color:var(--white);}
+  /* 좋아하는 책 스토리 원 (인스타 벤치마크) */
+  .stories{display:flex;gap:14px;overflow-x:auto;padding:6px 20px 4px;scrollbar-width:none;}
+  .stories::-webkit-scrollbar{display:none;}
+  .st{flex:0 0 auto;width:62px;text-align:center;}
+  .st .ring{width:62px;height:62px;border-radius:50%;padding:2.5px;
+    background:conic-gradient(from 135deg,#48FF00,#00C2A8,#48FF00);} /* 새 활동 = 초록 링 */
+  .st.seen .ring{background:#3a3a3a;}
+  .st.add .ring{background:#2a2a2a;}
+  .st .cv{width:100%;height:100%;border-radius:50%;border:2.5px solid var(--bg);object-fit:cover;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .st .lbl{font-size:11px;color:var(--txt);letter-spacing:-.1px;line-height:1.4;margin-top:7px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .st.add .lbl{color:var(--sec);}
+  .st .plus{font-size:24px;font-weight:300;color:var(--ter);}
+  /* 지금 읽는 책 + Lyra 물음 카드 (홈에서 유일하게 허용된 도구 카드) */
+  .hl{margin:22px 20px 0;background:linear-gradient(180deg,rgba(72,255,0,.06),transparent 78%);border:1px solid #262626;border-radius:16px;padding:18px;}
+  .hl-book{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .hl-book .cv{width:34px;height:50px;border-radius:4px;flex:0 0 auto;}
+  .hl-book .t{font-size:14px;font-weight:600;color:var(--white);letter-spacing:-.2px;}
+  .hl-book .prog{font-size:11.5px;color:var(--sec);margin-top:3px;}
+  .hl .lab{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--accent);margin-bottom:9px;}
+  .hl .lab .d{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px rgba(72,255,0,.55);}
+  .hl .q{font-size:15px;line-height:1.6;color:var(--txt);letter-spacing:-.2px;word-break:keep-all;}
+  .hl-cta{margin-top:15px;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--accent);
+    border:1px solid rgba(72,255,0,.4);border-radius:999px;padding:9px 15px;}
+  .hl-cta svg{width:14px;height:14px;stroke:var(--accent);stroke-width:2;fill:none;}
+  /* 섹션 */
+  .sec{margin-top:34px;}
+  .sec-t{font-size:20px;font-weight:600;color:var(--white);letter-spacing:-.4px;line-height:1.35;padding:0 20px;}
+  .sec-s{font-size:13px;color:var(--sec);letter-spacing:-.1px;margin-top:5px;padding:0 20px;}
+  /* 이번 주 함께 읽는 책 (N2) — 단일 강조 카드 */
+  .week{margin:16px 20px 0;background:var(--surface);border-radius:16px;padding:18px;display:flex;gap:16px;align-items:center;}
+  .week .cv{width:74px;height:108px;border-radius:6px;flex:0 0 auto;box-shadow:0 6px 16px rgba(0,0,0,.5);}
+  .week .t{font-size:17px;font-weight:600;color:var(--white);letter-spacing:-.3px;line-height:1.35;}
+  .week .a{font-size:12.5px;color:var(--sec);margin-top:4px;}
+  .week .live{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--accent);font-weight:600;margin-top:12px;}
+  .week .live .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px rgba(72,255,0,.6);}
+  /* 다른 사람이 담은 책 (표지 캐러셀) */
+  .rail{display:flex;gap:12px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none;}
+  .rail::-webkit-scrollbar{display:none;}
+  .disc{flex:0 0 auto;width:92px;}
+  .disc .cv{width:92px;height:136px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .disc .cv .t{position:absolute;left:10px;right:10px;top:11px;font-size:11.5px;font-weight:700;line-height:1.35;color:#EDEDED;letter-spacing:-.2px;}
+  .disc .cv .a{position:absolute;left:10px;right:10px;bottom:10px;font-size:9.5px;color:rgba(255,255,255,.5);}
+  .disc .m{font-size:11px;color:var(--ter);letter-spacing:-.1px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* 커버 그라데이션 */
+  .g1{background:linear-gradient(155deg,#3a4a6b,#1b2030);} .g2{background:linear-gradient(155deg,#5b3a44,#251519);}
+  .g3{background:linear-gradient(155deg,#2f5148,#152a24);} .g4{background:linear-gradient(155deg,#544a2c,#251f12);}
+  .g5{background:linear-gradient(155deg,#4a3560,#1e1528);} .g6{background:linear-gradient(155deg,#63483a,#241812);}
+  /* 탭 + FAB */
+  .tabbar{margin-top:32px;height:80px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;
+    border-top:1px solid #262626;position:relative;background:var(--bg);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:var(--ter);}
+  .tab.on{color:var(--white);}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;}
+  .fab{position:absolute;right:20px;top:-28px;width:56px;height:56px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(72,255,0,.32);}
+  .fab svg{width:24px;height:24px;stroke:#000;stroke-width:2.4;fill:none;}
+</style></head>
+<body><div class="phone">
+  <div class="hdr"><div class="logo">milkyway</div></div>
+
+  <!-- 좋아하는 책 스토리 원 (인스타 벤치마크) -->
+  <div class="stories">
+    <div class="st add"><div class="ring"><div class="cv"><span class="plus">+</span></div></div><div class="lbl">담기</div></div>
+    <div class="st"><div class="ring"><div class="cv g3"></div></div><div class="lbl">물고기는</div></div>
+    <div class="st"><div class="ring"><div class="cv g5"></div></div><div class="lbl">정확한 사랑</div></div>
+    <div class="st seen"><div class="ring"><div class="cv g2"></div></div><div class="lbl">슬픔을 공부</div></div>
+    <div class="st"><div class="ring"><div class="cv g4"></div></div><div class="lbl">다정한 것</div></div>
+    <div class="st seen"><div class="ring"><div class="cv g1"></div></div><div class="lbl">존재와 시간</div></div>
+  </div>
+
+  <!-- 지금 읽는 책 + Lyra 물음 (홈 유일한 도구 카드) -->
+  <div class="hl">
+    <div class="hl-book"><div class="cv g3"></div><div><div class="t">물고기는 존재하지 않는다</div><div class="prog">읽는 중 38%</div></div></div>
+    <div class="lab"><span class="d"></span>Lyra의 물음</div>
+    <div class="q">룰루 밀러는 '질서'라는 위안을 끝내 의심했어요. 지금 붙들고 있는 분류 하나는 세상을 이해하기 위한 것인가요, 아니면 견디기 위한 것인가요</div>
+    <div class="hl-cta"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>이 물음에 메모 남기기</div>
+  </div>
+
+  <!-- 이번 주 함께 읽는 책 (N2) -->
+  <div class="sec">
+    <div class="sec-t">이번 주 함께 읽는 책</div>
+    <div class="sec-s">같은 밤, 같은 페이지를 넘기는 사람들</div>
+    <div class="week">
+      <div class="cv g3"></div>
+      <div>
+        <div class="t">물고기는 존재하지 않는다</div>
+        <div class="a">룰루 밀러</div>
+        <div class="live"><span class="dot"></span>지금 32명이 함께 읽는 중</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 다른 사람이 담은 책 -->
+  <div class="sec">
+    <div class="sec-t">다른 사람이 담은 책</div>
+    <div class="rail">
+      <div class="disc"><div class="cv g1"><div class="t">우리가 빛의 속도로 갈 수 없다면</div><div class="a">김초엽</div></div><div class="m">방금 담김</div></div>
+      <div class="disc"><div class="cv g2"><div class="t">아주 희미한 빛으로도</div><div class="a">최은영</div></div><div class="m">12분 전</div></div>
+      <div class="disc"><div class="cv g4"><div class="t">시대예보</div><div class="a">송길영</div></div><div class="m">1시간 전</div></div>
+      <div class="disc"><div class="cv g6"><div class="t">급류</div><div class="a">정대건</div></div><div class="m">오늘</div></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>메모</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+</div></body></html>

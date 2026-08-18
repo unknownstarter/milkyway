@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>
+  .gh{margin:8px 20px 0;height:210px;border-radius:var(--r-card);position:relative;overflow:hidden;
+    background:linear-gradient(150deg,#1b2236,#111319);border:1px solid var(--line-2);}
+  .gh .scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(12,13,18,.85),transparent 65%);z-index:2;}
+  .gh .c{position:absolute;left:18px;right:18px;bottom:18px;z-index:3;}
+  .gh .lab{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.4px;margin-bottom:8px;}
+  .gh .t{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--bright);line-height:1.35;}
+  .gh .a{font-size:12.5px;color:var(--dim);margin-top:6px;}
+  .gh .st{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--text);}
+  .gh .st b{color:var(--accent);font-weight:700;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px;}
+  .gc{border-radius:14px;overflow:hidden;position:relative;aspect-ratio:1/1.15;
+    background:linear-gradient(155deg,#1a1f2b,#111318);border:1px solid var(--line);}
+  .gc .scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(12,13,18,.8),transparent 60%);z-index:2;}
+  .gc .c{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;}
+  .gc .t{font-family:var(--serif);font-size:14.5px;font-weight:600;color:var(--bright);line-height:1.3;}
+  .gc .m{font-size:11px;color:var(--dim);margin-top:6px;}
+</style></head>
+<body><div class="phone space">
+  <div class="stars" style="height:100%"></div>
+  <div class="hdr px" style="position:relative;z-index:20"><div class="wordmark">milkyway</div><div class="hdr-meta">나의 은하들</div></div>
+
+  <div class="sh px" style="margin-top:10px"><h2 style="font-size:22px">읽는 책마다,<br>하나의 은하가 자라요</h2></div>
+
+  <!-- 대표 은하 (지금 읽는 책) -->
+  <div class="gh" style="margin-top:16px">
+    <div class="cluster a" style="width:170px;height:170px;left:120px;top:-30px"></div>
+    <div class="cluster c" style="width:90px;height:90px;left:230px;top:70px"></div>
+    <div class="scrim"></div>
+    <div class="c">
+      <div class="lab">지금 읽는 은하 · 38%</div>
+      <div class="t">물고기는 존재하지 않는다</div>
+      <div class="a">룰루 밀러</div>
+      <div class="st"><span>내 별 <b>24</b></span><span>함께 <b>312</b></span><span>이어진 사유 <b>57</b></span></div>
+    </div>
+  </div>
+
+  <!-- 은하 그리드 (다른 책들) -->
+  <div class="sec">
+    <div class="grid">
+      <div class="gc"><div class="cluster b" style="width:110px;height:110px;left:20px;top:-10px"></div><div class="scrim"></div>
+        <div class="c"><div class="t">정확한 사랑의 실험</div><div class="m">내 별 18 · 함께 90</div></div></div>
+      <div class="gc"><div class="cluster a" style="width:110px;height:110px;left:40px;top:0"></div><div class="scrim"></div>
+        <div class="c"><div class="t">잃어버린 시간을<br>찾아서</div><div class="m">내 별 41 · 함께 22</div></div></div>
+      <div class="gc"><div class="cluster c" style="width:100px;height:100px;left:30px;top:10px"></div><div class="scrim"></div>
+        <div class="c"><div class="t">존재와 시간</div><div class="m">내 별 9 · 함께 140</div></div></div>
+      <div class="gc" style="display:flex;align-items:center;justify-content:center;border-style:dashed;border-color:var(--line-2)">
+        <div style="text-align:center;color:var(--dim)"><div style="font-size:26px;font-weight:300;color:var(--faint)">+</div><div style="font-size:12px;margin-top:4px">새 은하 열기</div></div></div>
+    </div>
+  </div>
+
+  <div class="sec tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+</div></body></html>

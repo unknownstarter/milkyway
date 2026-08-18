@@ -6,6 +6,8 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/nickname_screen.dart';
 import '../../features/onboarding/presentation/screens/profile_image_screen.dart';
+import '../../features/onboarding/presentation/screens/genre_screen.dart';
+import '../../features/discovery/presentation/screens/onboarding_book_saving_screen.dart';
 import '../../features/onboarding/presentation/screens/book_intro_screen.dart';
 import '../../features/books/presentation/screens/book_search_screen.dart';
 import '../../features/books/presentation/screens/book_shelf_screen.dart';
@@ -95,6 +97,48 @@ final router = GoRouter(
                 parent: animation,
                 curve: Curves.easeInOut,
               ),
+            ),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingGenre,
+      name: AppRoutes.onboardingGenreName,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const GenreScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final isReverse =
+              secondaryAnimation.status == AnimationStatus.forward ||
+                  secondaryAnimation.value > 0;
+          final begin = isReverse ? Offset.zero : const Offset(1.0, 0.0);
+          final end = isReverse ? const Offset(1.0, 0.0) : Offset.zero;
+          return SlideTransition(
+            position: Tween<Offset>(begin: begin, end: end).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+            ),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingBookSaving,
+      name: AppRoutes.onboardingBookSavingName,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const OnboardingBookSavingScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final isReverse =
+              secondaryAnimation.status == AnimationStatus.forward ||
+                  secondaryAnimation.value > 0;
+          final begin = isReverse ? Offset.zero : const Offset(1.0, 0.0);
+          final end = isReverse ? const Offset(1.0, 0.0) : Offset.zero;
+          return SlideTransition(
+            position: Tween<Offset>(begin: begin, end: end).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeInOut),
             ),
             child: child,
           );
