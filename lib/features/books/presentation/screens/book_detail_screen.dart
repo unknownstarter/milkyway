@@ -13,6 +13,8 @@ import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../home/presentation/providers/selected_book_provider.dart';
 import '../../../memos/presentation/widgets/memo_list_view.dart';
+import '../../../lyra/presentation/providers/lyra_providers.dart';
+import '../../../lyra/presentation/widgets/lyra_question_card.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -33,6 +35,7 @@ class BookDetailScreen extends ConsumerStatefulWidget {
 class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   BookStatus? _selectedStatus;
   bool _isDescriptionExpanded = false;
+  bool _lyraQuestionShownLogged = false;
 
   @override
   void initState() {
@@ -144,6 +147,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
               const SizedBox(
                   height: 32), // 피그마: 상태 버튼 끝(3006) ~ 책 소개 타이틀(3038) = 32px
 
+              // Lyra 물음 카드 (있을 때만 노출, 섹션 격리)
+              _buildLyraQuestion(book),
+
               // 책 소개 섹션
               if (book.description != null && book.description!.isNotEmpty)
                 _buildBookDescription(book),
@@ -188,6 +194,35 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Lyra 물음 카드. 물음이 있을 때만 노출되고, 실패/없음이면 화면에 아무 영향 없음.
+  Widget _buildLyraQuestion(Book book) {
+    final questionAsync = ref.watch(bookQuestionProvider(book.id));
+    return questionAsync.maybeWhen(
+      data: (q) {
+        if (q == null) return const SizedBox.shrink();
+        // 노출 계측 1회
+        if (!_lyraQuestionShownLogged) {
+          _lyraQuestionShownLogged = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref
+                .read(analyticsProvider)
+                .logEvent('lyra_question_shown', {'book_id': book.id});
+          });
+        }
+        return Column(
+          children: [
+            LyraQuestionCard(
+              question: q.question,
+              onAnswer: () => _addMemo(book, lyraQuestion: q.question),
+            ),
+            const SizedBox(height: 32),
+          ],
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
     );
   }
 
@@ -607,10 +642,13 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     }
   }
 
-  void _addMemo(Book book) {
+  void _addMemo(Book book, {String? lyraQuestion}) {
     context.pushNamed(
       AppRoutes.memoCreateName,
-      queryParameters: {'bookId': book.id},
+      queryParameters: {
+        'bookId': book.id,
+        if (lyraQuestion != null) 'lyraQuestion': lyraQuestion,
+      },
     );
   }
 

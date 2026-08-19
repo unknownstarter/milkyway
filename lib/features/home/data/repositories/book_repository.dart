@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../../../memos/domain/models/memo.dart';
+import 'dart:async';
 import 'dart:developer';
 
 class BookRepository {
@@ -137,11 +138,28 @@ class BookRepository {
           .select()
           .single();
 
-      return Book.fromJson(response);
+      final book = Book.fromJson(response);
+      // 신규 책 등록 직후 Lyra 물음 생성 트리거 (비차단, 실패해도 무시).
+      unawaited(_triggerLyraQuestion(book.id));
+      return book;
     } catch (e, stackTrace) {
       print('Error creating book: $e');
       print('Stack trace: $stackTrace');
       rethrow;
+    }
+  }
+
+  /// 신규 책에 대한 Lyra 물음 생성을 Edge Function에 요청한다(fire-and-forget).
+  /// 사용자 JWT로 호출되며 함수 내부에서 단일 book_id 생성만 허용된다.
+  /// 생성은 수 초 걸리므로 첫 진입에는 없을 수 있고 다음 방문에 노출된다.
+  Future<void> _triggerLyraQuestion(String bookId) async {
+    try {
+      await _client.functions.invoke(
+        'lyra-question',
+        body: {'book_id': bookId},
+      );
+    } catch (e) {
+      log('Lyra 물음 트리거 실패(무시): $e', name: 'BookRepository');
     }
   }
 
