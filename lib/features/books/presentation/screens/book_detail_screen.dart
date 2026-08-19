@@ -12,9 +12,13 @@ import '../../../home/presentation/providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../home/presentation/providers/selected_book_provider.dart';
-import '../../../memos/presentation/widgets/memo_list_view.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/segment_filter.dart';
+import '../../../../core/presentation/widgets/design/memo_card.dart';
+import '../../../memos/domain/models/memo.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -36,6 +40,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   BookStatus? _selectedStatus;
   bool _isDescriptionExpanded = false;
   bool _lyraQuestionShownLogged = false;
+  int _memoSegment = 0; // 0 = 함께(공개), 1 = 내 메모
 
   @override
   void initState() {
@@ -515,33 +520,92 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Widget _buildMemosSection(Book book) {
+    final async = _memoSegment == 0
+        ? ref.watch(publicBookMemosProvider(book.id))
+        : ref.watch(bookMemosProvider(book.id));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('이 책의 메모', style: AppTypography.title),
+        ),
+        const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-            child: const Text(
-              '책 메모',
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Pretendard',
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-                height: 28 / 20,
-              ),
-            ),
+          child: SegmentFilter(
+            segments: const ['함께', '내 메모'],
+            selectedIndex: _memoSegment,
+            onChanged: (i) => setState(() => _memoSegment = i),
           ),
         ),
-        const SizedBox(
-            height: 20), // 피그마: 책 메모 타이틀 끝(3383) ~ 메모 필터(3403) = 20px
-        // MemoListView 컴포넌트 사용 (필터 버튼 포함)
-        MemoListView(
-          bookId: book.id,
-          showFilterButtons: true,
+        const SizedBox(height: 16),
+        async.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: CircularProgressIndicator(
+                  color: AppColors.textSecondary, strokeWidth: 2),
+            ),
+          ),
+          error: (_, __) => _memoSectionMessage('메모를 불러오지 못했어요'),
+          data: (memos) {
+            if (memos.isEmpty) {
+              return _memoSectionMessage(
+                  _memoSegment == 0 ? '아직 공개된 메모가 없어요' : '아직 남긴 메모가 없어요');
+            }
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  for (final m in memos) ...[
+                    _memoCard(m),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              ),
+            );
+          },
         ),
       ],
+    );
+  }
+
+  Widget _memoCard(Memo m) {
+    final edited = m.updatedAt != null && m.updatedAt!.isAfter(m.createdAt);
+    final date = edited ? m.updatedAt! : m.createdAt;
+    return MemoCard(
+      content: m.content,
+      authorName: m.userNickname ?? '밀키웨이',
+      authorImageUrl: m.userAvatarUrl,
+      dateText: _relativeDate(date),
+      edited: edited,
+      showMineTag: _memoSegment == 1,
+      page: m.page,
+      onTap: () => context.pushNamed(AppRoutes.memoDetailName,
+          pathParameters: {'id': m.id}),
+    );
+  }
+
+  static String _relativeDate(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return '방금';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    final mm = dt.month.toString().padLeft(2, '0');
+    final dd = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}.$mm.$dd';
+  }
+
+  Widget _memoSectionMessage(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: Text(text,
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textSecondary)),
+      ),
     );
   }
 

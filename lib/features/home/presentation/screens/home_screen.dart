@@ -79,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _header(),
               const SizedBox(height: 6),
               _stories(books),
+              if (books.isEmpty) _emptyWelcome(),
               _lyraHighlight(books),
               const SizedBox(height: 34),
               _discoverySection(books),
@@ -101,6 +102,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           letterSpacing: -0.5,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+
+  /// 담은 책이 없을 때(콜드 스타트) 환영 + 담기 유도.
+  Widget _emptyWelcome() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('마음이 가는 책 한 권부터', style: AppTypography.heading),
+          const SizedBox(height: 8),
+          Text('담으면 Lyra가 물음을 건네요\n아래 사람들이 담은 책도 둘러보세요',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
+          const SizedBox(height: 14),
+          GestureDetector(
+            onTap: _openSearch,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.search, size: 16, color: AppColors.accentGreen),
+                const SizedBox(width: 6),
+                Text('책 담으러 가기',
+                    style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.accentGreen,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
