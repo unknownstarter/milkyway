@@ -3,19 +3,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/app_routes.dart';
 import 'package:image_picker/image_picker.dart';
-import '../providers/memo_form_provider.dart';
-import '../../../books/presentation/providers/user_books_provider.dart';
+import 'dart:io';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../home/domain/models/book.dart';
+import '../../../books/presentation/providers/user_books_provider.dart';
+import '../providers/memo_form_provider.dart';
 import '../../domain/models/memo_visibility.dart';
-import '../widgets/memo_visibility_toggle.dart';
-import '../widgets/memo_content_input.dart';
-import '../widgets/memo_page_input.dart';
-import '../widgets/memo_image_selector.dart';
 import '../../utils/memo_image_uploader.dart';
 import '../../utils/memo_error_handler.dart';
 
+/// 메모 작성 = 상단바(취소/메모/저장) + 책 칩 + (Lyra 물음) + 큰 에디터 + 하단 툴바(쪽/이미지/공개).
+/// 승인 목업 memo-create-plain / memo-create 기준.
 class MemoCreateScreen extends ConsumerStatefulWidget {
   final String? bookId;
   final String? bookTitle;
@@ -38,7 +40,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
   String? _selectedImagePath;
   bool _isLoading = false;
   String? _selectedBookId;
-  bool _isPublic = true; // 공개/비공개 토글 상태 (기본값: 공개)
+  bool _isPublic = true;
 
   @override
   void initState() {
@@ -48,13 +50,6 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     ref.read(analyticsProvider).logScreenView('memo_create_screen');
   }
 
-  // 필수값이 모두 채워졌는지 확인
-  bool get _isFormValid {
-    return _selectedBookId != null && 
-           _selectedBookId!.isNotEmpty &&
-           _contentController.text.trim().isNotEmpty;
-  }
-
   @override
   void dispose() {
     _contentController.dispose();
@@ -62,165 +57,234 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     super.dispose();
   }
 
+  bool get _isFormValid =>
+      _selectedBookId != null &&
+      _selectedBookId!.isNotEmpty &&
+      _contentController.text.trim().isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
+    final books = ref.watch(userBooksProvider).asData?.value ?? const <Book>[];
+    Book? selected;
+    for (final b in books) {
+      if (b.id == _selectedBookId) {
+        selected = b;
+        break;
+      }
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
+      backgroundColor: AppColors.bgPrimary,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
+        backgroundColor: AppColors.bgPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.goNamed(AppRoutes.homeName);
-            }
-          },
-        ),
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '메모 작성',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Pretendard',
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-              height: 28 / 20,
-            ),
-          ),
-        ),
         centerTitle: true,
+        automaticallyImplyLeading: false,
+        leadingWidth: 72,
+        leading: TextButton(
+          onPressed: _isLoading ? null : _close,
+          child: Text('취소',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textSecondary, fontSize: 15)),
+        ),
+        title: const Text('메모', style: AppTypography.subtitle),
+        actions: [
+          _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          color: AppColors.accentGreen, strokeWidth: 2),
+                    ),
+                  ),
+                )
+              : TextButton(
+                  onPressed: _isFormValid ? _saveMemo : null,
+                  child: Text('저장',
+                      style: TextStyle(
+                        fontFamily: AppTypography.fontFamily,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: _isFormValid
+                            ? AppColors.accentGreen
+                            : AppColors.textTertiary,
+                      )),
+                ),
+        ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Lyra 물음 컨텍스트 (물음에서 진입했을 때만)
-            if (widget.lyraQuestion != null) ...[
-              _buildLyraQuestionBanner(widget.lyraQuestion!),
-              const SizedBox(height: 20),
-            ],
-
-            // 책 선택
-            _buildBookSelector(),
-            const SizedBox(height: 20),
-
-                // 메모 공개 선택 (토글)
-                MemoVisibilityToggle(
-                  value: _isPublic,
-                  onChanged: (value) {
-                    setState(() {
-                      _isPublic = value;
-                    });
-                  },
-                ),
-            const SizedBox(height: 20),
-
-            // 메모 내용
-                MemoContentInput(controller: _contentController),
-                const SizedBox(height: 20),
-
-                // 페이지 입력
-                MemoPageInput(controller: _pageController),
-            const SizedBox(height: 20),
-
-            // 이미지 선택
-                MemoImageSelector(
-                  imagePath: _selectedImagePath,
-                  onSelectImage: _selectImage,
-                  onRemoveImage: _removeImage,
-                ),
-                SizedBox(
-                  height: 50 + 20 + 20 + MediaQuery.of(context).padding.bottom + 20, // 버튼 높이 + 상하 패딩 + SafeArea + 여유 공간
-                ),
-              ],
-            ),
-          ),
-          // 하단 고정 저장하기 버튼 (책 상세의 메모하기와 동일한 스타일)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              top: false,
-              bottom: false, // SafeArea를 false로 하여 하단까지 확장
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 불투명 배경 (181818 색상으로 버튼 뒤와 아래 영역 모두 가리기)
-                  Container(
-                    color: const Color(0xFF181818),
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      top: 20,
-                      bottom: 20,
-                    ),
-                    child: _buildSaveButton(),
-                  ),
-                  // 하단 영역까지 181818로 가리기
-                  Container(
-                    color: const Color(0xFF181818),
-                    height: MediaQuery.of(context).padding.bottom,
-                  ),
+            const SizedBox(height: 6),
+            _bookChip(selected, books),
+            if (widget.lyraQuestion != null) _lyraBlock(widget.lyraQuestion!),
+            Expanded(child: _editor()),
+            if (_selectedImagePath != null) _imagePreview(),
+            _toolbar(),
           ],
         ),
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildLyraQuestionBanner(String question) {
-    const accent = Color(0xFF48FF00);
+  void _close() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(AppRoutes.homeName);
+    }
+  }
+
+  Widget _bookChip(Book? selected, List<Book> books) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      child: GestureDetector(
+        onTap: _isLoading ? null : () => _pickBook(books),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 14,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: (selected?.coverUrl != null &&
+                        selected!.coverUrl!.isNotEmpty)
+                    ? Image.network(selected.coverUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox())
+                    : const SizedBox(),
+              ),
+              const SizedBox(width: 7),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: Text(
+                  selected?.title ?? '책 선택',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: selected != null
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down,
+                  size: 16, color: AppColors.textTertiary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _lyraBlock(String question) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: AppColors.accentGreen.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accent.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              SizedBox(
+            children: [
+              Container(
                 width: 6,
                 height: 6,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-                ),
+                decoration: const BoxDecoration(
+                    color: AppColors.accentGreen, shape: BoxShape.circle),
               ),
-              SizedBox(width: 8),
-              Text(
-                'Lyra의 물음',
-                style: TextStyle(
-                  color: accent,
-                  fontFamily: 'Pretendard',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              const SizedBox(width: 7),
+              Text('Lyra의 물음에 답하는 중',
+                  style: AppTypography.caption.copyWith(
+                      color: AppColors.accentGreen, fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            question,
-            style: const TextStyle(
-              color: Color(0xFFECECEC),
-              fontFamily: 'Pretendard',
-              fontSize: 15,
-              height: 1.6,
+          Text(question,
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textPrimary, height: 1.6)),
+        ],
+      ),
+    );
+  }
+
+  Widget _editor() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      child: TextField(
+        controller: _contentController,
+        expands: true,
+        maxLines: null,
+        minLines: null,
+        textAlignVertical: TextAlignVertical.top,
+        cursorColor: AppColors.accentGreen,
+        style: AppTypography.body
+            .copyWith(fontSize: 17, color: AppColors.textPrimary, height: 1.7),
+        decoration: InputDecoration(
+          isCollapsed: true,
+          border: InputBorder.none,
+          hintText: '오늘 읽은 문장, 그 문장이 남긴 생각을 적어보세요',
+          hintStyle: AppTypography.body.copyWith(
+              fontSize: 17, color: AppColors.textTertiary, height: 1.7),
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePreview() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(
+              File(_selectedImagePath!),
+              width: 84,
+              height: 84,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 84,
+                height: 84,
+                color: AppColors.surface,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: _removeImage,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                    color: Colors.black54, shape: BoxShape.circle),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -228,114 +292,176 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     );
   }
 
-  Widget _buildBookSelector() {
-    final booksAsync = ref.watch(userBooksProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '책 선택',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Pretendard',
-            height: 28 / 20,
-          ),
-        ),
-        const SizedBox(height: 8),
-        booksAsync.when(
-          data: (books) => _buildBookDropdown(books),
-          loading: () =>
-              const CircularProgressIndicator(color: Color(0xFFECECEC)),
-          error: (error, stack) => Text(
-            '책 목록을 불러올 수 없습니다: $error',
-            style: const TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBookDropdown(List<dynamic> books) {
+  Widget _toolbar() {
     return Container(
-      width: double.infinity,
-      height: 62,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF646464)),
+      padding: EdgeInsets.fromLTRB(
+          20, 12, 20, 14 + MediaQuery.of(context).padding.bottom),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedBookId,
-          isExpanded: true,
-          style: const TextStyle(
-            color: Colors.white,
-            fontFamily: 'Pretendard',
-            fontSize: 16,
-          ),
-          dropdownColor: const Color(0xFF1A1A1A),
-          hint: _selectedBookId == null
-              ? const Text(
-                  '어떤 책을 읽고 있나요?',
-                  style: TextStyle(
-                    color: Color(0xFF838383),
-                    fontFamily: 'Pretendard',
-                    fontSize: 16,
-                  ),
-                )
-              : null,
-          items: books.map((book) {
-            return DropdownMenuItem<String>(
-              value: book.id,
-              child: Text(book.title, overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedBookId = value;
-            });
-          },
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.white,
-            size: 24,
-          ),
-          menuMaxHeight: 400, // 드롭다운 최대 높이 설정
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    final isEnabled = _isFormValid && !_isLoading;
-    
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        color: isEnabled ? const Color(0xFFDEDEDE) : const Color(0xFF838383),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isEnabled ? _saveMemo : null,
-          borderRadius: BorderRadius.circular(20),
-          child: Center(
-            child: Text(
-              '저장하기',
-              style: TextStyle(
-                color: isEnabled ? Colors.black : Colors.white,
-                fontFamily: 'Pretendard',
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                height: 24 / 16,
+      child: Row(
+        children: [
+          Text('p ',
+              style:
+                  AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+          SizedBox(
+            width: 44,
+            child: TextField(
+              controller: _pageController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textAlign: TextAlign.center,
+              cursorColor: AppColors.accentGreen,
+              style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                border: InputBorder.none,
+                hintText: '쪽',
+                hintStyle:
+                    AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
               ),
             ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: _isLoading ? null : _selectImage,
+            icon: const Icon(Icons.image_outlined,
+                size: 22, color: AppColors.textSecondary),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+          const Spacer(),
+          _visibilityToggle(),
+        ],
+      ),
+    );
+  }
+
+  Widget _visibilityToggle() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161616),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: [
+          _visOpt('공개', true),
+          _visOpt('나만 보기', false),
+        ],
+      ),
+    );
+  }
+
+  Widget _visOpt(String label, bool pub) {
+    final on = _isPublic == pub;
+    return GestureDetector(
+      onTap: () => setState(() => _isPublic = pub),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        decoration: BoxDecoration(
+          color: on ? AppColors.accentGreen : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: on ? Colors.black : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _pickBook(List<Book> books) {
+    if (books.isEmpty) {
+      MemoErrorHandler.showErrorSnackBar(context, '먼저 책을 담아주세요');
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgPrimary,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        builder: (context, controller) => Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('어떤 책의 메모인가요', style: AppTypography.title),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.separated(
+                  controller: controller,
+                  itemCount: books.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (_, i) {
+                    final b = books[i];
+                    final on = b.id == _selectedBookId;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedBookId = b.id);
+                        Navigator.pop(context);
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: (b.coverUrl != null && b.coverUrl!.isNotEmpty)
+                                ? Image.network(b.coverUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        const SizedBox())
+                                : const SizedBox(),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(b.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.body.copyWith(
+                                    color: on
+                                        ? AppColors.accentGreen
+                                        : AppColors.textPrimary)),
+                          ),
+                          if (on)
+                            const Icon(Icons.check,
+                                size: 18, color: AppColors.accentGreen),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -347,10 +473,11 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       final picker = ImagePicker();
       final source = await showDialog<ImageSource>(
         context: context,
-        barrierColor: Colors.black.withOpacity(0.5), // 어두운 딤 처리
+        barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A1A),
-          title: const Text('이미지 선택', style: TextStyle(color: Colors.white)),
+          backgroundColor: AppColors.surface,
+          title: const Text('이미지 선택',
+              style: TextStyle(color: Colors.white, fontFamily: 'Pretendard')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -374,70 +501,52 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
 
       if (source != null) {
         try {
-          final image = await picker.pickImage(
-            source: source,
-            imageQuality: 85,
-          );
+          final image = await picker.pickImage(source: source, imageQuality: 85);
           if (image != null) {
-            setState(() {
-              _selectedImagePath = image.path;
-            });
+            setState(() => _selectedImagePath = image.path);
           }
         } on PlatformException catch (e) {
-          if (mounted) {
-            MemoErrorHandler.showError(context, e);
-          }
+          if (mounted) MemoErrorHandler.showError(context, e);
         } catch (e) {
-          if (mounted) {
-            MemoErrorHandler.showError(context, e);
-          }
+          if (mounted) MemoErrorHandler.showError(context, e);
         }
       }
     } catch (e) {
-      if (mounted) {
-        MemoErrorHandler.showError(context, e);
-      }
+      if (mounted) MemoErrorHandler.showError(context, e);
     }
   }
 
-  void _removeImage() {
-    setState(() {
-      _selectedImagePath = null;
-    });
-  }
+  void _removeImage() => setState(() => _selectedImagePath = null);
 
   Future<void> _saveMemo() async {
-    // 필수값 검증 (이미 버튼에서 체크하지만 이중 체크)
     if (!_isFormValid) {
       if (_selectedBookId == null || _selectedBookId!.isEmpty) {
         MemoErrorHandler.showErrorSnackBar(context, '책을 선택해주세요');
         return;
       }
-    if (_contentController.text.trim().isEmpty) {
+      if (_contentController.text.trim().isEmpty) {
         MemoErrorHandler.showErrorSnackBar(context, '메모 내용을 입력해주세요');
-      return;
-    }
+        return;
+      }
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final visibility = _isPublic ? MemoVisibility.public : MemoVisibility.private;
-      
-      // 이미지가 로컬 파일 경로인 경우 Supabase Storage에 업로드
+      final visibility =
+          _isPublic ? MemoVisibility.public : MemoVisibility.private;
+
       String? imageUrl = _selectedImagePath;
       if (MemoImageUploader.isLocalFile(_selectedImagePath)) {
         imageUrl = await MemoImageUploader.uploadImage(_selectedImagePath!);
         if (imageUrl == null) {
           if (mounted) {
             MemoErrorHandler.showErrorSnackBar(context, '이미지 업로드에 실패했습니다');
-      }
+          }
           return;
         }
       }
-      
+
       await ref.read(memoFormProvider(_selectedBookId!).notifier).createMemo(
             bookId: _selectedBookId!,
             content: _contentController.text.trim(),
@@ -458,25 +567,17 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              '메모가 저장되었습니다',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Color(0xFF242424),
+            content: Text('메모가 저장되었습니다',
+                style: TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.surfaceMuted,
           ),
         );
         context.pop();
       }
     } catch (e) {
-      if (mounted) {
-        MemoErrorHandler.showError(context, e);
-      }
+      if (mounted) MemoErrorHandler.showError(context, e);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
