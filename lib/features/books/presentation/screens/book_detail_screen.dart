@@ -572,7 +572,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Widget _memoCard(Memo m) {
-    final edited = m.updatedAt != null && m.updatedAt!.isAfter(m.createdAt);
+    final edited = m.isEdited;
     final date = edited ? m.updatedAt! : m.createdAt;
     return MemoCard(
       content: m.content,

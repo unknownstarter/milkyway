@@ -79,8 +79,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   Widget _content(Memo memo) {
     final currentUser = ref.watch(authProvider).value;
     final isOwner = currentUser?.id == memo.userId;
-    final edited =
-        memo.updatedAt != null && memo.updatedAt!.isAfter(memo.createdAt);
+    final edited = memo.isEdited;
     final date = edited ? memo.updatedAt! : memo.createdAt;
 
     return Scaffold(

@@ -251,6 +251,9 @@ class MemoRepository {
     MemoVisibility visibility = MemoVisibility.private,
   }) async {
     log('Creating memo with imageUrl: $imageUrl, visibility: ${visibility.value}');
+    // created_at/updated_at은 동일 타임스탬프로. (따로 now()를 두 번 부르면 새 메모도
+    // updated_at이 미세하게 늦어 '수정됨'으로 오검출됨)
+    final now = DateTime.now().toIso8601String();
     final response = await _client.from('memos').insert({
       'book_id': bookId,
       'user_id': _client.auth.currentUser!.id,
@@ -258,8 +261,8 @@ class MemoRepository {
       'page': page,
       'image_url': imageUrl,
       'visibility': visibility.value,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'created_at': now,
+      'updated_at': now,
     }).select('id').single();
 
     final memoId = response['id'] as String;

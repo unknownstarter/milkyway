@@ -116,8 +116,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   }
 
   Widget _card(Memo memo) {
-    final edited =
-        memo.updatedAt != null && memo.updatedAt!.isAfter(memo.createdAt);
+    final edited = memo.isEdited;
     final date = edited ? memo.updatedAt! : memo.createdAt;
     return MemoCard(
       content: memo.content,
