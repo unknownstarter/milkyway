@@ -8,6 +8,7 @@ import 'dart:io';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/buttons.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
@@ -90,32 +91,6 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                   .copyWith(color: AppColors.textSecondary, fontSize: 15)),
         ),
         title: const Text('메모', style: AppTypography.subtitle),
-        actions: [
-          _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 20),
-                  child: Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                          color: AppColors.accentGreen, strokeWidth: 2),
-                    ),
-                  ),
-                )
-              : TextButton(
-                  onPressed: _isFormValid ? _saveMemo : null,
-                  child: Text('저장',
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontFamily,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: _isFormValid
-                            ? AppColors.accentGreen
-                            : AppColors.textTertiary,
-                      )),
-                ),
-        ],
       ),
       body: SafeArea(
         child: Column(
@@ -127,6 +102,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
             Expanded(child: _editor()),
             if (_selectedImagePath != null) _imagePreview(),
             _toolbar(),
+            _saveBar(),
           ],
         ),
       ),
@@ -241,7 +217,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         maxLines: null,
         minLines: null,
         textAlignVertical: TextAlignVertical.top,
-        cursorColor: AppColors.accentGreen,
+        cursorColor: Colors.white,
         style: AppTypography.body
             .copyWith(fontSize: 17, color: AppColors.textPrimary, height: 1.7),
         decoration: InputDecoration(
@@ -292,10 +268,20 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     );
   }
 
+  Widget _saveBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      child: PrimaryButton(
+        label: '저장',
+        loading: _isLoading,
+        onPressed: _isFormValid ? _saveMemo : null,
+      ),
+    );
+  }
+
   Widget _toolbar() {
     return Container(
-      padding: EdgeInsets.fromLTRB(
-          20, 12, 20, 14 + MediaQuery.of(context).padding.bottom),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.divider)),
       ),
@@ -311,7 +297,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textAlign: TextAlign.center,
-              cursorColor: AppColors.accentGreen,
+              cursorColor: Colors.white,
               style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textPrimary, fontWeight: FontWeight.w600),
               decoration: InputDecoration(

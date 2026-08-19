@@ -8,6 +8,7 @@ import 'dart:io';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/buttons.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
@@ -143,30 +144,6 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
                 style: AppTypography.bodySmall
                     .copyWith(color: const Color(0xFFE05252), fontSize: 14)),
           ),
-          _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 20, left: 4),
-                  child: Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                          color: AppColors.accentGreen, strokeWidth: 2),
-                    ),
-                  ),
-                )
-              : TextButton(
-                  onPressed: _hasChanges ? _saveMemo : null,
-                  child: Text('저장',
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontFamily,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: _hasChanges
-                            ? AppColors.accentGreen
-                            : AppColors.textTertiary,
-                      )),
-                ),
         ],
       ),
       body: SafeArea(
@@ -178,6 +155,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
             Expanded(child: _editor()),
             if (_selectedImagePath != null) _imagePreview(),
             _toolbar(),
+            _saveBar(),
           ],
         ),
       ),
@@ -237,7 +215,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         maxLines: null,
         minLines: null,
         textAlignVertical: TextAlignVertical.top,
-        cursorColor: AppColors.accentGreen,
+        cursorColor: Colors.white,
         style: AppTypography.body
             .copyWith(fontSize: 17, color: AppColors.textPrimary, height: 1.7),
         decoration: InputDecoration(
@@ -289,10 +267,20 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
   Widget _imgFallback() =>
       Container(width: 84, height: 84, color: AppColors.surface);
 
+  Widget _saveBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      child: PrimaryButton(
+        label: '저장',
+        loading: _isLoading,
+        onPressed: _hasChanges ? _saveMemo : null,
+      ),
+    );
+  }
+
   Widget _toolbar() {
     return Container(
-      padding: EdgeInsets.fromLTRB(
-          20, 12, 20, 14 + MediaQuery.of(context).padding.bottom),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.divider)),
       ),
@@ -308,7 +296,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textAlign: TextAlign.center,
-              cursorColor: AppColors.accentGreen,
+              cursorColor: Colors.white,
               style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textPrimary, fontWeight: FontWeight.w600),
               decoration: InputDecoration(

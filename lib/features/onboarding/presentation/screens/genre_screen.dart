@@ -39,11 +39,6 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
     context.pushNamed(AppRoutes.onboardingBookSavingName);
   }
 
-  void _skip() {
-    ref.read(onboardingGenresProvider.notifier).state = const [];
-    context.pushNamed(AppRoutes.onboardingBookSavingName);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,14 +48,6 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
         centerTitle: true,
         automaticallyImplyLeading: false,
         title: const Text('취향', style: AppTypography.subtitle),
-        actions: [
-          TextButton(
-            onPressed: _skip,
-            child: Text('건너뛰기',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -75,7 +62,7 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
                       style: AppTypography.heading),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    '취향을 알려주면 첫 책을 더 잘 골라드려요\n지금은 건너뛰어도 괜찮아요',
+                    '취향을 알려주면 첫 책을 더 잘 골라드려요\n하나 이상 골라주세요',
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary),
                   ),
@@ -132,25 +119,26 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
   }
 
   Widget _nextButton() {
-    final label = _selected.isEmpty ? '다음' : '${_selected.length}개 고르고 다음';
+    final enabled = _selected.isNotEmpty;
+    final label = enabled ? '${_selected.length}개 고르고 다음' : '한 개 이상 골라주세요';
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: Material(
-        color: AppColors.accentGreen,
+        color: enabled ? AppColors.accentGreen : AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(AppRadius.card),
         child: InkWell(
-          onTap: _goNext,
+          onTap: enabled ? _goNext : null,
           borderRadius: BorderRadius.circular(AppRadius.card),
           child: Center(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: AppTypography.fontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.2,
-                color: Colors.black,
+                color: enabled ? Colors.black : AppColors.textSecondary,
               ),
             ),
           ),
