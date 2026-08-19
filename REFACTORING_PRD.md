@@ -31,40 +31,75 @@
 
 ### 2.1 디자인 시스템
 
-#### 색상 팔레트
-**Primary Colors** (검은색 & 그레이):
-- Black: `#000000`
-- Gray 900-100: `#1A1A1A` ~ `#F5F5F5`
-- White: `#FFFFFF`
+> ⚠️ **2026-05-29 코드 실측 기준 동기화.**
+> 본 절은 더 이상 "이상적 계획"이 아니라 **현재 코드베이스의 실제 사용 토큰**을 기록한다.
+> 진실의 원천: `lib/core/theme/{app_colors, app_typography, app_spacing}.dart`.
+> 토큰을 늘리거나 바꿀 때 이 절을 동시에 갱신할 것.
 
-**Accent Color** (형광 초록 - 로고 색상):
-- Neon Green: `#00FF00`
-- Neon Green Dark: `#00CC00`
-- Neon Green Light: `#66FF66`
+#### 색상 팔레트 — `lib/core/theme/app_colors.dart`
 
-**Semantic Colors** (차분한 톤):
-- Success: `#4CAF50`
-- Warning: `#FF9800`
-- Error: `#F44336`
-- Info: `#2196F3`
+**Background & Surface**
+| 토큰 | Hex | 코드 빈도 | 용도 |
+|---|---|---|---|
+| `bgPrimary` | `#181818` | 51회 | 메인 화면 배경 (`AppTheme.scaffoldBackgroundColor`) |
+| `surface` | `#1A1A1A` | 28회 | 기본 카드 |
+| `surfaceMuted` | `#242424` | 18회 | 스낵바, 보조 패널 |
+| `surfaceElevated` | `#2C2C2C` | 4회 | 도드라진 카드 (collapsed reading section 등) |
 
-**Book Status Colors**:
-- Want to Read: `#64B5F6` (차분한 파랑)
-- Reading: `#FFB74D` (차분한 주황)
-- Completed: `#81C784` (차분한 초록)
+**Text**
+| 토큰 | Hex | 코드 빈도 | 용도 |
+|---|---|---|---|
+| `textPrimary` | `#ECECEC` | 26회 | 본문/주요 텍스트 |
+| `textSecondary` | `#838383` | 41회 (최다) | 저자, 메타, 시간 |
+| `textTertiary` | `#646464` | 13회 | placeholder, disabled |
+| `textBright` | `#DEDEDE` | DEDEDE/DADADA 통합 | 거의 흰색 강조 |
 
-#### 타이포그래피
-- **폰트**: Pretendard (Google Fonts)
-- **Letter Spacing**: -0.01
-- **Line Height**: 
-  - Display/Headline: 1.2-1.3
-  - Body: 1.6
-  - Label: 1.2
+**Accent**
+| 토큰 | Hex | 코드 빈도 | 용도 |
+|---|---|---|---|
+| `accentGreen` | `#48FF00` | 17회 | 브랜드 액센트 — 토글, 강조 라인, 주요 액션 |
+| `accentPurple` | `#4117EB` | 4회 (격리) | **메모 추가 모달 한정**. 새 컴포넌트는 가급적 `accentGreen` 사용 |
 
-#### Spacing & Layout
-- **좌우 패딩**: 20px (고정)
-- **카드 Radius**: 12px (고정)
-- **표준 간격**: 4, 8, 16, 24, 32, 48px
+**Divider**: `divider = #313131` (4회)
+
+> ⚠️ **미구현 영역** — 이전 계획에 있던 다음 컬러군은 **현재 코드에 존재하지 않음**:
+> - Semantic Colors (Success/Warning/Error/Info) — 에러 텍스트는 `Colors.red` (Material 기본) 직접 사용
+> - Book Status Colors (Want to Read/Reading/Completed) — 상태는 텍스트로만 표시
+>
+> 추가가 필요하면 별도 작업으로 토큰 정의 + 적용까지 한꺼번에 진행할 것.
+
+#### 타이포그래피 — `lib/core/theme/app_typography.dart`
+
+**폰트 패밀리**: `Pretendard` (전역 통일, 코드 내 175회 명시)
+
+| 토큰 | Size / Weight | Height | 용도 |
+|---|---|---|---|
+| `display` | 28 / Bold | 1.2 | 최상위 타이틀 |
+| `heading` | 24 / w600 | 1.25 | 화면 메인 헤더 |
+| `title` | 20 / w600 | 1.3 | 섹션 헤딩 (가장 흔함) |
+| `subtitle` | 18 / w600 | 1.3 | 카드 내 강조, 다이얼로그 |
+| `body` | 16 / w400 | 1.5 | 본문 (91회) |
+| `bodyBold` | 16 / w600 | 1.5 | 본문 강조, 버튼 라벨 |
+| `bodySmall` | 14 / w400 | 1.5 | 보조 설명 |
+| `caption` | 12 / w400 | 1.4 | 메타정보 |
+| `label` | 12 / w600 | 1.2 | 배지, 태그 |
+
+> Letter spacing은 토큰에 미반영. 필요한 경우 호출처에서 `.copyWith(letterSpacing: ...)`.
+
+#### Spacing & Layout — `lib/core/theme/app_spacing.dart`
+
+**Spacing scale**: `xs(4) / sm(8) / md(12) / base(16) / lg(20) / xl(24) / xxl(32) / xxxl(40)`
+
+- 화면 좌우 표준 패딩: `AppSpacing.pageHorizontal` = `EdgeInsets.symmetric(horizontal: 20)` (50회)
+
+**Radius scale** — `AppRadius`:
+| 토큰 | 값 | 빈도 | 용도 |
+|---|---|---|---|
+| `cover` | 8 | 23회 | 책 표지 |
+| `card` | 12 | 37회 (최다) | 카드 기본 |
+| `cardLarge` | 16 | 6회 | 큰 카드 |
+| `pill` | 20 | 18회 | 알약 버튼 |
+| `modal` | 24 | 5회 | 모달 시트 |
 
 ### 2.2 디자인 방향
 - **미니멀**: v0 스타일 참고, 깔끔하고 명확

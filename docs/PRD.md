@@ -34,24 +34,52 @@
 
 ## 🎨 디자인 시스템
 
-### 색상 팔레트
-- **주 배경:** #0A0A0A (검정)
-- **카드 배경:** #1A1A1A (다크 그레이)
-- **액센트 컬러:** #48FF00 (형광 초록)
-- **텍스트:** #FFFFFF (흰색)
-- **보조 텍스트:** #9CA3AF (그레이)
+> ⚠️ **2026-05-29 코드 실측 기준 동기화.**
+> 값의 진실은 `lib/core/theme/` 하위의 토큰 파일이며, 본 문서는 그 요약본이다.
+> 토큰과 본 문서가 어긋나면 **토큰을 신뢰**한다.
 
-### 타이포그래피
-- **폰트 패밀리:** Pretendard
-- **제목:** 28px, Bold
-- **부제목:** 18px, SemiBold
-- **본문:** 16px, Regular
-- **캡션:** 14px, Regular
+### 색상 팔레트 — `lib/core/theme/app_colors.dart`
+| 토큰 | 값 | 용도 |
+|---|---|---|
+| `AppColors.bgPrimary` | `#181818` | 메인 화면 배경 (코드 내 51회) |
+| `AppColors.surface` | `#1A1A1A` | 기본 카드 표면 (28회) |
+| `AppColors.surfaceMuted` | `#242424` | 스낵바, 보조 표면 (18회) |
+| `AppColors.surfaceElevated` | `#2C2C2C` | 강조 카드 (4회) |
+| `AppColors.textPrimary` | `#ECECEC` | 본문/주요 텍스트 (26회) |
+| `AppColors.textSecondary` | `#838383` | 보조 텍스트 — 가장 빈번 (41회) |
+| `AppColors.textTertiary` | `#646464` | 흐린 텍스트, placeholder (13회) |
+| `AppColors.textBright` | `#DEDEDE` | 거의 흰색 강조 텍스트 |
+| `AppColors.accentGreen` | `#48FF00` | 브랜드 액센트 — 토글, 액션 강조 (17회) |
+| `AppColors.accentPurple` | `#4117EB` | 메모 추가 모달 한정 보조 액센트 (격리 사용) |
+| `AppColors.divider` | `#313131` | 구분선, 비활성 외곽선 |
 
-### 레이아웃
-- **패딩:** 20px (수평)
-- **카드 반경:** 12px
-- **간격:** 16px, 20px, 32px
+> 에러 텍스트는 현재 `Colors.red` (Material 기본) 직접 사용. semantic 토큰(success/warning/error)은 **미구현**.
+> Book Status별 색상도 **미구현** — 상태 표시는 텍스트로만.
+
+### 타이포그래피 — `lib/core/theme/app_typography.dart`
+폰트 패밀리: **Pretendard** (전역 통일)
+
+| 토큰 | 사이즈 / 굵기 | 용도 |
+|---|---|---|
+| `AppTypography.display` | 28 / Bold | 최상위 타이틀, 로고 fallback |
+| `AppTypography.heading` | 24 / w600 | 화면 메인 헤더 |
+| `AppTypography.title` | 20 / w600 | 섹션 헤딩 (가장 흔함) |
+| `AppTypography.subtitle` | 18 / w600 | 카드 내 강조, 다이얼로그 제목 |
+| `AppTypography.body` | 16 / w400 | 본문 — 가장 빈번 (91회) |
+| `AppTypography.bodyBold` | 16 / w600 | 본문 강조, 버튼 라벨 |
+| `AppTypography.bodySmall` | 14 / w400 | 보조 설명 |
+| `AppTypography.caption` | 12 / w400 | 메타정보, timestamp |
+| `AppTypography.label` | 12 / w600 | 배지, 태그 |
+
+### 레이아웃 — `lib/core/theme/app_spacing.dart`
+| 토큰 | 값 | 비고 |
+|---|---|---|
+| `AppSpacing.lg` / `pageHorizontal` | 20px | 화면 좌우 표준 패딩 (50회) |
+| `AppSpacing.base` | 16px | 기본 간격 |
+| `AppSpacing.sm` / `xs` | 8 / 4 | 미세 간격 |
+| `AppRadius.card` | 12px | 카드 기본 (37회) |
+| `AppRadius.cover` | 8px | 책 표지 (23회) |
+| `AppRadius.pill` | 20px | 알약 버튼 (18회) |
 
 ## 🏗️ 기술 스택
 

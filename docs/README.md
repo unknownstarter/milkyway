@@ -26,24 +26,25 @@
 
 ## 🎨 디자인 시스템
 
-### 색상 팔레트
-- **주 배경:** #0A0A0A (검정)
-- **카드 배경:** #1A1A1A (다크 그레이)
-- **액센트 컬러:** #48FF00 (형광 초록)
-- **텍스트:** #FFFFFF (흰색)
-- **보조 텍스트:** #9CA3AF (그레이)
+> ⚠️ **2026-05-29 코드 실측 기준 동기화.** 진실의 원천은 `lib/core/theme/` 토큰 파일.
+> 본 README는 요약만 담는다. 자세한 토큰 목록과 사용 가이드는 [PRD.md](./PRD.md#-디자인-시스템) 참조.
+
+### 색상 (요약)
+- **메인 배경:** `#181818` (`AppColors.bgPrimary`)
+- **카드 표면:** `#1A1A1A` (`AppColors.surface`)
+- **브랜드 액센트:** `#48FF00` 형광 초록 (`AppColors.accentGreen`)
+- **본문 텍스트:** `#ECECEC` (`AppColors.textPrimary`)
+- **보조 텍스트:** `#838383` (`AppColors.textSecondary`)
 
 ### 타이포그래피
-- **폰트 패밀리:** Pretendard
-- **제목:** 28px, Bold
-- **부제목:** 18px, SemiBold
-- **본문:** 16px, Regular
-- **캡션:** 14px, Regular
+- **폰트 패밀리:** Pretendard (전역)
+- 사이즈 단계: 28 / 24 / 20 / 18 / 16 / 14 / 12
+- 토큰: `AppTypography.{display, heading, title, subtitle, body, bodyBold, bodySmall, caption, label}`
 
 ### 레이아웃
-- **패딩:** 20px (수평)
-- **카드 반경:** 12px
-- **간격:** 16px, 20px, 32px
+- **화면 좌우 패딩:** 20px (`AppSpacing.pageHorizontal`)
+- **카드 반경:** 12px 기본 (`AppRadius.card`), 책 표지 8px, 알약 버튼 20px
+- 간격 스케일: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40
 
 ## 🏗️ 기술 스택
 
