@@ -10,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
 import '../../../../core/presentation/widgets/design/chips.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
@@ -192,19 +193,9 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
         borderRadius: BorderRadius.circular(12),
         child: AspectRatio(
           aspectRatio: 1,
-          child: Image.network(
-            url,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) => progress == null
-                ? child
-                : Container(
-                    color: AppColors.surface,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.textSecondary, strokeWidth: 2),
-                    ),
-                  ),
-            errorBuilder: (_, __, ___) => Container(
+          child: CachedImage(
+            url: url,
+            fallback: Container(
               color: AppColors.surface,
               child: const Center(
                 child: Icon(Icons.image_outlined,
@@ -245,11 +236,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
                 borderRadius: BorderRadius.circular(4),
               ),
               clipBehavior: Clip.antiAlias,
-              child: (coverUrl != null && coverUrl.isNotEmpty)
-                  ? Image.network(coverUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox())
-                  : const SizedBox(),
+              child: CachedImage(url: coverUrl, fallback: const SizedBox()),
             ),
             const SizedBox(width: 12),
             Expanded(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
+import 'cached_image.dart';
 
 /// 원자: 사용자 표식(원형). 이미지 있으면 이미지, 없으면 이니셜.
 /// 규격은 03-COMPONENTS.md: sm 34 / md 40, bg surface, border divider.
@@ -34,12 +35,11 @@ class Avatar extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
       child: hasImage
-          ? Image.network(
-              imageUrl!,
+          ? CachedImage(
+              url: imageUrl,
               width: _d,
               height: _d,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _initialText(),
+              fallback: _initialText(),
             )
           : _initialText(),
     );

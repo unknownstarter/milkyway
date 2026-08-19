@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_typography.dart';
+import 'cached_image.dart';
 
 /// 조합: "다른 사람이 담은 책" 표지 카드(가로 레일). 표지 92x136 + 제목 + 메타.
 class DiscoveryCover extends StatelessWidget {
@@ -45,11 +46,7 @@ class DiscoveryCover extends StatelessWidget {
                 ],
               ),
               clipBehavior: Clip.antiAlias,
-              child: (coverUrl != null && coverUrl!.isNotEmpty)
-                  ? Image.network(coverUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder())
-                  : _placeholder(),
+              child: CachedImage(url: coverUrl, fallback: _placeholder()),
             ),
             const SizedBox(height: 8),
             Text(

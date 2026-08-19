@@ -9,6 +9,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/add_floating_action_button.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
+import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
@@ -16,6 +17,9 @@ import '../../../discovery/data/models/recommended_book.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
+import '../../../memos/domain/models/memo.dart';
+import '../../../memos/presentation/providers/memo_provider.dart';
+import '../../../calendar/domain/calendar_logic.dart';
 
 /// 홈 = 발견 피드. 좋아하는 책 스토리 + 지금 읽는 책 Lyra 물음 + 다른 사람이 담은 책.
 /// (내 서재/책 캐러셀은 '책' 탭으로 이동. N2 '이번 주 함께 읽는 책'은 데이터 준비 후.)
@@ -57,6 +61,163 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         queryParameters: {'bookId': bookId, 'lyraQuestion': question},
       );
 
+  void _openBooksTab() => context.goNamed(AppRoutes.booksName);
+  void _openCalendar() => context.pushNamed(AppRoutes.calendarName);
+
+  /// 최근 공개 메모가 올라온 책(피드에서 책 단위로 중복 제거).
+  Widget _recentMemoBooks() {
+    final memos = ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+    final seen = <String>{};
+    final books = <Memo>[];
+    for (final m in memos) {
+      if (seen.add(m.bookId)) books.add(m);
+      if (books.length >= 10) break;
+    }
+    if (books.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('최근 메모가 올라온 책', style: AppTypography.title),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 192,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: books.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (_, i) {
+              final m = books[i];
+              return DiscoveryCover(
+                title: m.bookTitle,
+                author: (m.books['author'] as String?) ?? '',
+                coverUrl: m.books['cover_url'] as String?,
+                meta: '${_rel(m.createdAt)} 메모',
+                onTap: () => _openBook(m.bookId),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _readPrompt() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BannerBar(
+        emoji: '📖',
+        title: '오늘은 어떤 책을 읽을까',
+        subtitle: '내 서재에서 골라보세요',
+        accent: true,
+        onTap: _openBooksTab,
+      ),
+    );
+  }
+
+  /// 홈 하단 기록 = 이번 주 스트립. 메모 있는 날에 점, 탭하면 캘린더로.
+  Widget _recordStrip() {
+    final memos = ref.watch(allMemosProvider).asData?.value ?? const <Memo>[];
+    final counts = countByDay<Memo>(memos, (m) => m.createdAt);
+    final today = dayKey(DateTime.now());
+    final weekStart = today.subtract(Duration(days: today.weekday % 7));
+    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    return GestureDetector(
+      onTap: _openCalendar,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                const Text('내 기록', style: AppTypography.title),
+                const Spacer(),
+                Text('전체 보기',
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.textSecondary)),
+                const Icon(Icons.chevron_right,
+                    size: 16, color: AppColors.textTertiary),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                for (var i = 0; i < 7; i++)
+                  Expanded(
+                    child: _dayCell(
+                      labels[i],
+                      DateTime(weekStart.year, weekStart.month,
+                          weekStart.day + i),
+                      today,
+                      counts,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dayCell(
+      String label, DateTime day, DateTime today, Map<DateTime, int> counts) {
+    final isToday = dayKey(day) == today;
+    final has = (counts[dayKey(day)] ?? 0) > 0;
+    return Column(
+      children: [
+        Text(label,
+            style: AppTypography.caption.copyWith(
+                color: label == '일'
+                    ? const Color(0xFFA05252)
+                    : AppColors.textTertiary,
+                fontSize: 11)),
+        const SizedBox(height: 8),
+        Container(
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isToday ? Colors.white : null,
+          ),
+          child: Text('${day.day}',
+              style: AppTypography.caption.copyWith(
+                fontSize: 13,
+                color: isToday ? Colors.black : AppColors.textPrimary,
+                fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+              )),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: has ? AppColors.accentGreen : Colors.transparent,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _rel(DateTime dt) {
+    final d = DateTime.now().difference(dt);
+    if (d.inMinutes < 1) return '방금';
+    if (d.inMinutes < 60) return '${d.inMinutes}분 전';
+    if (d.inHours < 24) return '${d.inHours}시간 전';
+    if (d.inDays < 7) return '${d.inDays}일 전';
+    return '${dt.month}.${dt.day}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final booksAsync = ref.watch(homeBooksProvider);
@@ -83,6 +244,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _lyraHighlight(books),
               const SizedBox(height: 34),
               _discoverySection(books),
+              const SizedBox(height: 34),
+              _recentMemoBooks(),
+              const SizedBox(height: 28),
+              _readPrompt(),
+              const SizedBox(height: 34),
+              _recordStrip(),
             ],
           ),
         ),

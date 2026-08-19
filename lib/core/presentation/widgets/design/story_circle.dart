@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
+import 'cached_image.dart';
 
 /// 조합: 홈 상단 "좋아하는 책" 스토리 원(인스타 문법).
 /// ring - active(초록 conic = 새 활동) / seen(회색) / add(+).
@@ -62,13 +63,12 @@ class StoryCircle extends StatelessWidget {
                 child: ring == StoryRing.add
                     ? const Icon(Icons.add,
                         size: 24, color: AppColors.textTertiary)
-                    : (coverUrl != null && coverUrl!.isNotEmpty
-                        ? Image.network(coverUrl!,
-                            fit: BoxFit.cover,
-                            width: 57,
-                            height: 57,
-                            errorBuilder: (_, __, ___) => const SizedBox())
-                        : const SizedBox()),
+                    : CachedImage(
+                        url: coverUrl,
+                        width: 57,
+                        height: 57,
+                        fallback: const SizedBox(),
+                      ),
               ),
             ),
             const SizedBox(height: 7),
