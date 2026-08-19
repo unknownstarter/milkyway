@@ -19,11 +19,13 @@ import '../../utils/memo_error_handler.dart';
 class MemoCreateScreen extends ConsumerStatefulWidget {
   final String? bookId;
   final String? bookTitle;
+  final String? lyraQuestion;
 
   const MemoCreateScreen({
     super.key,
     this.bookId,
     this.bookTitle,
+    this.lyraQuestion,
   });
 
   @override
@@ -100,6 +102,12 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Lyra 물음 컨텍스트 (물음에서 진입했을 때만)
+            if (widget.lyraQuestion != null) ...[
+              _buildLyraQuestionBanner(widget.lyraQuestion!),
+              const SizedBox(height: 20),
+            ],
+
             // 책 선택
             _buildBookSelector(),
             const SizedBox(height: 20),
@@ -164,6 +172,55 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                   ),
           ],
         ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLyraQuestionBanner(String question) {
+    const accent = Color(0xFF48FF00);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              SizedBox(
+                width: 6,
+                height: 6,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Lyra의 물음',
+                style: TextStyle(
+                  color: accent,
+                  fontFamily: 'Pretendard',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            question,
+            style: const TextStyle(
+              color: Color(0xFFECECEC),
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              height: 1.6,
             ),
           ),
         ],
@@ -390,6 +447,13 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
             imageUrl: imageUrl,
             visibility: visibility,
           );
+
+      // Lyra 물음에서 진입해 작성 완료 -> 전환 계측 (N3 핵심 KPI)
+      if (widget.lyraQuestion != null) {
+        ref
+            .read(analyticsProvider)
+            .logEvent('lyra_question_answered', {'book_id': _selectedBookId!});
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
