@@ -9,6 +9,8 @@ class AppRoutes {
   // 온보딩
   static const onboardingNickname = '/onboarding/nickname';
   static const onboardingProfileImage = '/onboarding/profile-image';
+  static const onboardingGenre = '/onboarding/genre';
+  static const onboardingBookSaving = '/onboarding/book-saving';
   static const onboardingBookIntro = '/onboarding/book-intro';
   
   // 메인 앱 (ShellRoute 하위)
@@ -39,6 +41,8 @@ class AppRoutes {
   static const loginName = 'login';
   static const onboardingNicknameName = 'onboarding-nickname';
   static const onboardingProfileImageName = 'onboarding-profile-image';
+  static const onboardingGenreName = 'onboarding-genre';
+  static const onboardingBookSavingName = 'onboarding-book-saving';
   static const onboardingBookIntroName = 'onboarding-book-intro';
   static const homeName = 'home';
   static const booksName = 'books';

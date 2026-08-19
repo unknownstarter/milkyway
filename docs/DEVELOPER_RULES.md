@@ -8,6 +8,21 @@
 
 ## 🎯 핵심 원칙
 
+### 0. 작업 태도 (Claude / 모든 작업자)
+- **시도도 안 해보고 "안 된다"고 단정 금지.** 어떻게든 방법을 찾아 목표를 달성할 것
+- 파일 경로가 텍스트로 들어와도 일단 직접 열어서 내용을 확인할 것
+- 명령이 실패할 것 같아도 일단 한 번 돌려보고 실제 에러를 본 뒤 판단할 것
+- "환경이 부족해서 못 한다"고 추정하기 전에 실제로 환경을 확인할 것
+- 정말 안 되면 그때서야 "X 를 시도했고 Y 때문에 안 됨, 대안은 Z" 형태로 보고
+- 사용자가 같은 지시를 두 번 하게 만들지 말 것
+
+### 0-1. iOS 빌드 절대 금지 (2026-07-01 레슨런)
+**Xcode 26+ 의 scene-based architecture 자동 마이그레이션 절대 수락 금지.** 라이브 OAuth(Google/Apple) / 딥링크 / 푸시 탭 라우팅 전면 마비됨.
+- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 키 추가 금지
+- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택하거나 `didInitializeImplicitFlutterEngine` 안에서 플러그인 등록 금지. 플러그인 등록은 `didFinishLaunchingWithOptions` 에서 `GeneratedPluginRegistrant.register(with: self)` 유지
+- 새 머신/새 Xcode 에서 첫 빌드 후 반드시 `git diff ios/Runner/Info.plist ios/Runner/AppDelegate.swift` 로 자동 변경 여부 확인 + 실제 Google/Apple 로그인 수동 테스트
+- 자세한 원인: `docs/LESSONS_LEARNED.md` 의 "2026-07-01: Xcode 26 자동 마이그레이션 함정"
+
 ### 1. 코드 품질 우선
 - **단순명료한 코드** 작성
 - **복잡한 로직보다는 명확한 코드** 선호

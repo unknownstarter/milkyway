@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;height:844px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;}
+  .nav svg{width:24px;height:24px;stroke:var(--txt);stroke-width:1.8;fill:none;}
+  .nav .t{font-size:16px;font-weight:600;color:var(--white);}
+  .seg{display:flex;gap:8px;justify-content:center;padding:6px 20px 0;}
+  .seg .c{font-size:13px;font-weight:600;color:var(--sec);padding:7px 16px;border-radius:999px;background:var(--surface);border:1px solid #2a2a2a;}
+  .seg .c.on{color:#000;background:var(--white);border-color:var(--white);}
+  .mbar{display:flex;align-items:center;justify-content:center;gap:20px;padding:22px 20px 6px;}
+  .mbar .m{font-size:18px;font-weight:700;color:var(--white);letter-spacing:-.3px;}
+  .mbar svg{width:20px;height:20px;stroke:var(--sec);stroke-width:2;fill:none;}
+  .wd{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 12px 0;}
+  .wd span{text-align:center;font-size:11.5px;color:var(--ter);font-weight:500;}
+  .wd span.sun{color:#a05252;}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 12px 0;}
+  .cell{height:74px;display:flex;flex-direction:column;align-items:center;padding-top:8px;gap:6px;}
+  .cell .n{font-size:13px;color:var(--txt);font-weight:500;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+  .cell.dim .n{color:#3a3a3a;}
+  .cell.today .n{background:var(--white);color:#000;font-weight:700;}
+  .cell.sel .n{border:1.5px solid var(--accent);color:var(--accent);}
+  /* 메모 표시 칩 */
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--accent);
+    background:rgba(72,255,0,.12);border-radius:6px;padding:2px 6px;line-height:1;}
+  .chip .d{width:4px;height:4px;border-radius:50%;background:var(--accent);}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
+  .hint{text-align:center;font-size:12.5px;color:var(--ter);margin-top:16px;letter-spacing:-.1px;}
+</style></head>
+<body><div class="phone">
+  <div class="nav"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span class="t">기록</span><span style="width:24px"></span></div>
+
+  <div class="seg"><span class="c on">메모</span><span class="c">책</span></div>
+
+  <div class="mbar"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span class="m">2026년 8월</span><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+
+  <div class="wd"><span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+
+  <div class="grid">
+    <!-- 1일 = 토요일 가정 -->
+    <div class="cell dim"><span class="n">27</span></div><div class="cell dim"><span class="n">28</span></div>
+    <div class="cell dim"><span class="n">29</span></div><div class="cell dim"><span class="n">30</span></div>
+    <div class="cell dim"><span class="n">31</span></div><div class="cell"><span class="n">1</span></div>
+    <div class="cell"><span class="n">2</span><span class="dot"></span></div>
+
+    <div class="cell"><span class="n">3</span></div><div class="cell"><span class="n">4</span><span class="dot"></span></div>
+    <div class="cell"><span class="n">5</span></div><div class="cell"><span class="n">6</span></div>
+    <div class="cell"><span class="n">7</span><span class="chip"><span class="d"></span>2</span></div><div class="cell"><span class="n">8</span></div>
+    <div class="cell"><span class="n">9</span><span class="dot"></span></div>
+
+    <div class="cell"><span class="n">10</span></div><div class="cell"><span class="n">11</span></div>
+    <div class="cell"><span class="n">12</span><span class="dot"></span></div><div class="cell"><span class="n">13</span></div>
+    <div class="cell"><span class="n">14</span></div><div class="cell sel"><span class="n">15</span><span class="chip"><span class="d"></span>3</span></div>
+    <div class="cell"><span class="n">16</span></div>
+
+    <div class="cell"><span class="n">17</span></div><div class="cell today"><span class="n">18</span></div>
+    <div class="cell"><span class="n">19</span></div><div class="cell"><span class="n">20</span></div>
+    <div class="cell"><span class="n">21</span></div><div class="cell"><span class="n">22</span></div>
+    <div class="cell"><span class="n">23</span></div>
+
+    <div class="cell"><span class="n">24</span></div><div class="cell"><span class="n">25</span></div>
+    <div class="cell"><span class="n">26</span></div><div class="cell"><span class="n">27</span></div>
+    <div class="cell"><span class="n">28</span></div><div class="cell"><span class="n">29</span></div>
+    <div class="cell"><span class="n">30</span></div>
+  </div>
+
+  <div class="hint">날짜를 누르면 그날 남긴 기록을 봐요</div>
+</div></body></html>

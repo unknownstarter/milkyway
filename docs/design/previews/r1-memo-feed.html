@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .hdr{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+  .hdr .t{font-size:24px;font-weight:700;color:var(--white);letter-spacing:-.6px;}
+  .seg{display:flex;gap:8px;}
+  .chip{font-size:12.5px;font-weight:600;color:var(--sec);padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid #2a2a2a;}
+  .chip.on{color:#000;background:var(--white);border-color:var(--white);}
+  /* 메모 남기기 */
+  .compose{margin:6px 20px 0;background:var(--surface);border:1px solid #2a2a2a;border-radius:14px;padding:15px 16px;display:flex;align-items:center;gap:12px;}
+  .compose .av{width:34px;height:34px;border-radius:50%;background:var(--accent);flex:0 0 auto;display:flex;align-items:center;justify-content:center;}
+  .compose .av svg{width:16px;height:16px;stroke:#000;stroke-width:2.4;fill:none;}
+  .compose .p{font-size:15px;color:var(--sec);letter-spacing:-.2px;}
+  /* 메모 카드 컴포넌트 (현 메모 구성 = 본문 + 책/페이지. 가짜 액션 없음) */
+  .card{padding:22px 20px;border-bottom:1px solid #202020;}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
+  .av{width:36px;height:36px;border-radius:50%;flex:0 0 auto;background:linear-gradient(140deg,#2c2c2c,#1e1e1e);
+    border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sec);font-weight:600;}
+  .nm{font-size:13.5px;font-weight:600;color:var(--white);letter-spacing:-.2px;}
+  .mt{font-size:11.5px;color:var(--ter);margin-top:2px;}
+  .tag{margin-left:auto;font-size:11px;font-weight:600;color:var(--sec);background:#232323;border-radius:999px;padding:4px 10px;}
+  .body{font-size:16px;line-height:1.6;color:var(--txt);letter-spacing:-.2px;font-weight:400;word-break:keep-all;}
+  .meta{display:flex;justify-content:space-between;align-items:center;margin-top:13px;}
+  .meta .bk{font-size:13px;color:var(--sec);letter-spacing:-.15px;}
+  .meta .pg{font-size:13px;color:var(--ter);}
+  /* Lyra 물음 카드 (N3) */
+  .lyra{background:linear-gradient(180deg,rgba(72,255,0,.05),transparent 70%);}
+  .lyra .av{background:rgba(72,255,0,.14);border-color:rgba(72,255,0,.4);color:var(--accent);}
+  .lyra .nm{color:var(--accent);}
+  .lyra .tag{color:var(--accent);background:rgba(72,255,0,.10);}
+  .reply{margin-top:15px;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--accent);
+    border:1px solid rgba(72,255,0,.4);border-radius:999px;padding:9px 15px;}
+  .reply svg{width:14px;height:14px;stroke:var(--accent);stroke-width:2;fill:none;}
+  /* 탭 */
+  .tabbar{margin-top:6px;height:80px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;
+    border-top:1px solid #262626;position:relative;background:var(--bg);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:var(--ter);}
+  .tab.on{color:var(--white);}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;}
+</style></head>
+<body><div class="phone">
+  <div class="hdr">
+    <div class="t">메모</div>
+    <div class="seg"><span class="chip on">전체</span><span class="chip">내 메모</span></div>
+  </div>
+
+  <div class="compose">
+    <div class="av"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+    <div class="p">오늘 읽은 문장을 남겨보세요</div>
+  </div>
+
+  <div style="margin-top:8px">
+    <!-- Lyra 물음 (N3) -->
+    <div class="card lyra">
+      <div class="top"><div class="av">L</div><div><div class="nm">Lyra</div><div class="mt">물고기는 존재하지 않는다</div></div><div class="tag">오늘의 물음</div></div>
+      <div class="body">룰루 밀러는 '질서'라는 위안을 끝내 의심했어요. 지금 붙들고 있는 분류 하나는 세상을 이해하기 위한 것인가요, 아니면 견디기 위한 것인가요</div>
+      <div class="reply"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>이 물음에 메모 남기기</div>
+    </div>
+
+    <!-- 타인 메모 (본문 + 책/페이지, 액션 없음) -->
+    <div class="card">
+      <div class="top"><div class="av">서연</div><div><div class="nm">서연</div><div class="mt">2시간 전</div></div></div>
+      <div class="body">분류는 이해가 아니라 통제였다. 나는 세상을 알고 싶었던 게 아니라, 무섭지 않게 만들고 싶었을 뿐이다</div>
+      <div class="meta"><span class="bk">물고기는 존재하지 않는다</span><span class="pg">p142</span></div>
+    </div>
+
+    <!-- 내 메모 -->
+    <div class="card">
+      <div class="top"><div class="av">노아</div><div><div class="nm">노아</div><div class="mt">어제 남긴 메모</div></div><div class="tag">내 메모</div></div>
+      <div class="body">기억은 과거를 그대로 저장하지 않는다. 우리는 떠올릴 때마다 그것을 다시 쓴다</div>
+      <div class="meta"><span class="bk">물고기는 존재하지 않는다</span><span class="pg">p88</span></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>메모</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+  </div>
+</div></body></html>

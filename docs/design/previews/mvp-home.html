@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .px{padding-left:20px;padding-right:20px;}
+  /* 헤더 */
+  .hdr{height:64px;display:flex;align-items:center;padding:0 20px;}
+  .logo{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);}
+  /* 프로필 */
+  .profile{display:flex;align-items:flex-start;gap:20px;padding:22px 20px 0;}
+  .av{width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .av svg{width:20px;height:20px;fill:#000;}
+  .greet{font-size:18px;font-weight:600;color:var(--white);}
+  .greet-sub{font-size:16px;font-weight:400;color:var(--white);margin-top:4px;}
+  /* 섹션 공통 */
+  .sec{margin-top:36px;}
+  .sec-head{padding:0 20px;}
+  .sec-title{font-size:20px;font-weight:600;color:var(--white);letter-spacing:-.2px;}
+  .sec-sub{font-size:13px;font-weight:400;color:var(--sec);margin-top:6px;}
+  /* 가로 레일 */
+  .rail{display:flex;gap:12px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none;}
+  .rail::-webkit-scrollbar{display:none;}
+  /* MVP-2: 다른 은하가 추가한 책 — 표지만 */
+  .disc{flex:0 0 auto;width:96px;}
+  .disc .cv{width:96px;height:142px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .disc .cv .t{position:absolute;left:10px;right:10px;top:12px;font-size:12px;font-weight:700;line-height:1.32;color:#EDEDED;letter-spacing:-.2px;}
+  .disc .cv .a{position:absolute;left:10px;right:10px;bottom:11px;font-size:9.5px;color:rgba(255,255,255,.5);}
+  .disc .meta{font-size:11px;color:var(--ter);margin-top:9px;padding:0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* MVP-3: 최근 사유가 쌓인 책 — 메모 미니 카드 */
+  .mrail{display:flex;gap:12px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none;}
+  .mrail::-webkit-scrollbar{display:none;}
+  .mcard{flex:0 0 auto;width:264px;background:var(--surface);border-radius:12px;padding:16px;}
+  .mcard .q{font-size:14.5px;line-height:1.5;color:var(--txt);font-weight:400;word-break:keep-all;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:44px;}
+  .mcard .bot{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .mcard .bot .cv{width:28px;height:40px;border-radius:4px;flex:0 0 auto;}
+  .mcard .bot .bk{font-size:12px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mcard .bot .who{font-size:11px;color:var(--sec);margin-top:2px;}
+  /* 읽고 있는 책 (기존) */
+  .brail{display:flex;gap:14px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none;}
+  .brail::-webkit-scrollbar{display:none;}
+  .bk{flex:0 0 auto;width:130px;}
+  .bk .cv{width:130px;height:191px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .bk .cv .t{position:absolute;left:12px;right:12px;top:16px;font-size:14px;font-weight:700;line-height:1.35;color:#EDEDED;}
+  .bk .cv .a{position:absolute;left:12px;right:12px;bottom:14px;font-size:10.5px;color:rgba(255,255,255,.5);}
+  .bk .now{font-size:12px;color:var(--accent);font-weight:600;margin-top:10px;padding:0 2px;}
+  .bk .now.off{color:var(--ter);}
+  /* 내 메모 (기존) */
+  .memo{padding:16px 20px 0;}
+  .memo .item{padding-bottom:34px;}
+  .memo .mt{font-size:16px;line-height:1.5;color:var(--white);font-weight:400;}
+  .memo .meta{display:flex;justify-content:space-between;margin-top:14px;}
+  .memo .meta .b{font-size:16px;color:var(--sec);font-weight:300;}
+  .memo .meta .p{font-size:16px;color:var(--sec);font-weight:300;}
+  /* 커버 그라데이션 */
+  .g1{background:linear-gradient(155deg,#3a4a6b,#1b2030);} .g2{background:linear-gradient(155deg,#5b3a44,#251519);}
+  .g3{background:linear-gradient(155deg,#2f5148,#152a24);} .g4{background:linear-gradient(155deg,#544a2c,#251f12);}
+  .g5{background:linear-gradient(155deg,#4a3560,#1e1528);} .g6{background:linear-gradient(155deg,#63483a,#241812);}
+  /* 탭 + FAB */
+  .tabbar{margin-top:30px;height:80px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;
+    border-top:1px solid #262626;position:relative;background:var(--bg);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:var(--ter);}
+  .tab.on{color:var(--white);}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;}
+  .fab{position:absolute;right:20px;top:-28px;width:56px;height:56px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(72,255,0,.32);}
+  .fab svg{width:26px;height:26px;stroke:#000;stroke-width:2.4;fill:none;}
+</style></head>
+<body><div class="phone">
+
+  <div class="hdr"><div class="logo">milkyway</div></div>
+
+  <!-- 프로필 -->
+  <div class="profile">
+    <div class="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" fill="#000"/></svg></div>
+    <div><div class="greet">노아님,</div><div class="greet-sub">오늘은 어떤 책을 보고 계신가요?</div></div>
+  </div>
+
+  <!-- ═══ MVP-2: 다른 은하가 추가했어요 (표지 캐러셀) ═══ -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-title">다른 은하가 추가했어요</div><div class="sec-sub">오늘 새로 도착한 책</div></div>
+    <div class="rail">
+      <div class="disc"><div class="cv g1"><div class="t">우리가 빛의 속도로<br>갈 수 없다면</div><div class="a">김초엽</div></div><div class="meta">방금 · 서연의 은하</div></div>
+      <div class="disc"><div class="cv g2"><div class="t">아주 희미한<br>빛으로도</div><div class="a">최은영</div></div><div class="meta">12분 전 · 준호의 은하</div></div>
+      <div class="disc"><div class="cv g3"><div class="t">급류</div><div class="a">정대건</div></div><div class="meta">1시간 전</div></div>
+      <div class="disc"><div class="cv g4"><div class="t">시대예보</div><div class="a">송길영</div></div><div class="meta">2시간 전</div></div>
+      <div class="disc"><div class="cv g5"><div class="t">이토록 평범한<br>미래</div><div class="a">김연수</div></div><div class="meta">오늘</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ MVP-3: 최근 사유가 쌓인 책 (메모 미니 캐러셀) ═══ -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-title">최근 사유가 쌓인 책</div><div class="sec-sub">다른 은하가 남긴 메모</div></div>
+    <div class="mrail">
+      <div class="mcard">
+        <div class="q">슬픔은 결국, 타인의 고통에 대한 상상력이다. 그 상상이 멈출 때 우리는 잔인해진다.</div>
+        <div class="bot"><div class="cv g2"></div><div><div class="bk">슬픔을 공부하는 슬픔</div><div class="who">서연 · p57</div></div></div>
+      </div>
+      <div class="mcard">
+        <div class="q">우리는 가장 강해서가 아니라, 서로에게 가장 다정해서 살아남았다.</div>
+        <div class="bot"><div class="cv g4"></div><div><div class="bk">다정한 것이 살아남는다</div><div class="who">지민 · p112</div></div></div>
+      </div>
+      <div class="mcard">
+        <div class="q">경계에 서 본 사람만이 양쪽 세계를 안다.</div>
+        <div class="bot"><div class="cv g3"></div><div><div class="bk">물고기는 존재하지 않는다</div><div class="who">준호 · p88</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 읽고 있는 책 (기존) ═══ -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-title">읽고 있는 책</div></div>
+    <div class="brail">
+      <div class="bk"><div class="cv g3"><div class="t">물고기는<br>존재하지 않는다</div><div class="a">룰루 밀러</div></div><div class="now">지금 읽는 중</div></div>
+      <div class="bk"><div class="cv g5"><div class="t">정확한 사랑의<br>실험</div><div class="a">신형철</div></div><div class="now off">·</div></div>
+      <div class="bk"><div class="cv g1"><div class="t">존재와 시간</div><div class="a">마르틴 하이데거</div></div><div class="now off">·</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ 내 메모 (기존) ═══ -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-title">내 메모</div></div>
+    <div class="memo">
+      <div class="item">
+        <div class="mt">습관이란 우리가 매일 반복하는 행동이 아니라, 그 행동이 우리를 어떤 사람으로 빚어내는가에 관한 것이다.</div>
+        <div class="meta"><span class="b">물고기는 존재하지 않는다</span><span class="p">p 42</span></div>
+      </div>
+      <div class="item">
+        <div class="mt">기억은 과거를 그대로 저장하지 않는다. 우리는 떠올릴 때마다 그것을 다시 쓴다.</div>
+        <div class="meta"><span class="b">물고기는 존재하지 않는다</span><span class="p">p 88</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 + FAB -->
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+
+</div></body></html>

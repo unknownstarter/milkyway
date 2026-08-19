@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>
+  .stage{position:relative;padding:0 26px;min-height:600px;display:flex;flex-direction:column;justify-content:center;}
+  .eyebrow{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:1.2px;text-align:center;margin-bottom:34px;}
+  .big{font-family:var(--serif);font-size:33px;font-weight:600;line-height:1.5;letter-spacing:-.5px;color:var(--bright);text-align:center;word-break:keep-all;}
+  .big .mk{color:var(--faint);}
+  .by{text-align:center;font-size:13px;color:var(--dim);margin-top:30px;}
+  .by b{color:var(--text);font-weight:500;}
+  .together{text-align:center;font-size:12.5px;color:var(--dim);margin-top:44px;line-height:1.6;}
+  .together .n{color:var(--bright);font-weight:600;}
+  .lyra{margin:40px 26px 0;padding-left:16px;border-left:1.5px solid rgba(72,255,0,.35);}
+  .lyra .who{font-size:11.5px;font-weight:600;color:var(--accent);margin-bottom:8px;letter-spacing:.3px;}
+  .lyra p{font-size:14px;line-height:1.7;color:var(--text);word-break:keep-all;}
+  .actbar{display:flex;gap:12px;margin:40px 26px 0;}
+  .actbar .b{flex:1;height:50px;border-radius:var(--r-pill);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;}
+  .actbar .b.primary{background:var(--accent);color:#0C0D12;}
+  .actbar .b.ghost{background:var(--surface);border:1px solid var(--line-2);color:var(--text);}
+  .actbar svg{width:17px;height:17px;fill:none;stroke-width:1.9;}
+</style></head>
+<body><div class="phone space">
+  <div class="stars" style="height:100%"></div>
+  <div class="cluster b" style="width:200px;height:200px;left:110px;top:-40px;opacity:.5"></div>
+  <div class="cluster c" style="width:120px;height:120px;left:-30px;top:420px;opacity:.5"></div>
+
+  <div class="hdr px" style="position:relative;z-index:20"><div class="wordmark">milkyway</div><div class="hdr-meta">8월 13일, 밤</div></div>
+
+  <div class="stage">
+    <div class="eyebrow">오늘의 문장</div>
+    <div class="big"><span class="mk">“</span>읽는다는 건, 타인의 사유에<br>내 밤을 포개는 일이다<span class="mk">”</span></div>
+    <div class="by"><b>신형철</b> · 정확한 사랑의 실험</div>
+    <div class="together">이 문장 위에 오늘 밤 <span class="n">37명</span>이 별을 남기고,<br>서로의 사유를 잇고 있어요.</div>
+  </div>
+
+  <div class="lyra">
+    <div class="who">LYRA</div>
+    <p>포갠다는 말이 좋네요. 겹쳐진 밤은 혼자의 밤보다 조금 덜 춥죠. 오늘 노아의 밤은 누구의 문장과 포개졌나요?</p>
+  </div>
+
+  <div class="actbar">
+    <div class="b primary"><svg viewBox="0 0 24 24" stroke="#0C0D12"><path d="M12 3l2.6 5.6 6 .7-4.4 4 1.2 6L12 16.9 6.6 19.3l1.2-6L3.4 9.3l6-.7z"/></svg>별 남기기</div>
+    <div class="b ghost"><svg viewBox="0 0 24 24" stroke="currentColor"><circle cx="7" cy="7" r="2.4"/><circle cx="17" cy="17" r="2.4"/><path d="M9 9l6 6"/></svg>내 문장 잇기</div>
+  </div>
+
+  <div style="height:40px"></div>
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+  </div>
+</div></body></html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;min-height:844px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;}
+  .nav svg{width:24px;height:24px;stroke:var(--txt);stroke-width:1.8;fill:none;}
+  .nav .more{font-size:22px;color:var(--txt);letter-spacing:2px;line-height:1;padding:0 4px;}
+  .who{display:flex;align-items:center;gap:11px;padding:6px 20px 0;}
+  .who .av{width:38px;height:38px;border-radius:50%;flex:0 0 auto;background:linear-gradient(140deg,#2c2c2c,#1e1e1e);
+    border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sec);font-weight:600;}
+  .who .nm{font-size:14px;font-weight:600;color:var(--white);letter-spacing:-.2px;}
+  .who .tag{font-size:11px;font-weight:600;color:var(--sec);background:#232323;border-radius:999px;padding:3px 9px;margin-left:2px;}
+  .who .dt{font-size:11.5px;color:var(--ter);margin-top:3px;display:flex;align-items:center;gap:7px;}
+  .who .dt .edit{color:var(--accent);background:rgba(72,255,0,.10);border-radius:999px;padding:2px 8px;font-weight:600;font-size:10.5px;}
+  .content{padding:26px 20px 0;font-size:19px;line-height:1.75;color:var(--white);letter-spacing:-.2px;word-break:keep-all;}
+  .img{margin:22px 20px 0;border-radius:12px;overflow:hidden;height:210px;background:linear-gradient(155deg,#2f5148,#152a24);}
+  .bookrow{margin:26px 20px 0;background:var(--surface);border:1px solid #262626;border-radius:12px;padding:14px 16px;
+    display:flex;align-items:center;gap:12px;}
+  .bookrow .cv{width:34px;height:50px;border-radius:5px;flex:0 0 auto;background:linear-gradient(155deg,#2f5148,#152a24);}
+  .bookrow .t{font-size:14.5px;font-weight:600;color:var(--white);letter-spacing:-.2px;}
+  .bookrow .m{font-size:12px;color:var(--sec);margin-top:3px;}
+  .bookrow .ch{margin-left:auto;color:var(--ter);font-size:20px;}
+  .vis{margin:18px 20px 0;font-size:12.5px;color:var(--ter);display:flex;align-items:center;gap:6px;}
+  .vis svg{width:14px;height:14px;stroke:var(--ter);stroke-width:1.7;fill:none;}
+</style></head>
+<body><div class="phone">
+  <div class="nav"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span class="more">···</span></div>
+
+  <div class="who">
+    <div class="av">노아</div>
+    <div>
+      <div><span class="nm">노아</span><span class="tag">내 메모</span></div>
+      <div class="dt">8월 15일<span class="edit">수정됨</span></div>
+    </div>
+  </div>
+
+  <div class="content">분류는 내가 세상을 이해하는 방식이라 믿었는데, 오늘 보니 무너지지 않으려고 세워둔 벽에 가까웠다. 벽을 하나 허물 때마다 조금 무섭지만, 그만큼 넓어진다</div>
+
+  <div class="img"></div>
+
+  <div class="bookrow">
+    <div class="cv"></div>
+    <div><div class="t">물고기는 존재하지 않는다</div><div class="m">룰루 밀러 / p88</div></div>
+    <span class="ch">›</span>
+  </div>
+
+  <div class="vis"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>공개 메모</div>
+</div></body></html>

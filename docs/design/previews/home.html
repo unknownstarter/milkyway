@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>Milkyway 홈 — 함께 읽으며 사유가 확장되는 우주</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0C0D12;            /* 우주 — 순검정보다 살짝 푸른 심연 */
+    --surface:#14161C;
+    --surface-2:#1B1E26;
+    --line:#242833;
+    --text-bright:#F2F3F5;  /* 내 사유 = 밝은 별 */
+    --text:#C9CCD3;
+    --text-dim:#7C818C;     /* 곁의 별·메타 = 흐린 별 */
+    --text-faint:#565B66;
+    --accent:#48FF00;       /* Lyra의 빛 — 화면에 단 하나 */
+    --serif:'Noto Serif KR','AppleMyungjo',serif;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;position:relative;overflow:hidden;background:var(--bg);color:var(--text);}
+
+  /* ───────── HERO: 나의 은하 (함께 · 확장) ───────── */
+  .hero{position:relative;height:452px;overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 30% 12%, rgba(72,255,0,.05), transparent 55%),
+      radial-gradient(140% 120% at 78% 30%, rgba(90,130,255,.10), transparent 60%),
+      radial-gradient(160% 140% at 50% 120%, rgba(140,90,255,.08), transparent 55%),
+      var(--bg);
+  }
+  /* 은하수 띠 — 대각선으로 번지는 성운 */
+  .hero::before{content:"";position:absolute;inset:-20% -40%;
+    background:linear-gradient(58deg, transparent 34%, rgba(180,200,255,.05) 46%, rgba(200,190,255,.07) 52%, rgba(180,200,255,.04) 58%, transparent 70%);
+    filter:blur(6px);transform:rotate(-4deg);}
+  .hero-top{position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;z-index:5;}
+  .wordmark{font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--text-bright);}
+  .galaxy-meta{font-size:11.5px;color:var(--text-dim);font-weight:500;letter-spacing:.2px;}
+  .galaxy-meta b{color:var(--text);font-weight:600;}
+
+  .constellation{position:absolute;inset:0;z-index:2;}
+  .scrim{position:absolute;left:0;right:0;bottom:0;height:56%;z-index:3;
+    background:linear-gradient(to top, var(--bg) 6%, rgba(12,13,18,.85) 32%, transparent 100%);}
+  .hero-copy{position:absolute;left:20px;right:20px;bottom:26px;z-index:4;}
+  .hero-kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:.3px;margin-bottom:14px;}
+  .hero-kicker .s{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px 1px rgba(72,255,0,.6);}
+  .hero-h1{font-size:27px;font-weight:700;line-height:1.34;letter-spacing:-.6px;color:var(--text-bright);word-break:keep-all;}
+  .hero-h1 em{font-style:normal;color:#fff;}
+  .hero-sub{font-size:13.5px;color:var(--text-dim);margin-top:12px;line-height:1.5;font-weight:400;}
+
+  /* ───────── FOCAL: 어젯밤 도착한 별 · Lyra ───────── */
+  .lyra{margin:26px 20px 0;}
+  .lyra-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:.2px;margin-bottom:16px;}
+  .lyra-label .s{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px 1px rgba(72,255,0,.55);}
+  .quote{font-family:var(--serif);font-size:22px;line-height:1.55;font-weight:500;color:var(--text-bright);letter-spacing:-.2px;word-break:keep-all;}
+  .quote .mark{color:var(--text-faint);}
+  .quote-src{font-size:12.5px;color:var(--text-dim);margin-top:12px;font-weight:400;}
+  .reply{margin-top:20px;padding-left:16px;border-left:1.5px solid rgba(72,255,0,.35);}
+  .reply p{font-size:14.5px;line-height:1.72;color:var(--text);font-weight:400;word-break:keep-all;}
+  .reply .q{color:var(--text-bright);}
+
+  /* ───────── 함께 읽는 이들 (곁의 별) ───────── */
+  .together{margin:34px 20px 0;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    display:flex;align-items:center;gap:14px;}
+  .orbits{position:relative;width:52px;height:52px;flex:0 0 auto;}
+  .orbits i{position:absolute;border-radius:50%;background:var(--text-dim);}
+  .orbits .me{width:12px;height:12px;background:var(--text-bright);left:20px;top:20px;box-shadow:0 0 8px rgba(255,255,255,.4);}
+  .orbits .o1{width:6px;height:6px;left:2px;top:8px;}
+  .orbits .o2{width:5px;height:5px;left:42px;top:6px;background:var(--text-faint);}
+  .orbits .o3{width:7px;height:7px;left:8px;top:40px;}
+  .orbits .o4{width:5px;height:5px;left:40px;top:38px;background:var(--text-faint);}
+  .together-txt .t{font-size:14.5px;font-weight:600;color:var(--text-bright);letter-spacing:-.2px;}
+  .together-txt .d{font-size:12.5px;color:var(--text-dim);margin-top:4px;line-height:1.45;}
+
+  /* ───────── 지금 읽는 책 (slim) ───────── */
+  .reading{margin:30px 20px 0;display:flex;align-items:center;gap:14px;}
+  .cover{width:44px;height:64px;border-radius:5px;background:linear-gradient(150deg,#26303f,#161a22);flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.5);}
+  .reading-txt{flex:1;min-width:0;}
+  .reading-txt .l{font-size:11.5px;color:var(--text-faint);font-weight:600;letter-spacing:.4px;text-transform:uppercase;}
+  .reading-txt .t{font-size:15px;color:var(--text-bright);font-weight:600;margin-top:3px;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .reading-txt .bar{height:3px;border-radius:2px;background:var(--surface-2);margin-top:9px;overflow:hidden;}
+  .reading-txt .bar span{display:block;height:100%;width:38%;background:#4a4f5a;border-radius:2px;}
+  .reading .pct{font-size:12px;color:var(--text-dim);font-weight:600;flex:0 0 auto;}
+
+  /* ───────── 하단 탭 + 글 남기기 ───────── */
+  .tabbar{margin-top:34px;height:78px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;
+    background:var(--bg);border-top:1px solid var(--line);position:relative;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:var(--text-faint);font-weight:500;}
+  .tab.on{color:var(--text-bright);}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;}
+  .fab{position:absolute;right:20px;top:-26px;width:54px;height:54px;border-radius:50%;
+    background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(72,255,0,.35);}
+  .fab svg{width:24px;height:24px;stroke:#0C0D12;stroke-width:2.4;fill:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ═══ HERO: 나의 은하 ═══ -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="wordmark">milkyway</div>
+      <div class="galaxy-meta">노아의 은하 · <b>별 128</b> · 함께 37</div>
+    </div>
+
+    <!-- 별자리: 내 사유(밝은 별, 이어짐) + 곁의 별(흐림) + 오늘 도착(초록) -->
+    <svg class="constellation" viewBox="0 0 390 452" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#48FF00" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#48FF00" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- 배경 흩뿌린 별 -->
+      <g fill="#fff">
+        <circle cx="34" cy="60" r="1" opacity=".5"/><circle cx="88" cy="40" r="1.2" opacity=".4"/>
+        <circle cx="150" cy="70" r="1" opacity=".35"/><circle cx="250" cy="46" r="1" opacity=".5"/>
+        <circle cx="320" cy="70" r="1.4" opacity=".45"/><circle cx="360" cy="120" r="1" opacity=".4"/>
+        <circle cx="300" cy="150" r="1" opacity=".3"/><circle cx="40" cy="140" r="1.2" opacity=".35"/>
+        <circle cx="200" cy="120" r="1" opacity=".3"/><circle cx="120" cy="150" r="1" opacity=".25"/>
+        <circle cx="350" cy="200" r="1" opacity=".3"/><circle cx="28" cy="210" r="1" opacity=".3"/>
+      </g>
+      <!-- 내 사유 별자리: 이어진 선 -->
+      <g stroke="#8A93A8" stroke-width="1" opacity=".55" fill="none" stroke-linecap="round">
+        <polyline points="72,190 128,150 196,196 168,258"/>
+        <polyline points="196,196 268,158 316,214"/>
+      </g>
+      <!-- 곁의 별 (함께 읽는 이들 — 흐림) -->
+      <g fill="#9AA0AD">
+        <circle cx="104" cy="228" r="2" opacity=".5"/><circle cx="240" cy="250" r="2.2" opacity=".45"/>
+        <circle cx="300" cy="270" r="1.8" opacity=".4"/><circle cx="60" cy="270" r="2" opacity=".4"/>
+      </g>
+      <!-- 내 별 (밝음) -->
+      <g fill="#F2F3F5">
+        <circle cx="72" cy="190" r="2.6"/><circle cx="128" cy="150" r="3"/>
+        <circle cx="196" cy="196" r="2.8"/><circle cx="168" cy="258" r="2.4"/>
+        <circle cx="268" cy="158" r="2.6"/>
+      </g>
+      <!-- 오늘 도착한 별 (Lyra의 빛 — 유일한 초록) -->
+      <circle cx="316" cy="214" r="16" fill="url(#g)"/>
+      <circle cx="316" cy="214" r="3.4" fill="#48FF00"/>
+    </svg>
+
+    <div class="scrim"></div>
+    <div class="hero-copy">
+      <div class="hero-kicker"><span class="s"></span>오늘, 우주가 넓어졌어요</div>
+      <div class="hero-h1">세 개의 별이 새로 이어지고,<br><em>함께 읽는 이의 별</em> 하나가 곁에 떴어요.</div>
+      <div class="hero-sub">사유는 혼자 자라지 않아요. 오늘 밤, 노아의 은하가 조금 더 깊어졌어요.</div>
+    </div>
+  </div>
+
+  <!-- ═══ FOCAL: 어젯밤 도착한 별 · Lyra ═══ -->
+  <div class="lyra">
+    <div class="lyra-label"><span class="s"></span>어젯밤 도착한 별 · Lyra</div>
+    <div class="quote"><span class="mark">“</span>경계에 서 본 사람만이 양쪽 세계를 안다<span class="mark">”</span></div>
+    <div class="quote-src">노아의 문장 · 물고기는 존재하지 않는다, p88</div>
+    <div class="reply">
+      <p>그 문장에 오래 머물렀어요. 경계에 선다는 건 어느 쪽에도 완전히 속하지 못하는 일이기도 하죠. <span class="q">지금 노아는 어느 경계 위에 서 있나요?</span></p>
+    </div>
+  </div>
+
+  <!-- ═══ 함께 읽는 이들 ═══ -->
+  <div class="together">
+    <div class="orbits"><i class="o1"></i><i class="o2"></i><i class="me"></i><i class="o3"></i><i class="o4"></i></div>
+    <div class="together-txt">
+      <div class="t">같은 문장을 지나온 서른일곱 개의 별</div>
+      <div class="d">‘물고기는 존재하지 않는다’를 함께 읽는 이들의 사유가 곁에서 빛나요.</div>
+    </div>
+  </div>
+
+  <!-- ═══ 지금 읽는 책 ═══ -->
+  <div class="reading">
+    <div class="cover"></div>
+    <div class="reading-txt">
+      <div class="l">지금 읽는 중</div>
+      <div class="t">물고기는 존재하지 않는다</div>
+      <div class="bar"><span></span></div>
+    </div>
+    <div class="pct">38%</div>
+  </div>
+
+  <!-- ═══ 하단 탭 ═══ -->
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+    <div class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+
+</div>
+</body>
+</html>
+</content>

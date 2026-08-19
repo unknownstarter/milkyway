@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
@@ -126,9 +127,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
+        backgroundColor: AppColors.bgPrimary,
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
           child: const Text(
@@ -205,7 +206,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
         const Text(
           '밀키웨이의 다른 유저가 볼 수 있는 이름이에요',
           style: TextStyle(
-            color: Color(0xFF838383),
+            color: AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             fontFamily: 'Pretendard',
@@ -245,29 +246,29 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           decoration: InputDecoration(
             hintText: '닉네임을 입력하세요',
             hintStyle: const TextStyle(
-              color: Color(0xFF838383),
+              color: AppColors.textSecondary,
               fontFamily: 'Pretendard',
               fontSize: 16,
               fontWeight: FontWeight.w400,
               height: 22.4 / 16,
             ),
             filled: true,
-            fillColor: const Color(0xFF1A1A1A),
+            fillColor: AppColors.surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 18,
               vertical: 20,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF646464)),
+              borderSide: const BorderSide(color: AppColors.textTertiary),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF646464)),
+              borderSide: const BorderSide(color: AppColors.textTertiary),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF646464)),
+              borderSide: const BorderSide(color: AppColors.textTertiary),
             ),
           ),
         ),
@@ -280,14 +281,14 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                 height: 12,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF838383),
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(width: 4),
               const Text(
                 '확인 중...',
                 style: TextStyle(
-                  color: Color(0xFF838383),
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                   fontFamily: 'Pretendard',
@@ -315,7 +316,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
               const Text(
                 '2 - 20자, 특수문자 사용 불가',
                 style: TextStyle(
-                  color: Color(0xFF838383),
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                   fontFamily: 'Pretendard',
@@ -354,7 +355,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
       width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
-        color: isEnabled ? const Color(0xFFDEDEDE) : const Color(0xFF838383),
+        color: isEnabled ? AppColors.textBright : AppColors.textSecondary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Material(
@@ -365,7 +366,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           child: Center(
             child: _isLoading
                 ? const CircularProgressIndicator(
-                    color: Color(0xFFECECEC),
+                    color: AppColors.textPrimary,
                     strokeWidth: 2,
                   )
                 : MediaQuery(
@@ -417,7 +418,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
               '닉네임 설정 중 오류가 발생했습니다: $e',
               style: const TextStyle(color: Colors.white),
             ),
-            backgroundColor: const Color(0xFF242424),
+            backgroundColor: AppColors.surfaceMuted,
           ),
         );
       }

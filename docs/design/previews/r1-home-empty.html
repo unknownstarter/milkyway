@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;}
+  .hdr{height:60px;display:flex;align-items:center;padding:0 20px;}
+  .logo{font-size:21px;font-weight:800;letter-spacing:-.5px;color:var(--white);}
+  .intro{padding:8px 20px 0;}
+  .intro .g{font-size:22px;font-weight:700;color:var(--white);letter-spacing:-.4px;line-height:1.35;}
+  .intro .s{font-size:14px;color:var(--sec);letter-spacing:-.2px;margin-top:8px;line-height:1.5;}
+  /* 추천 카드 (빈 상태의 주인공) */
+  .rec{margin:22px 20px 0;background:var(--surface);border:1px solid #262626;border-radius:16px;overflow:hidden;}
+  .rec-body{display:flex;gap:16px;padding:18px;}
+  .rec .cv{width:76px;height:112px;border-radius:6px;flex:0 0 auto;box-shadow:0 6px 16px rgba(0,0,0,.5);}
+  .rec .who{font-size:12.5px;color:var(--sec);letter-spacing:-.1px;}
+  .rec .who b{color:var(--txt);font-weight:600;}
+  .rec .quote{font-size:16px;line-height:1.55;color:var(--white);letter-spacing:-.2px;font-weight:500;margin-top:9px;word-break:keep-all;}
+  .rec .bk{font-size:12px;color:var(--ter);margin-top:10px;line-height:1.5;}
+  .rec-lyra{border-top:1px solid #262626;background:linear-gradient(180deg,rgba(72,255,0,.05),transparent);padding:15px 18px;}
+  .rec-lyra .l{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--accent);margin-bottom:8px;}
+  .rec-lyra .l .d{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px rgba(72,255,0,.55);}
+  .rec-lyra .q{font-size:14px;line-height:1.6;color:var(--txt);letter-spacing:-.2px;word-break:keep-all;}
+  .rec-cta{margin:16px 18px 18px;height:48px;border-radius:12px;background:var(--accent);color:#000;
+    display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;letter-spacing:-.2px;}
+  .rec-cta svg{width:17px;height:17px;stroke:#000;stroke-width:2.4;fill:none;}
+  /* 다른 사람이 담은 책 */
+  .sec{margin-top:34px;}
+  .sec-t{font-size:20px;font-weight:600;color:var(--white);letter-spacing:-.4px;padding:0 20px;}
+  .rail{display:flex;gap:12px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none;}
+  .rail::-webkit-scrollbar{display:none;}
+  .disc{flex:0 0 auto;width:92px;}
+  .disc .cv{width:92px;height:136px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .disc .cv .t{position:absolute;left:10px;right:10px;top:11px;font-size:11.5px;font-weight:700;line-height:1.35;color:#EDEDED;letter-spacing:-.2px;}
+  .disc .cv .a{position:absolute;left:10px;right:10px;bottom:10px;font-size:9.5px;color:rgba(255,255,255,.5);}
+  .disc .m{font-size:11px;color:var(--ter);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:clip;}
+  .g1{background:linear-gradient(155deg,#3a4a6b,#1b2030);} .g2{background:linear-gradient(155deg,#5b3a44,#251519);}
+  .g3{background:linear-gradient(155deg,#2f5148,#152a24);} .g4{background:linear-gradient(155deg,#544a2c,#251f12);}
+  .g5{background:linear-gradient(155deg,#4a3560,#1e1528);} .g6{background:linear-gradient(155deg,#63483a,#241812);}
+  .tabbar{margin-top:32px;height:80px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;
+    border-top:1px solid #262626;position:relative;background:var(--bg);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:var(--ter);}
+  .tab.on{color:var(--white);}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;}
+</style></head>
+<body><div class="phone">
+  <div class="hdr"><div class="logo">milkyway</div></div>
+
+  <div class="intro">
+    <div class="g">노아님, 밤이 깊었네요</div>
+    <div class="s">오늘, 누군가는 이 책에 이런 문장을 남겼어요</div>
+  </div>
+
+  <!-- 추천 카드: 최근 공개 메모 있는 책 + Lyra 물음 -->
+  <div class="rec">
+    <div class="rec-body">
+      <div class="cv g3"></div>
+      <div>
+        <div class="who"><b>서연</b>님이 이 책에 남긴 생각</div>
+        <div class="quote">분류는 이해가 아니라 통제였다</div>
+        <div class="bk">물고기는 존재하지 않는다<br>룰루 밀러</div>
+      </div>
+    </div>
+    <div class="rec-lyra">
+      <div class="l"><span class="d"></span>Lyra의 물음</div>
+      <div class="q">지금 붙들고 있는 분류 하나는 세상을 이해하기 위한 것인가요, 아니면 견디기 위한 것인가요</div>
+    </div>
+    <div class="rec-cta"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>저장하고 답하기</div>
+  </div>
+
+  <!-- 다른 사람이 담은 책 -->
+  <div class="sec">
+    <div class="sec-t">다른 사람이 담은 책</div>
+    <div class="rail">
+      <div class="disc"><div class="cv g1"><div class="t">우리가 빛의 속도로 갈 수 없다면</div><div class="a">김초엽</div></div><div class="m">방금 담김</div></div>
+      <div class="disc"><div class="cv g2"><div class="t">아주 희미한 빛으로도</div><div class="a">최은영</div></div><div class="m">12분 전</div></div>
+      <div class="disc"><div class="cv g4"><div class="t">시대예보</div><div class="a">송길영</div></div><div class="m">1시간 전</div></div>
+      <div class="disc"><div class="cv g6"><div class="t">급류</div><div class="a">정대건</div></div><div class="m">오늘</div></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>메모</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+  </div>
+</div></body></html>

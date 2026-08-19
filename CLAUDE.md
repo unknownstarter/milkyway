@@ -16,6 +16,14 @@
 - [ ] 영구 금지 항목(§6.2) 위반 없나
 - [ ] 현재 로드맵 단계 확인 (현재: **v0.1.0+17 준비 중**)
 
+## 작업 태도 (필수)
+**시도도 안 해보고 "안 된다"고 단정 금지.** 어떻게든 방법을 찾아 목표를 달성할 것.
+- 파일 경로가 텍스트로 들어와도 일단 `Read` 툴로 열어볼 것 (이미지든 로그든)
+- 명령이 실패할 것 같아도 일단 한 번 돌려보고 실제 에러를 보고 판단
+- "환경이 부족해서 못 한다"고 추정하기 전에 실제로 환경을 확인할 것
+- 정말 안 되면 그때서야 "X 를 시도했고 Y 때문에 안 됨, 대안은 Z" 형태로 보고
+- 사용자가 같은 지시를 두 번 하게 만들지 말 것
+
 ## 토큰 효율 규칙
 - `find` / `grep`으로 위치부터 찾기. 전체 파일은 필요한 절만 `Read offset/limit`
 - 큰 문서(`docs/CHANGELOG.md` 55KB · `docs/LESSONS_LEARNED.md` 42KB · `docs/DEVELOPER_RULES.md` 50KB)는 섹션 단위로만
@@ -61,8 +69,24 @@ lib/
 
 모두 여성. 각자 개성. 호출 시 해당 직군 관점에서만 답함.
 
+## iOS 빌드 절대 금지 항목 (2026-07-01 레슨런)
+**Xcode 26+ 의 scene-based architecture 자동 마이그레이션 절대 수락 금지.** 라이브 OAuth(Google/Apple) / 딥링크 / 푸시 탭 라우팅 전면 마비됨. 구체적으로:
+- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 키 추가 금지
+- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택하거나 `didInitializeImplicitFlutterEngine` 안에서 플러그인 등록 금지. 플러그인 등록은 `didFinishLaunchingWithOptions` 에서 `GeneratedPluginRegistrant.register(with: self)` 으로 유지
+
+새 머신/새 Xcode 에서 첫 빌드 후 반드시 확인:
+- `git diff ios/Runner/Info.plist ios/Runner/AppDelegate.swift` — 자동 변경 있으면 되돌릴 것
+- 실제로 Google/Apple 로그인 손으로 한 번 눌러볼 것 (빌드 통과해도 런타임에 깨짐)
+
+자세한 원인 / 메커니즘 / 복구 방법: `docs/LESSONS_LEARNED.md` 의 "2026-07-01: Xcode 26 자동 마이그레이션 함정" 절.
+
 ## 영구 금지 (VISION v2 §6.2, §10)
 광고 · affiliate · 인플루언서 초청 · 친구 초대 보상 · 좋아요 카운트 공개 · 팔로우/팔로워 · 댓글 · 푸시 남발(하루 1개 상한) · 인기 메모 랭킹 · "당신" 호칭 · 이모지 · 느낌표(시스템 카피).
+> 소셜 방향 전환 중 — 팔로우/반응 도입 검토(다음 릴리즈). 확정 시 이 목록 갱신. `docs/handoff/2026-08-15-ACTION-PLAN.md` 참조.
+
+## 카피 부호 룰 (AI 금지 기호 — 그로스커리어 §6.5 차용)
+사용자 노출 카피 금지: em dash `—`, en dash `–`, 중간점 `·`, 곡선따옴표 `" " ' '`, 단일 말줄임 `…`. 짧은 구분자는 ` - ` 또는 `/`. 짧은 UI 문구(타이틀/라벨/CTA/안내/빈상태/토스트)는 끝 마침표 금지(문단형 본문은 예외). 카피는 `humanizer` 스킬로 윤문. 상세: `docs/design/01-DESIGN_PHILOSOPHY.md` 원칙 6.
+> **개정 2026-08-17**: 이모지 허용(적당히). Lyra 톤 = 친근·위트(고상/겉멋 폐기). 위 영구금지의 "이모지"는 무효화. 단 AI 금지 기호는 이모지와 무관하게 절대 유지. "당신" 호칭 금지 유지.
 
 ## 자주 쓰는 명령
 - `flutter run` · `flutter test` · `flutter analyze`

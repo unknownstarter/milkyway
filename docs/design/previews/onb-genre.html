@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;min-height:844px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  .top{padding:16px 20px 0;display:flex;align-items:center;gap:6px;}
+  .top .dot{height:3px;border-radius:2px;background:#333;flex:1;}
+  .top .dot.on{background:var(--accent);}
+  .skip{margin-left:auto;font-size:13px;color:var(--sec);font-weight:500;flex:0 0 auto;padding-left:10px;}
+  .head{padding:34px 20px 0;}
+  .head h1{font-size:24px;font-weight:700;color:var(--white);line-height:1.35;letter-spacing:-.5px;}
+  .head p{font-size:15px;color:var(--sec);margin-top:10px;line-height:1.5;letter-spacing:-.2px;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;padding:28px 20px 0;}
+  .chip{font-size:15px;font-weight:500;color:var(--txt);padding:11px 18px;border-radius:999px;
+    background:var(--surface);border:1px solid #2a2a2a;letter-spacing:-.2px;}
+  .chip.on{background:rgba(72,255,0,.12);border-color:var(--accent);color:var(--accent);font-weight:600;}
+  .spacer{flex:1;min-height:20px;}
+  .cta-wrap{padding:16px 20px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 72%,transparent);}
+  .cta{height:54px;border-radius:14px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:800;letter-spacing:-.2px;}
+</style></head>
+<body><div class="phone">
+  <div class="top"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div>
+    <div class="skip">건너뛰기</div></div>
+
+  <div class="head">
+    <h1>어떤 결의 책을<br>좋아하나요</h1>
+    <p>취향을 알려주면 첫 책을 더 잘 골라드려요<br>지금은 건너뛰어도 괜찮아요</p>
+  </div>
+
+  <div class="chips">
+    <span class="chip on">소설</span><span class="chip">시</span><span class="chip on">에세이</span>
+    <span class="chip">인문</span><span class="chip on">철학</span><span class="chip">과학</span>
+    <span class="chip">SF</span><span class="chip">역사</span><span class="chip">예술</span>
+    <span class="chip">심리</span><span class="chip">경제경영</span><span class="chip">자기계발</span>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="cta-wrap"><div class="cta">3개 고르고 다음</div></div>
+</div></body></html>

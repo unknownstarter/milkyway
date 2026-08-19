@@ -4,9 +4,62 @@
 
 이 문서는 Milkyway 앱 개발 과정에서 배운 교훈과 실수를 기록하여 향후 유사한 문제를 방지하고, 더 나은 개발을 위한 가이드로 활용합니다.
 
-**최종 업데이트:** 2026-01-09  
+**최종 업데이트:** 2026-07-01  
 **작성자:** AI Assistant  
 **검토자:** 개발팀
+
+---
+
+## 🚨 2026-07-01: Xcode 26 자동 마이그레이션 함정 — Google/Apple 로그인 전면 마비
+
+### 문제 상황
+- 새 Mac (Xcode 26.5 / iOS 26 시뮬레이터 / macOS Tahoe 26.4) 에서 코드 받아 빌드 후 시뮬레이터로 실행
+- 1차 증상: 검은 화면에서 안 빠져나옴 (별개 이슈: `getInitialMessage()` hang — timeout 으로 해결)
+- 2차 증상: 검은 화면 해결됐는데 **Google 로그인 버튼 누르면 "로그인에 실패했습니다. 다시 시도해 주세요." 토스트만 뜸**
+- 라이브 앱 (App Store / Play Store, `v0.1.0+16`) 은 정상 작동 중 → 코드 회귀 아님
+
+### 원인 분석
+**Xcode 26 가 프로젝트 첫 오픈 시 자동 마이그레이션으로 iOS 26 scene-based architecture 를 적용했음.** 구체적으로:
+
+1. `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 추가 — `UISceneDelegateClassName = FlutterSceneDelegate` 로 scene delegate 지정
+2. `ios/Runner/AppDelegate.swift` 변경 — 클래스에 `FlutterImplicitEngineDelegate` 채택, 플러그인 등록을 `didFinishLaunchingWithOptions` 에서 `didInitializeImplicitFlutterEngine` 으로 이동
+
+**OAuth URL 콜백 흐름이 깨진 메커니즘**:
+```
+[before]  Google 인증 → 리다이렉트(com.googleusercontent.apps...://) 
+          → iOS → AppDelegate.application(_:open:options:) 
+          → google_sign_in 플러그인 처리 → 로그인 성공
+
+[after]   Google 인증 → 리다이렉트(com.googleusercontent.apps...://) 
+          → iOS (scene manifest 보고) → FlutterSceneDelegate.scene(_:openURLContexts:) 
+          → google_sign_in 플러그인 후킹 안 됨 → 콜백 유실 → 로그인 실패
+```
+
+`google_sign_in` 같은 구형 Flutter 플러그인은 `AppDelegate` 의 URL 콜백에 후킹돼 있어서, scene 으로 라우팅이 바뀌면 콜백을 받지 못함. **`sign_in_with_apple` / 딥링크 / `app_links` 등 URL 콜백 의존 플러그인 전부 잠재 영향권**.
+
+### 해결 과정
+1. `AppDelegate.swift` 를 라이브와 동일한 구조로 복원:
+   ```swift
+   @objc class AppDelegate: FlutterAppDelegate {
+     override func application(...) -> Bool {
+       GeneratedPluginRegistrant.register(with: self)
+       return super.application(...)
+     }
+   }
+   ```
+2. `Info.plist` 의 `UIApplicationSceneManifest` 절 완전 삭제
+3. Clean Build → Run → Google 로그인 정상 복구 확인
+
+### 교훈 (반드시 지킬 것)
+1. **Xcode 가 "Modernize Project" / scene manifest 자동 추가 같은 마이그레이션 제안하면 Flutter 프로젝트에선 절대 수락하지 말 것.** Xcode 26+ 가 새 머신/새 Xcode 에서 프로젝트 첫 오픈 시 조용히 자동 적용할 수도 있으므로 `git diff ios/` 로 변경 여부 확인 필수.
+2. **신규 디바이스에서 첫 빌드 후 OAuth/딥링크/푸시탭 기능을 반드시 손으로 테스트** — 빌드 통과해도 URL 콜백은 런타임 시점에만 깨짐. 자동 테스트로는 못 잡음.
+3. **iOS 마이그레이션 변경은 `git diff` 로 무조건 라이브 빌드 머신과 비교 후 커밋.** 자동 변경이라도 검토 없이 통과시키면 라이브 사용자에게 회귀로 직격.
+4. Flutter 가 scene-based 를 공식 지원하는 시점까지는 라이브에서 사용하지 말 것 (현재 `Flutter 3.41.7` 시점 기준 `FlutterSceneDelegate` 가 모든 플러그인의 URL 콜백을 전달하지 않음).
+
+### 참고
+- 영향 받은 파일: `ios/Runner/Info.plist`, `ios/Runner/AppDelegate.swift`
+- 변경 추가된 커밋: `12771a3` (이번 세션에서 추가 커밋으로 되돌림)
+- 관련 플러그인: `google_sign_in ^6.2.1`, `sign_in_with_apple ^7.0.1`, `firebase_messaging`, `app_links`
 
 ---
 

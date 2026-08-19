@@ -357,9 +357,9 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
         }
       }
 
-      // 다음 화면으로 이동
+      // 다음 화면으로 이동 (장르 선택 스텝)
       if (mounted) {
-        context.pushNamed(AppRoutes.onboardingBookIntroName);
+        context.pushNamed(AppRoutes.onboardingGenreName);
       }
     } catch (e) {
       if (mounted) {

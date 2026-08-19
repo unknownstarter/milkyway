@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#181818;--surface:#1F1F1F;--white:#FFFFFF;--txt:#ECECEC;--sec:#838383;--ter:#646464;--accent:#48FF00;
+    --sans:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{background:#000;font-family:var(--sans);}
+  .phone{width:390px;background:var(--bg);color:var(--txt);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  .top{padding:16px 20px 0;display:flex;align-items:center;gap:6px;}
+  .top .dot{height:3px;border-radius:2px;background:#333;flex:1;}
+  .top .dot.on{background:var(--accent);}
+  .skip{margin-left:auto;font-size:13px;color:var(--sec);font-weight:500;flex:0 0 auto;padding-left:10px;}
+  .head{padding:30px 20px 0;}
+  .head h1{font-size:24px;font-weight:700;color:var(--white);line-height:1.35;letter-spacing:-.5px;}
+  .head p{font-size:15px;color:var(--sec);margin-top:10px;line-height:1.5;letter-spacing:-.2px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:24px 20px 0;}
+  .bk{position:relative;}
+  .bk .cv{width:100%;aspect-ratio:3/4;border-radius:10px;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.5);}
+  .bk .cv .t{position:absolute;left:12px;right:12px;top:14px;font-size:14px;font-weight:700;line-height:1.35;color:#EDEDED;letter-spacing:-.2px;}
+  .bk .cv .a{position:absolute;left:12px;right:12px;bottom:12px;font-size:10.5px;color:rgba(255,255,255,.55);}
+  .bk .proof{font-size:12px;color:var(--sec);margin-top:9px;letter-spacing:-.1px;display:flex;align-items:center;gap:5px;}
+  .bk .proof .d{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:0 0 auto;}
+  .bk.sel .cv{outline:2.5px solid var(--accent);outline-offset:2px;}
+  .bk .chk{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:var(--accent);
+    display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+  .bk.sel .chk{display:flex;}
+  .bk .chk svg{width:15px;height:15px;stroke:#000;stroke-width:3;fill:none;}
+  .g1{background:linear-gradient(155deg,#3a4a6b,#1b2030);} .g2{background:linear-gradient(155deg,#5b3a44,#251519);}
+  .g3{background:linear-gradient(155deg,#2f5148,#152a24);} .g4{background:linear-gradient(155deg,#544a2c,#251f12);}
+  .g5{background:linear-gradient(155deg,#4a3560,#1e1528);} .g6{background:linear-gradient(155deg,#63483a,#241812);}
+  .spacer{height:18px;}
+  .cta-wrap{position:sticky;bottom:0;padding:16px 20px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 74%,transparent);}
+  .cta{height:54px;border-radius:14px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:800;letter-spacing:-.2px;}
+</style></head>
+<body><div class="phone">
+  <div class="top"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div>
+    <div class="skip">다음에 담기</div></div>
+
+  <div class="head">
+    <h1>사람들이 지금<br>읽고 있는 책</h1>
+    <p>마음이 가는 책을 톡톡 담아보세요<br>담은 책에 Lyra가 물음을 건네요</p>
+  </div>
+
+  <div class="grid">
+    <div class="bk sel"><div class="cv g3"><div class="t">물고기는 존재하지 않는다</div><div class="a">룰루 밀러</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof"><span class="d"></span>서연님이 메모를 남긴 책</div></div>
+    <div class="bk sel"><div class="cv g1"><div class="t">우리가 빛의 속도로 갈 수 없다면</div><div class="a">김초엽</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof">12명이 담은 책</div></div>
+    <div class="bk"><div class="cv g2"><div class="t">아주 희미한 빛으로도</div><div class="a">최은영</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof"><span class="d"></span>메모 8개가 쌓인 책</div></div>
+    <div class="bk sel"><div class="cv g5"><div class="t">슬픔을 공부하는 슬픔</div><div class="a">신형철</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof">방금 누군가 담았어요</div></div>
+    <div class="bk"><div class="cv g4"><div class="t">시대예보</div><div class="a">송길영</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof">64명이 담은 책</div></div>
+    <div class="bk"><div class="cv g6"><div class="t">다정한 것이 살아남는다</div><div class="a">브라이언 헤어</div></div>
+      <div class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="proof"><span class="d"></span>메모 5개가 쌓인 책</div></div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="cta-wrap"><div class="cta">3권 담고 시작하기</div></div>
+</div></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>
+  .hero{position:relative;height:486px;overflow:hidden;}
+  .hero .scrim{position:absolute;left:0;right:0;bottom:0;height:62%;
+    background:linear-gradient(to top,var(--bg) 5%,rgba(12,13,18,.8) 34%,transparent);z-index:3;}
+  .hero .copy{position:absolute;left:20px;right:20px;bottom:26px;z-index:4;}
+  .kick{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:14px;letter-spacing:.3px;}
+  .kick .s{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px 1px rgba(72,255,0,.6);}
+  .h1{font-size:29px;font-weight:800;line-height:1.32;letter-spacing:-.7px;color:var(--bright);word-break:keep-all;}
+  .h1 em{font-style:normal;color:#fff;}
+  .hsub{font-size:13.5px;color:var(--dim);margin-top:13px;line-height:1.55;}
+  /* 확장 애니메이션 정지 프레임 — 중심에서 번지는 은하단 */
+  .core{position:absolute;left:50%;top:170px;transform:translate(-50%,-50%);z-index:2;}
+</style></head>
+<body><div class="phone space">
+  <div class="hdr px" style="position:absolute;z-index:20;left:0;right:0"><div class="wordmark">milkyway</div><div class="hdr-meta">노아의 은하</div></div>
+
+  <div class="hero">
+    <div class="stars" style="height:100%"></div>
+    <!-- 은하단: 중심에서 바깥으로 번지는 성운 덩어리 (맵 아님) -->
+    <div class="ring" style="width:150px;height:150px;left:120px;top:96px"></div>
+    <div class="ring" style="width:250px;height:250px;left:70px;top:46px;opacity:.6"></div>
+    <div class="ring" style="width:360px;height:360px;left:15px;top:-9px;opacity:.35"></div>
+    <div class="cluster c" style="width:120px;height:120px;left:135px;top:110px"></div>
+    <div class="cluster a" style="width:150px;height:150px;left:40px;top:40px"></div>
+    <div class="cluster b" style="width:130px;height:130px;left:220px;top:70px"></div>
+    <div class="cluster a" style="width:90px;height:90px;left:255px;top:180px;opacity:.7"></div>
+    <div class="cluster b" style="width:80px;height:80px;left:30px;top:200px;opacity:.6"></div>
+    <!-- 오늘 새로 태어난 별 (초록, 확장의 끝) -->
+    <div style="position:absolute;left:296px;top:150px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px 3px rgba(72,255,0,.6);z-index:3"></div>
+
+    <div class="scrim"></div>
+    <div class="copy">
+      <div class="kick"><span class="s"></span>은하단이 확장 중</div>
+      <div class="h1">읽을수록 사유가 번져요.<br>오늘, <em>세 겹 더</em> 넓어졌어요.</div>
+      <div class="hsub">함께 읽는 42명의 사유가 노아의 은하에 닿아 새 별 세 개가 태어났어요.</div>
+    </div>
+  </div>
+
+  <!-- 확장된 사유 (곁의 별) -->
+  <div class="sec">
+    <div class="sh"><h2>곁에서 닿은 사유</h2><span class="more">모두 보기</span></div>
+    <div class="row">
+      <div class="av md">서연</div>
+      <div class="rt"><div class="t" style="font-family:var(--serif);font-weight:500">“물고기라는 말부터 지워야 했다”</div>
+        <div class="m">서연 · 물고기는 존재하지 않는다</div></div>
+      <div class="acts" style="margin:0"><div class="a on"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.4 4 1.2 6L12 16.9 6.6 19.3l1.2-6L3.4 9.3l6-.7z"/></svg>12</div></div>
+    </div>
+    <div class="row">
+      <div class="av md">준호</div>
+      <div class="rt"><div class="t" style="font-family:var(--serif);font-weight:500">“경계에 서 본 사람만이 안다”</div>
+        <div class="m">준호 · 물고기는 존재하지 않는다</div></div>
+      <div class="acts" style="margin:0"><div class="a"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.4 4 1.2 6L12 16.9 6.6 19.3l1.2-6L3.4 9.3l6-.7z"/></svg>5</div></div>
+    </div>
+  </div>
+
+  <div class="sec"><div class="cta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C0D12" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>내 은하에 문장 남기기</div></div>
+
+  <div class="sec tight tabbar">
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.1" fill="currentColor" stroke="none"/><path d="M5 7l7 5 6-6M12 12l6 5"/></svg>은하</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 20a2 2 0 0 1 2-2h11"/></svg>책</div>
+    <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>나</div>
+  </div>
+</div></body></html>

@@ -1,0 +1,7 @@
+-- Placeholder for an existing remote migration that pre-dates CLI-managed history.
+-- This file exists only so `supabase migration repair --status applied` can match
+-- the timestamp 20251027061001 already present in supabase_migrations.schema_migrations.
+-- The real SQL was applied directly to the production database before the project
+-- adopted CLI-tracked migrations. See supabase/migrations/add_*.sql for the
+-- non-timestamped historical SQL files preserved as documentation.
+-- DO NOT add SQL here; this file must remain a no-op.
