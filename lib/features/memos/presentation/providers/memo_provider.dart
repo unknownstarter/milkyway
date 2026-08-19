@@ -185,6 +185,12 @@ final recentMemosProvider = FutureProvider<List<Memo>>((ref) async {
   return repository.getRecentMemos();
 });
 
+/// 전역 공개 메모 피드(메모 탭 '공개' 세그먼트).
+final publicMemoFeedProvider = FutureProvider<List<Memo>>((ref) async {
+  final repository = ref.watch(memoRepositoryProvider);
+  return repository.getPublicFeed();
+});
+
 final createMemoProvider =
     FutureProvider.family<void, ({String bookId, String content, int? page})>(
   (ref, params) async {

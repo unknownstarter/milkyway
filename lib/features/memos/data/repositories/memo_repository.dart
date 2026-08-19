@@ -34,6 +34,29 @@ class MemoRepository {
     return response.map((json) => Memo.fromJson(json)).toList();
   }
 
+  /// 전역 공개 메모 피드(메모 탭 '공개'/홈). RLS상 타 유저 조인 불가라 Edge Function 경유.
+  Future<List<Memo>> getPublicFeed({int limit = 20, int offset = 0}) async {
+    try {
+      final response = await _client.functions.invoke(
+        'get-public-memo-feed',
+        body: {'limit': limit, 'offset': offset},
+      );
+      if (response.status != 200) {
+        log('공개 피드 조회 실패: ${response.data ?? '알 수 없는 오류'}');
+        return [];
+      }
+      final result = response.data as Map<String, dynamic>;
+      final memosData = result['memos'] as List<dynamic>?;
+      if (memosData == null) return [];
+      return memosData
+          .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('공개 피드 조회 중 오류: $e');
+      return [];
+    }
+  }
+
   Future<List<Memo>> getBookMemos(String bookId) async {
     final response = await _client.from('memos').select('''
           *,

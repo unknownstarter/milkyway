@@ -8,6 +8,7 @@ class RecommendedBook {
   final String author;
   final String? coverUrl;
   final int publicMemos;
+  final int savers;
 
   const RecommendedBook({
     required this.id,
@@ -15,6 +16,7 @@ class RecommendedBook {
     required this.author,
     this.coverUrl,
     this.publicMemos = 0,
+    this.savers = 0,
   });
 
   factory RecommendedBook.fromBookRow(
@@ -30,7 +32,22 @@ class RecommendedBook {
     );
   }
 
-  /// 사회적 증거 문구(쉬운 말, 금지 기호 없음).
-  String get proofLabel =>
-      publicMemos > 0 ? '메모 $publicMemos개가 쌓인 책' : '방금 올라온 책';
+  /// get_recommended_books RPC row -> 엔티티(savers 포함).
+  factory RecommendedBook.fromRpcRow(Map<String, dynamic> row) {
+    return RecommendedBook(
+      id: row['id'] as String,
+      title: (row['title'] as String?) ?? '',
+      author: (row['author'] as String?) ?? '',
+      coverUrl: row['cover_url'] as String?,
+      publicMemos: (row['public_memo_count'] as num?)?.toInt() ?? 0,
+      savers: (row['savers_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  /// 사회적 증거 문구(쉬운 말, 금지 기호 없음). savers 우선.
+  String get proofLabel {
+    if (savers > 0) return '$savers명이 담은 책';
+    if (publicMemos > 0) return '메모 $publicMemos개가 쌓인 책';
+    return '방금 올라온 책';
+  }
 }

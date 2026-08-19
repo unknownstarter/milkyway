@@ -1,54 +1,142 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/memo_list.dart';
-import '../../../books/presentation/providers/user_books_provider.dart';
-import '../../../../core/presentation/widgets/add_floating_action_button.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/segment_filter.dart';
+import '../../../../core/presentation/widgets/design/compose_prompt.dart';
+import '../../../../core/presentation/widgets/design/memo_card.dart';
+import '../../domain/models/memo.dart';
+import '../providers/memo_provider.dart';
 
-class MemoListScreen extends ConsumerWidget {
+/// 메모 탭 = 피드. 내 메모 / 공개(타 유저 포함) 세그먼트 + 쓰기 진입.
+/// 컴포넌트(SegmentFilter · ComposePrompt · MemoCard)를 조합.
+class MemoListScreen extends ConsumerStatefulWidget {
   const MemoListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final booksAsync = ref.watch(userBooksProvider);
+  ConsumerState<MemoListScreen> createState() => _MemoListScreenState();
+}
+
+class _MemoListScreenState extends ConsumerState<MemoListScreen> {
+  int _segment = 0; // 0 = 내 메모, 1 = 공개
+
+  void _openCompose() => context.pushNamed(AppRoutes.memoCreateName);
+
+  void _openDetail(String memoId) => context.pushNamed(
+        AppRoutes.memoDetailName,
+        pathParameters: {'id': memoId},
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
-        surfaceTintColor: Colors.transparent, // Material 3에서 스크롤 시 색상 변경 방지
+        backgroundColor: AppColors.bgPrimary,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            'My Memo',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Pretendard',
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-              height: 28 / 20,
+        centerTitle: true,
+        title: const Text('메모', style: AppTypography.title),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.base),
+            child: Column(
+              children: [
+                ComposePrompt(
+                  avatarUrl: user?.userMetadata?['avatar_url'] as String?,
+                  initial: (user?.userMetadata?['nickname'] as String?) ?? '나',
+                  onTap: _openCompose,
+                ),
+                const SizedBox(height: AppSpacing.base),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SegmentFilter(
+                    segments: const ['내 메모', '공개'],
+                    selectedIndex: _segment,
+                    onChanged: (i) => setState(() => _segment = i),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+          Expanded(child: _feed()),
+        ],
       ),
-      // MainShell에서 이미 bottomNavigationBar를 제공하므로 제거
-      body: booksAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFFECECEC)),
-        ),
-        error: (err, stack) => Center(
-          child: SelectableText.rich(
-            TextSpan(text: '에러: $err', style: TextStyle(color: Colors.red)),
-          ),
-        ),
-        data: (books) {
-          // 책이 없어도 MemoList를 표시하여 필터 버튼과 빈 상태 메시지 표시
-          // bookId를 null로 명시적으로 전달하여 모든 메모를 가져옴
-          return const MemoList(bookId: null);
-        },
-      ),
-      floatingActionButton: const AddFloatingActionButton(),
     );
+  }
+
+  Widget _feed() {
+    final async =
+        _segment == 0 ? ref.watch(allMemosProvider) : ref.watch(publicMemoFeedProvider);
+    return async.when(
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+            color: AppColors.textSecondary, strokeWidth: 2),
+      ),
+      error: (_, __) => _message('피드를 불러오지 못했어요'),
+      data: (memos) {
+        if (memos.isEmpty) {
+          return _message(
+              _segment == 0 ? '아직 남긴 메모가 없어요' : '아직 공개된 메모가 없어요');
+        }
+        return RefreshIndicator(
+          color: AppColors.accentGreen,
+          backgroundColor: AppColors.surface,
+          onRefresh: () async {
+            ref.invalidate(_segment == 0 ? allMemosProvider : publicMemoFeedProvider);
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxxl),
+            itemCount: memos.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, i) => _card(memos[i]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _card(Memo memo) {
+    final edited =
+        memo.updatedAt != null && memo.updatedAt!.isAfter(memo.createdAt);
+    final date = edited ? memo.updatedAt! : memo.createdAt;
+    return MemoCard(
+      content: memo.content,
+      authorName: memo.userNickname ?? '밀키웨이',
+      authorImageUrl: memo.userAvatarUrl,
+      dateText: _relativeDate(date),
+      edited: edited,
+      showMineTag: _segment == 1 && memo.userId == Supabase.instance.client.auth.currentUser?.id,
+      bookTitle: memo.bookTitle,
+      page: memo.page,
+      onTap: () => _openDetail(memo.id),
+    );
+  }
+
+  Widget _message(String text) {
+    return Center(
+      child: Text(text,
+          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+    );
+  }
+
+  static String _relativeDate(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return '방금';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}.$m.$d';
   }
 }
