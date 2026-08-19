@@ -42,6 +42,16 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text('메모', style: AppTypography.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today_outlined,
+                size: 20, color: AppColors.textSecondary),
+            onPressed: () => context.pushNamed(
+              AppRoutes.calendarName,
+              queryParameters: {'segment': '0'},
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

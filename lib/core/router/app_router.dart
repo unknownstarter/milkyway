@@ -14,6 +14,7 @@ import '../../features/books/presentation/screens/book_shelf_screen.dart';
 import '../../features/memos/presentation/screens/memo_list_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
+import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_create_screen.dart';
@@ -221,6 +222,18 @@ final router = GoRouter(
       path: AppRoutes.profileEdit,
       name: AppRoutes.profileEditName,
       builder: (context, state) => const ProfileEditScreen(),
+    ),
+
+    // 기록 캘린더 (ShellRoute 밖 - 책/메모 탭 앱바에서 진입)
+    GoRoute(
+      path: AppRoutes.calendar,
+      name: AppRoutes.calendarName,
+      builder: (context, state) {
+        final seg = int.tryParse(
+                state.uri.queryParameters['segment'] ?? '0') ??
+            0;
+        return CalendarScreen(initialSegment: seg);
+      },
     ),
     
     // 메모 상세 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)
