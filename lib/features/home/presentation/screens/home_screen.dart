@@ -13,6 +13,7 @@ import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
+import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../discovery/data/models/recommended_book.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
@@ -51,8 +52,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _openBook(String bookId) =>
+  /// 책 탭. 저장 안 한 책(발견/최근 메모)이면 담기 팝업 → 담고 이동.
+  /// (저장 안 한 책을 바로 상세로 보내면 user_books 0행 -> PGRST116 에러 페이지)
+  Future<void> _openBook(String bookId) async {
+    final repo = ref.read(bookRepositoryProvider);
+    final userId = repo.getCurrentUserId();
+    bool owned = false;
+    try {
+      owned = await repo.hasUserBookConnection(bookId, userId);
+    } catch (_) {}
+    if (!mounted) return;
+    if (owned) {
       context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
+      return;
+    }
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceMuted,
+        title: Text('책 담기',
+            style: AppTypography.subtitle.copyWith(color: Colors.white)),
+        content: Text('이 책을 서재에 담을까요',
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textPrimary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('취소',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('담기',
+                style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.accentGreen,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (save != true || !mounted) return;
+    try {
+      await repo.createUserBookConnection(bookId, userId);
+      ref.read(analyticsProvider)
+          .logEvent('click_save_book_in_home', {'book_id': bookId});
+      ref.invalidate(homeBooksProvider);
+      ref.invalidate(userBooksProvider);
+      ref.invalidate(booksSavedByOthersProvider);
+      if (mounted) {
+        context.pushNamed(AppRoutes.bookDetailName,
+            pathParameters: {'id': bookId});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.surfaceMuted,
+            content: Text('책을 담는 중 문제가 생겼어요',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textPrimary)),
+          ),
+        );
+      }
+    }
+  }
 
   void _openSearch() => context.pushNamed(AppRoutes.bookSearchName);
 

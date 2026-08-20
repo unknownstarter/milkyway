@@ -12,6 +12,7 @@ import '../../../../core/presentation/widgets/design/compose_prompt.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../domain/models/memo.dart';
 import '../providers/memo_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// 메모 탭 = 피드. 내 메모 / 공개(타 유저 포함) 세그먼트 + 쓰기 진입.
 /// 컴포넌트(SegmentFilter · ComposePrompt · MemoCard)를 조합.
@@ -40,7 +41,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
+    final me = ref.watch(authProvider).value;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
@@ -68,8 +69,8 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
             child: Column(
               children: [
                 ComposePrompt(
-                  avatarUrl: user?.userMetadata?['avatar_url'] as String?,
-                  initial: (user?.userMetadata?['nickname'] as String?) ?? '나',
+                  avatarUrl: me?.pictureUrl,
+                  initial: me?.nickname ?? '나',
                   onTap: _openCompose,
                 ),
                 const SizedBox(height: AppSpacing.base),
