@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -23,6 +24,12 @@ class MemoListScreen extends ConsumerStatefulWidget {
 
 class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   int _segment = 0; // 0 = 내 메모, 1 = 공개
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).logScreenView('memo_tab');
+  }
 
   void _openCompose() => context.pushNamed(AppRoutes.memoCreateName);
 

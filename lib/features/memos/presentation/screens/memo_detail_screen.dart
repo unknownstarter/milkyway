@@ -12,6 +12,7 @@ import '../../../../core/presentation/widgets/design/avatar.dart';
 import '../../../../core/presentation/widgets/design/chips.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/providers/analytics_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
 
@@ -33,6 +34,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     super.didChangeDependencies();
     if (!_hasInitialized) {
       _hasInitialized = true;
+      ref.read(analyticsProvider).logScreenView('memo_detail_screen');
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {

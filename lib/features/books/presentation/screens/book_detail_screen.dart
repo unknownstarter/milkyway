@@ -19,6 +19,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../memos/domain/models/memo.dart';
+import '../../../reading/presentation/providers/reading_providers.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -149,8 +150,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
 
               // 상태 버튼
               _buildStatusButtons(book),
-              const SizedBox(
-                  height: 32), // 피그마: 상태 버튼 끝(3006) ~ 책 소개 타이틀(3038) = 32px
+              const SizedBox(height: 16),
+
+              // 오늘 읽음 토글 (메모 없이도 읽기 기록)
+              _buildReadToday(book),
+              const SizedBox(height: 32),
 
               // Lyra 물음 카드 (있을 때만 노출, 섹션 격리)
               _buildLyraQuestion(book),
@@ -202,6 +206,59 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     );
   }
 
+  /// 오늘 읽음 토글. 메모가 없어도 읽기 활동을 캘린더에 남긴다.
+  Widget _buildReadToday(Book book) {
+    final read = ref.watch(readTodayProvider(book.id)).asData?.value ?? false;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: () => _toggleReadToday(book.id, read),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: read
+                ? AppColors.accentGreen.withValues(alpha: 0.12)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: read
+                  ? AppColors.accentGreen.withValues(alpha: 0.5)
+                  : AppColors.divider,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(read ? Icons.check_circle : Icons.check_circle_outline,
+                  size: 20,
+                  color: read ? AppColors.accentGreen : AppColors.textSecondary),
+              const SizedBox(width: 10),
+              Text(read ? '오늘 읽었어요' : '오늘 읽음',
+                  style: AppTypography.bodyBold.copyWith(
+                      color:
+                          read ? AppColors.accentGreen : AppColors.textPrimary,
+                      fontSize: 15)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleReadToday(String bookId, bool currentlyRead) async {
+    final repo = ref.read(readingRepositoryProvider);
+    if (currentlyRead) {
+      await repo.unlogToday(bookId);
+    } else {
+      await repo.logToday(bookId);
+      ref
+          .read(analyticsProvider)
+          .logEvent('click_read_today_in_book_detail', {'book_id': bookId});
+    }
+    ref.invalidate(readTodayProvider(bookId));
+    ref.invalidate(readingLogsProvider);
+  }
+
   /// Lyra 물음 카드. 물음이 있을 때만 노출되고, 실패/없음이면 화면에 아무 영향 없음.
   Widget _buildLyraQuestion(Book book) {
     final questionAsync = ref.watch(bookQuestionProvider(book.id));
@@ -214,7 +271,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref
                 .read(analyticsProvider)
-                .logEvent('lyra_question_shown', {'book_id': book.id});
+                .logEvent('view_lyra_question_in_book_detail', {'book_id': book.id});
           });
         }
         return Column(

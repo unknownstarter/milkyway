@@ -113,7 +113,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: '오늘은 어떤 책을 읽을까',
         subtitle: '내 서재에서 골라보세요',
         accent: true,
-        onTap: _openBooksTab,
+        onTap: () {
+          ref.read(analyticsProvider).logEvent('click_read_prompt_in_home');
+          _openBooksTab();
+        },
       ),
     );
   }
@@ -349,7 +352,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _lyraShownLogged = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(analyticsProvider).logEvent(
-                'lyra_question_shown', {'book_id': reading.id, 'surface': 'home'});
+                'view_lyra_question_in_home', {'book_id': reading.id});
           });
         }
         return Padding(

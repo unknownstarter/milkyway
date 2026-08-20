@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:async';
+import '../../../reading/presentation/providers/reading_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -543,11 +545,15 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
             visibility: visibility,
           );
 
-      // Lyra 물음에서 진입해 작성 완료 -> 전환 계측 (N3 핵심 KPI)
+      // 메모 = 그날 읽음. 읽음 자동 기록(비차단).
+      unawaited(ref.read(readingRepositoryProvider).logToday(_selectedBookId!));
+
+      // 계측 (컨벤션: view_/click_ + _in_screen)
+      final analytics = ref.read(analyticsProvider);
+      analytics.logEvent('click_save_in_memo_create', {'book_id': _selectedBookId!});
       if (widget.lyraQuestion != null) {
-        ref
-            .read(analyticsProvider)
-            .logEvent('lyra_question_answered', {'book_id': _selectedBookId!});
+        analytics.logEvent(
+            'click_save_lyra_answer_in_memo_create', {'book_id': _selectedBookId!});
       }
 
       if (mounted) {

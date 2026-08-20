@@ -6,10 +6,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
-import '../../../home/domain/models/book.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
+import '../../../../core/providers/analytics_provider.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
-import '../../../books/presentation/providers/user_books_provider.dart';
+import '../../../reading/data/models/reading_log.dart';
+import '../../../reading/presentation/providers/reading_providers.dart';
 import '../../domain/calendar_logic.dart';
 
 /// 기록 캘린더. 메모/책 세그먼트 + 월 그리드. 날짜 탭 -> 그날 기록 바텀시트.
@@ -36,6 +38,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _segment = widget.initialSegment;
     final now = DateTime.now();
     _month = DateTime(now.year, now.month, 1);
+    ref.read(analyticsProvider).logScreenView('calendar_screen');
   }
 
   void _shiftMonth(int delta) =>
@@ -44,11 +47,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final memos = ref.watch(allMemosProvider).asData?.value ?? const <Memo>[];
-    final books = ref.watch(userBooksProvider).asData?.value ?? const <Book>[];
+    final logs =
+        ref.watch(readingLogsProvider).asData?.value ?? const <ReadingLog>[];
 
     final counts = _segment == 0
         ? countByDay<Memo>(memos, (m) => m.createdAt)
-        : countByDay<Book>(books, (b) => b.createdAt);
+        : countByDay<ReadingLog>(logs, (l) => l.readOn);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -70,7 +74,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Center(
               child: SegmentFilter(
-                segments: const ['메모', '책'],
+                segments: const ['메모', '읽음'],
                 selectedIndex: _segment,
                 onChanged: (i) => setState(() => _segment = i),
               ),
@@ -279,20 +283,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _bookList(DateTime day, ScrollController controller) {
-    final books = ref.read(userBooksProvider).asData?.value ?? const <Book>[];
-    final items = itemsOnDay<Book>(books, (b) => b.createdAt, day);
-    if (items.isEmpty) return _empty('이 날 담은 책이 없어요');
+    final logs =
+        ref.read(readingLogsProvider).asData?.value ?? const <ReadingLog>[];
+    final items = itemsOnDay<ReadingLog>(logs, (l) => l.readOn, day);
+    if (items.isEmpty) return _empty('이 날 읽은 책이 없어요');
     return ListView.separated(
       controller: controller,
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, i) {
-        final b = items[i];
+        final l = items[i];
         return GestureDetector(
           onTap: () {
             context.pop();
             context.pushNamed(AppRoutes.bookDetailName,
-                pathParameters: {'id': b.id});
+                pathParameters: {'id': l.bookId});
           },
           behavior: HitTestBehavior.opaque,
           child: Row(
@@ -305,29 +310,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: (b.coverUrl != null && b.coverUrl!.isNotEmpty)
-                    ? Image.network(b.coverUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox())
-                    : const SizedBox(),
+                child: CachedImage(url: l.coverUrl, fallback: const SizedBox()),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(b.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodyBold
-                            .copyWith(fontSize: 14, color: AppColors.textBright)),
-                    const SizedBox(height: 3),
-                    Text(b.author,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.caption),
-                  ],
-                ),
+                child: Text(l.bookTitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodyBold
+                        .copyWith(fontSize: 14, color: AppColors.textBright)),
               ),
             ],
           ),
