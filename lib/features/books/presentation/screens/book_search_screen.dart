@@ -346,10 +346,9 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
 
   Future<void> _onBookTap(NaverBook book) async {
     try {
-      await ref.read(analyticsProvider).logButtonClick(
-        'book_select',
-        'book_search_screen',
-      );
+      await ref
+          .read(analyticsProvider)
+          .logEvent('click_book_select_in_book_search');
 
       final repository = ref.read(bookRepositoryProvider);
       final existingBook = await repository.findBookByIsbn(book.isbn);

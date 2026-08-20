@@ -193,10 +193,9 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
     });
 
     try {
-      await ref.read(analyticsProvider).logButtonClick(
-            'start_onboarding',
-            'book_intro_screen',
-          );
+      await ref
+          .read(analyticsProvider)
+          .logEvent('click_start_in_book_intro');
 
       // 온보딩 완료 처리
       await ref.read(authProvider.notifier).updateOnboardingStatus(true);
@@ -205,7 +204,7 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
       await ref.read(authProvider.notifier).getCurrentUser();
 
       // 온보딩 완료 이벤트
-      await ref.read(analyticsProvider).logOnboardingComplete();
+      await ref.read(analyticsProvider).logEvent('click_complete_in_onboarding');
 
       // 책 검색 페이지로 이동 (온보딩 플래그 포함)
       if (mounted) {
@@ -236,7 +235,7 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
       await ref.read(authProvider.notifier).updateOnboardingStatus(true);
 
       // 온보딩 완료 이벤트
-      await ref.read(analyticsProvider).logOnboardingComplete();
+      await ref.read(analyticsProvider).logEvent('click_complete_in_onboarding');
 
       // 홈 화면으로 이동
       if (mounted) {
