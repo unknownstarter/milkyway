@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/recommended_book.dart';
 import '../providers/discovery_providers.dart';
 
@@ -28,16 +29,19 @@ class _OnboardingBookSavingScreenState
     ref.read(analyticsProvider).logScreenView('onboarding_book_saving');
   }
 
-  /// 온보딩 완료 계측 후 홈으로. savedCount는 담은 책 수(0이면 건너뜀).
-  void _complete(int savedCount) {
+  /// 온보딩 완료 처리 후 홈으로. savedCount는 담은 책 수(0이면 건너뜀).
+  /// onboarding_completed=true 를 반드시 세팅해야 재진입 루프에 안 갇힌다.
+  Future<void> _complete(int savedCount) async {
     final analytics = ref.read(analyticsProvider);
-    analytics.logEvent('onboarding_completed', {'added_book_count': savedCount});
+    analytics.logEvent(
+        'click_complete_in_onboarding', {'added_book_count': savedCount});
     if (savedCount > 0) {
-      analytics.logEvent('onboarding_book_added',
+      analytics.logEvent('click_save_book_in_onboarding',
           {'source': 'onboarding_discovery', 'count': savedCount});
     }
     ref.read(bookSelectionProvider.notifier).clear();
-    context.goNamed(AppRoutes.homeName);
+    await ref.read(authProvider.notifier).updateOnboardingStatus(true);
+    if (mounted) context.goNamed(AppRoutes.homeName);
   }
 
   void _openSearch() {

@@ -1,105 +1,269 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/app_routes.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../widgets/feedback_modal.dart';
-import '../widgets/notification_settings_tile.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/presentation/widgets/design/avatar.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/profile_stats_provider.dart';
+import '../../domain/profile_stats.dart';
+import '../widgets/feedback_modal.dart';
+import '../widgets/notification_settings_tile.dart';
 
-class ProfileScreen extends ConsumerWidget {
+/// 나 탭 = 마이페이지. 프로필 + 내 기록(담은 책/남긴 메모/완독) + 메뉴.
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).logScreenView('profile_screen');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(authProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
-        surfaceTintColor: Colors.transparent, // Material 3에서 스크롤 시 색상 변경 방지
+        backgroundColor: AppColors.bgPrimary,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            'Profile',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Pretendard',
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-              height: 28 / 20,
-            ),
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        titleSpacing: 20,
+        title: const Text('나', style: AppTypography.heading),
       ),
-      // MainShell에서 이미 bottomNavigationBar를 제공하므로 제거
       body: userAsync.when(
-        data: (user) => user == null
-            ? const Center(child: Text('로그인이 필요합니다.'))
-            : _ProfileContent(user: user),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFFECECEC)),
+          child: CircularProgressIndicator(
+              color: AppColors.textSecondary, strokeWidth: 2),
         ),
         error: (e, st) => Center(
-          child: SelectableText.rich(
-            TextSpan(
-              text: '에러: $e',
-              style: const TextStyle(color: Colors.red),
+          child: Text('불러오지 못했어요',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
+        ),
+        data: (user) => user == null
+            ? Center(
+                child: Text('로그인이 필요해요',
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.textSecondary)),
+              )
+            : ListView(
+                padding: const EdgeInsets.only(bottom: 40),
+                children: [
+                  _profileRow(context, user),
+                  _statsCard(ref),
+                  _menuGroup(context, ref),
+                  const SizedBox(height: 22),
+                  _footer(),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _profileRow(BuildContext context, dynamic user) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+      child: Row(
+        children: [
+          Avatar(
+            imageUrl: user?.pictureUrl as String?,
+            initial: user?.nickname as String?,
+            size: AvatarSize.md,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user?.nickname ?? '',
+                    style: AppTypography.subtitle
+                        .copyWith(color: Colors.white)),
+                const SizedBox(height: 5),
+                GestureDetector(
+                  onTap: () => context.pushNamed(AppRoutes.profileEditName),
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.edit_outlined,
+                          size: 13, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text('프로필 편집', style: AppTypography.bodySmall),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statsCard(WidgetRef ref) {
+    final async = ref.watch(profileStatsProvider);
+    final stats = async.asData?.value ??
+        const ProfileStats(savedBooks: 0, completedBooks: 0, memos: 0);
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.cardLarge),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('내 기록',
+              style: AppTypography.label
+                  .copyWith(color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _stat('${stats.savedBooks}', '담은 책'),
+              _stat('${stats.memos}', '남긴 메모'),
+              _stat('${stats.completedBooks}', '완독한 책'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stat(String n, String c) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(n,
+              style: const TextStyle(
+                fontFamily: AppTypography.fontFamily,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                height: 1,
+                color: Colors.white,
+              )),
+          const SizedBox(height: 8),
+          Text(c, style: AppTypography.caption),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuGroup(BuildContext context, WidgetRef ref) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.cardLarge),
+        border: Border.all(color: AppColors.divider),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          const NotificationSettingsTile(),
+          const Divider(color: AppColors.divider, height: 1),
+          _menuRow(Icons.chat_bubble_outline, '의견 보내기',
+              () => _showFeedbackModal(context)),
+          const Divider(color: AppColors.divider, height: 1),
+          _menuRow(Icons.description_outlined, '이용약관',
+              () => _launchTerms()),
+          const Divider(color: AppColors.divider, height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline,
+                    size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 14),
+                Text('앱 버전', style: AppTypography.body),
+                const Spacer(),
+                FutureBuilder<String>(
+                  future: _appVersion(),
+                  builder: (context, snap) => Text(
+                    'v${snap.data ?? ''}',
+                    style: AppTypography.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuRow(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: AppColors.textSecondary),
+            const SizedBox(width: 14),
+            Text(label, style: AppTypography.body),
+            const Spacer(),
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.textTertiary),
+          ],
         ),
       ),
     );
   }
-}
 
-class _ProfileContent extends StatelessWidget {
-  final dynamic user;
-  const _ProfileContent({required this.user});
+  Widget _footer() {
+    return Center(
+      child: Text('milkyway',
+          style: AppTypography.caption.copyWith(color: AppColors.textTertiary)),
+    );
+  }
 
   void _showFeedbackModal(BuildContext context) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: '피드백 모달',
-      barrierColor: Colors.black.withOpacity(0.5), // 어두운 딤 처리
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const SizedBox.shrink();
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        
+      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+      transitionBuilder: (context, animation, _, __) {
+        final h = MediaQuery.of(context).size.height;
         return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOut,
-          )),
+          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+              .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Material(
               color: Colors.transparent,
               child: GestureDetector(
-                onTap: () {}, // 바텀시트 내부 탭은 무시
+                onTap: () {},
                 child: Container(
                   width: double.infinity,
-                  height: screenHeight * 0.5,
+                  height: h * 0.5,
                   decoration: const BoxDecoration(
                     color: Colors.black,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   child: Padding(
                     padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
+                        bottom: MediaQuery.of(context).viewInsets.bottom),
                     child: const FeedbackModal(),
                   ),
                 ),
@@ -111,176 +275,15 @@ class _ProfileContent extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // 사용자 정보 섹션
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              border: Border.all(
-                color: Colors.grey.shade800,
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.grey[800],
-                      backgroundImage: NetworkImage(user?.pictureUrl ??
-                          'https://hyjgfgzexvxhgfmqgiqu.supabase.co/storage/v1/object/public/profile_images/default_profile.png'),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.nickname ?? '',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user?.email ?? '',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () {
-                      context.pushNamed(AppRoutes.profileEditName);
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.grey.shade900,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      '수정',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // 메뉴 리스트
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                const NotificationSettingsTile(),
-                Divider(color: Colors.grey.shade800, height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.feedback_outlined,
-                    color: Colors.white,
-                  ),
-                  title: const Text(
-                    '의견 남기기',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                  ),
-                  onTap: () => _showFeedbackModal(context),
-                ),
-                Divider(color: Colors.grey.shade800, height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.description_outlined,
-                    color: Colors.white,
-                  ),
-                  title: const Text(
-                    '서비스 이용 약관',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                  ),
-                  onTap: () => _launchTermsOfService(context),
-                ),
-                Divider(color: Colors.grey.shade800, height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                  ),
-                  title: const Text(
-                    '앱 버전',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                  trailing: FutureBuilder<String>(
-                    future: _getAppVersion(),
-                    builder: (context, snapshot) {
-                      return Text('v${snapshot.data ?? ''}', style: const TextStyle(color: Colors.white));
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _launchTermsOfService(BuildContext context) async {
-    final Uri url = Uri.parse(
+  Future<void> _launchTerms() async {
+    final url = Uri.parse(
         'https://whatisgoingon.notion.site/1838cdd370538097b80bfa3b9a6fe2b7?pvs=4');
     if (!await canLaunchUrl(url)) return;
-    await launchUrl(
-      url,
-      mode: LaunchMode.inAppWebView,
-      webViewConfiguration: const WebViewConfiguration(
-        enableJavaScript: true,
-      ),
-    );
+    await launchUrl(url, mode: LaunchMode.inAppWebView);
   }
 
-  Future<String> _getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    return packageInfo.version;
+  Future<String> _appVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    return info.version;
   }
 }

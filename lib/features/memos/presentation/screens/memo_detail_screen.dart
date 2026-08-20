@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/memo.dart';
-import '../../../../core/presentation/widgets/star_background_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/memo_provider.dart';
 import 'package:go_router/go_router.dart';
+import '../../domain/models/memo.dart';
+import '../../domain/models/memo_visibility.dart';
+import '../providers/memo_provider.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/presentation/widgets/design/avatar.dart';
+import '../../../../core/presentation/widgets/design/chips.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import '../../../../core/providers/analytics_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
 
+/// 메모 상세 = 작성자행 + 본문 + 이미지 + 책행 + 공개표시. 목업 memo-detail 기준.
 class MemoDetailScreen extends ConsumerStatefulWidget {
   final String memoId;
 
-  const MemoDetailScreen({
-    super.key,
-    required this.memoId,
-  });
+  const MemoDetailScreen({super.key, required this.memoId});
 
   @override
   ConsumerState<MemoDetailScreen> createState() => _MemoDetailScreenState();
@@ -28,29 +32,24 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 화면이 처음 나타날 때만 초기화
     if (!_hasInitialized) {
       _hasInitialized = true;
+      ref.read(analyticsProvider).logScreenView('memo_detail_screen');
       return;
     }
-    // 화면이 다시 나타날 때 (예: 수정 화면에서 돌아올 때) provider 갱신
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.invalidate(memoProvider(widget.memoId));
-      }
+      if (mounted) ref.invalidate(memoProvider(widget.memoId));
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final memoAsync = ref.watch(memoProvider(widget.memoId));
-
     return memoAsync.when(
       data: (memo) {
-        // 메모가 삭제되었거나 존재하지 않는 경우 이전 화면으로 이동
         if (memo == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
+            if (mounted) {
               if (context.canPop()) {
                 context.pop();
               } else {
@@ -58,49 +57,44 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
               }
             }
           });
-          return Scaffold(
-            backgroundColor: const Color(0xFF181818),
-            body: const Center(
-              child: CircularProgressIndicator(color: Color(0xFFECECEC)),
-            ),
-          );
+          return const Scaffold(backgroundColor: AppColors.bgPrimary);
         }
-        return _buildContent(context, memo);
+        return _content(memo);
       },
-      loading: () => Scaffold(
-        backgroundColor: const Color(0xFF181818),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFECECEC)),
+      loading: () => const Scaffold(
+        backgroundColor: AppColors.bgPrimary,
+        body: Center(
+          child: CircularProgressIndicator(
+              color: AppColors.textSecondary, strokeWidth: 2),
         ),
       ),
-      error: (error, stack) => Scaffold(
-        backgroundColor: const Color(0xFF181818),
+      error: (e, _) => Scaffold(
+        backgroundColor: AppColors.bgPrimary,
         body: Center(
-          child: Text(
-            '오류: $error',
-            style: const TextStyle(color: Colors.white),
-          ),
+          child: Text('메모를 불러오지 못했어요',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
         ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, Memo memo) {
+  Widget _content(Memo memo) {
     final currentUser = ref.watch(authProvider).value;
     final isOwner = currentUser?.id == memo.userId;
+    final edited = memo.isEdited;
+    final date = edited ? memo.updatedAt! : memo.createdAt;
 
-    return StarBackgroundScaffold(
+    return Scaffold(
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text('메모'),
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.bgPrimary,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: AppColors.textPrimary),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -109,337 +103,237 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
             }
           },
         ),
+        title: const Text('메모', style: AppTypography.subtitle),
         actions: isOwner
             ? [
                 IconButton(
-                  icon: const Icon(Icons.more_horiz),
-                  onPressed: () => _showMemoOptionsBottomSheet(context, memo),
+                  icon: const Icon(Icons.more_horiz,
+                      color: AppColors.textPrimary),
+                  onPressed: () => _showOptions(memo),
                 ),
               ]
             : null,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 메모 이미지 (있는 경우) - 정사각형
+            _authorRow(memo, isOwner, edited, date),
+            const SizedBox(height: 18),
+            Text(memo.content,
+                style: AppTypography.body.copyWith(
+                    color: AppColors.textPrimary, fontSize: 16, height: 1.65)),
             if (memo.imageUrl != null && memo.imageUrl!.isNotEmpty) ...[
-              const SizedBox(height: 32),
-              GestureDetector(
-                onDoubleTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => FullScreenImageViewer(
-                        imageUrl: memo.imageUrl!,
-                      ),
-                    ),
-                  );
-                },
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        memo.imageUrl!,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: Colors.grey.shade900,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFFECECEC),
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey.shade900,
-                            child: const Center(
-                              child: Icon(
-                                Icons.image,
-                                color: Colors.grey,
-                                size: 48,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ] else ...[
-              const SizedBox(height: 32),
+              const SizedBox(height: 18),
+              _image(memo.imageUrl!),
             ],
-
-            // 사용자 정보 (아바타 + 닉네임 + 시간)
-            Row(
-              children: [
-                // 아바타
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey.shade800,
-                  ),
-                  child: ClipOval(
-                    child: memo.userAvatarUrl != null &&
-                            memo.userAvatarUrl!.isNotEmpty
-                        ? Image.network(
-                            memo.userAvatarUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.person, color: Colors.grey),
-                          )
-                        : const Icon(Icons.person, color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // 닉네임 및 시간
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        memo.userNickname ?? 'User',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Pretendard',
-                          fontWeight: FontWeight.w300,
-                          fontSize: 16,
-                          height: 24 / 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        timeago.format(memo.createdAt, locale: 'ko'),
-                        style: const TextStyle(
-                          color: Color(0xFF838383),
-                          fontFamily: 'Pretendard',
-                          fontWeight: FontWeight.w300,
-                          fontSize: 16,
-                          height: 24 / 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // 메모 내용
-            Text(
-              memo.content,
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'Pretendard',
-                fontWeight: FontWeight.w400,
-                fontSize: 16,
-                height: 24 / 16,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 책 정보 (책 제목 + 페이지)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    memo.bookTitle,
-                    style: const TextStyle(
-                      color: Color(0xFF838383),
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w300,
-                      fontSize: 16,
-                      height: 24 / 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (memo.page != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    'p ${memo.page}',
-                    style: const TextStyle(
-                      color: Color(0xFF838383),
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w300,
-                      fontSize: 16,
-                      height: 24 / 16,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 22),
+            _bookRow(memo),
+            const SizedBox(height: 18),
+            _visibility(memo.visibility),
           ],
         ),
       ),
     );
   }
 
-  void _showMemoOptionsBottomSheet(BuildContext context, Memo memo) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: '메모 옵션',
-      barrierColor: Colors.black.withOpacity(0.5),
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const SizedBox.shrink();
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final screenHeight = MediaQuery.of(context).size.height;
+  Widget _authorRow(Memo memo, bool isOwner, bool edited, DateTime date) {
+    return Row(
+      children: [
+        Avatar(
+          imageUrl: memo.userAvatarUrl,
+          initial: memo.userNickname,
+          size: AvatarSize.md,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(memo.userNickname ?? '밀키웨이',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodyBold
+                            .copyWith(color: Colors.white, fontSize: 15)),
+                  ),
+                  if (isOwner) ...[
+                    const SizedBox(width: 6),
+                    const LabelChip(text: '내 메모'),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  Text('${date.month}월 ${date.day}일',
+                      style: AppTypography.caption),
+                  if (edited) ...[
+                    const SizedBox(width: 6),
+                    const LabelChip(text: '수정됨', tone: ChipTone.accentSoft),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOut,
-          )),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTap: () {}, // 바텀시트 내부 탭은 무시
-                child: Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    maxHeight: screenHeight * 0.3,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF313131),
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 닫기 버튼 (X)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16, right: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.close,
-                                    color: Colors.white),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 8,
-                          ),
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF9C9C9C),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.black,
-                            ),
-                          ),
-                          title: const Text(
-                            '수정하기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontFamily: 'Pretendard',
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _editMemo(context, memo);
-                          },
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 8,
-                          ),
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF9C9C9C),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.black,
-                            ),
-                          ),
-                          title: const Text(
-                            '삭제하기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontFamily: 'Pretendard',
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _deleteMemo(context, memo);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                ),
+  Widget _image(String url) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => FullScreenImageViewer(imageUrl: url),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: CachedImage(
+            url: url,
+            fallback: Container(
+              color: AppColors.surface,
+              child: const Center(
+                child: Icon(Icons.image_outlined,
+                    color: AppColors.textTertiary, size: 40),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  void _editMemo(BuildContext context, Memo memo) {
-    context.pushNamed(
-      AppRoutes.memoEditName,
-      pathParameters: {'id': memo.id},
+  Widget _bookRow(Memo memo) {
+    final author = memo.books['author'] as String?;
+    final coverUrl = memo.books['cover_url'] as String?;
+    final meta = [
+      if (author != null && author.isNotEmpty) author,
+      if (memo.page != null) 'p${memo.page}',
+    ].join(' / ');
+    return GestureDetector(
+      onTap: () => context.pushNamed(AppRoutes.bookDetailName,
+          pathParameters: {'id': memo.bookId}),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: CachedImage(url: coverUrl, fallback: const SizedBox()),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(memo.bookTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textBright,
+                          fontWeight: FontWeight.w600)),
+                  if (meta.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(meta,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.textTertiary)),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.textTertiary),
+          ],
+        ),
+      ),
     );
   }
 
-  Future<void> _deleteMemo(BuildContext context, Memo memo) async {
+  Widget _visibility(MemoVisibility v) {
+    final pub = v == MemoVisibility.public;
+    return Row(
+      children: [
+        Icon(pub ? Icons.visibility_outlined : Icons.lock_outline,
+            size: 16, color: AppColors.textTertiary),
+        const SizedBox(width: 6),
+        Text(pub ? '공개 메모' : '나만 보는 메모',
+            style: AppTypography.caption.copyWith(color: AppColors.textTertiary)),
+      ],
+    );
+  }
+
+  void _showOptions(Memo memo) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: Colors.white),
+              title: Text('수정하기', style: AppTypography.body),
+              onTap: () {
+                Navigator.pop(context);
+                _editMemo(memo);
+              },
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.delete_outline, color: Color(0xFFE05252)),
+              title: Text('삭제하기',
+                  style: AppTypography.body
+                      .copyWith(color: const Color(0xFFE05252))),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteMemo(memo);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _editMemo(Memo memo) {
+    context.pushNamed(AppRoutes.memoEditName, pathParameters: {'id': memo.id});
+  }
+
+  Future<void> _deleteMemo(Memo memo) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          '메모 삭제',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          '이 메모를 삭제하시겠습니까?',
-          style: TextStyle(color: Colors.white),
-        ),
+        backgroundColor: AppColors.surface,
+        title: const Text('메모 삭제', style: TextStyle(color: Colors.white)),
+        content: const Text('이 메모를 삭제하시겠습니까?',
+            style: TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -447,10 +341,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-              child: const Text('삭제', style: TextStyle(color: Colors.red)),
-            ),
+            child: const Text('삭제', style: TextStyle(color: Color(0xFFE05252))),
           ),
         ],
       ),
@@ -458,13 +349,9 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
 
     if (shouldDelete == true) {
       try {
-        // 서버에 삭제 요청
-        await ref.read(deleteMemoProvider(
-          (memoId: memo.id, bookId: memo.bookId),
-        ).future);
-        
-        // provider가 무효화되면 memo가 null이 되어 자동으로 화면이 닫힘
-        // 추가로 확실하게 화면 닫기
+        await ref
+            .read(deleteMemoProvider((memoId: memo.id, bookId: memo.bookId))
+                .future);
         if (context.mounted) {
           if (context.canPop()) {
             context.pop();

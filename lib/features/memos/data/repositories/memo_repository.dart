@@ -34,6 +34,29 @@ class MemoRepository {
     return response.map((json) => Memo.fromJson(json)).toList();
   }
 
+  /// 전역 공개 메모 피드(메모 탭 '공개'/홈). RLS상 타 유저 조인 불가라 Edge Function 경유.
+  Future<List<Memo>> getPublicFeed({int limit = 20, int offset = 0}) async {
+    try {
+      final response = await _client.functions.invoke(
+        'get-public-memo-feed',
+        body: {'limit': limit, 'offset': offset},
+      );
+      if (response.status != 200) {
+        log('공개 피드 조회 실패: ${response.data ?? '알 수 없는 오류'}');
+        return [];
+      }
+      final result = response.data as Map<String, dynamic>;
+      final memosData = result['memos'] as List<dynamic>?;
+      if (memosData == null) return [];
+      return memosData
+          .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('공개 피드 조회 중 오류: $e');
+      return [];
+    }
+  }
+
   Future<List<Memo>> getBookMemos(String bookId) async {
     final response = await _client.from('memos').select('''
           *,
@@ -228,6 +251,9 @@ class MemoRepository {
     MemoVisibility visibility = MemoVisibility.private,
   }) async {
     log('Creating memo with imageUrl: $imageUrl, visibility: ${visibility.value}');
+    // created_at/updated_at은 동일 타임스탬프로. (따로 now()를 두 번 부르면 새 메모도
+    // updated_at이 미세하게 늦어 '수정됨'으로 오검출됨)
+    final now = DateTime.now().toIso8601String();
     final response = await _client.from('memos').insert({
       'book_id': bookId,
       'user_id': _client.auth.currentUser!.id,
@@ -235,8 +261,8 @@ class MemoRepository {
       'page': page,
       'image_url': imageUrl,
       'visibility': visibility.value,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'created_at': now,
+      'updated_at': now,
     }).select('id').single();
 
     final memoId = response['id'] as String;

@@ -12,6 +12,11 @@ final recommendedBooksProvider = FutureProvider<List<RecommendedBook>>(
   (ref) => ref.watch(discoveryRepositoryProvider).getRecommendedBooks(),
 );
 
+/// 사람들이 많이 담은 책(savers 기준, RPC). 홈 "다른 사람이 담은 책".
+final booksSavedByOthersProvider = FutureProvider<List<RecommendedBook>>(
+  (ref) => ref.watch(discoveryRepositoryProvider).getBooksSavedByOthers(),
+);
+
 /// 온보딩 책 담기 선택 상태(복수 선택).
 class BookSelection extends StateNotifier<Set<String>> {
   BookSelection() : super(const <String>{});
