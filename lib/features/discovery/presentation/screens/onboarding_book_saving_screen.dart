@@ -33,9 +33,10 @@ class _OnboardingBookSavingScreenState
   /// onboarding_completed=true 를 반드시 세팅해야 재진입 루프에 안 갇힌다.
   Future<void> _complete(int savedCount) async {
     final analytics = ref.read(analyticsProvider);
-    analytics.logEvent('onboarding_completed', {'added_book_count': savedCount});
+    analytics.logEvent(
+        'click_complete_in_onboarding', {'added_book_count': savedCount});
     if (savedCount > 0) {
-      analytics.logEvent('onboarding_book_added',
+      analytics.logEvent('click_save_book_in_onboarding',
           {'source': 'onboarding_discovery', 'count': savedCount});
     }
     ref.read(bookSelectionProvider.notifier).clear();

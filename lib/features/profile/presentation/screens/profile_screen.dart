@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -15,11 +16,22 @@ import '../widgets/feedback_modal.dart';
 import '../widgets/notification_settings_tile.dart';
 
 /// 나 탭 = 마이페이지. 프로필 + 내 기록(담은 책/남긴 메모/완독) + 메뉴.
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).logScreenView('profile_screen');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(authProvider);
 
     return Scaffold(

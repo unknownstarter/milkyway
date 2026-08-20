@@ -35,7 +35,7 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
     ref.read(onboardingGenresProvider.notifier).state = _selected.toList();
     ref
         .read(analyticsProvider)
-        .logEvent('onboarding_genre_selected', {'count': _selected.length});
+        .logEvent('click_next_in_onboarding_genre', {'count': _selected.length});
     context.pushNamed(AppRoutes.onboardingBookSavingName);
   }
 

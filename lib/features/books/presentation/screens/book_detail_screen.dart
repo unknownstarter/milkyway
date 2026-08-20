@@ -742,6 +742,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
 
   Future<void> _changeStatus(Book book, BookStatus newStatus) async {
     try {
+      ref.read(analyticsProvider).logEvent('click_status_in_book_detail',
+          {'book_id': book.id, 'status': newStatus.value});
       await ref
           .read(bookDetailProvider(widget.bookId).notifier)
           .updateStatus(newStatus);
