@@ -181,26 +181,21 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           child: SafeArea(
             top: false,
             bottom: false, // SafeArea를 false로 하여 하단까지 확장
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 불투명 배경 (181818 색상으로 버튼 뒤와 아래 영역 모두 가리기)
-                Container(
-                  color: const Color(0xFF181818),
-                  padding: const EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 20,
-                    bottom: 20,
-                  ),
-                  child: _buildAddMemoButton(book),
+            // 불투명 배경 없이 투명->다크 그라디언트 페이드(콘텐츠가 버튼 뒤로 자연히 사라짐)
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x00181818),
+                    Color(0xFF181818),
+                  ],
                 ),
-                // 하단 영역까지 181818로 가리기
-                Container(
-                  color: const Color(0xFF181818),
-                  height: MediaQuery.of(context).padding.bottom,
-                ),
-              ],
+              ),
+              padding: EdgeInsets.fromLTRB(
+                  20, 28, 20, 20 + MediaQuery.of(context).padding.bottom),
+              child: _buildAddMemoButton(book),
             ),
           ),
         ),

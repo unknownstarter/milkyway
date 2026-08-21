@@ -176,7 +176,7 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
         },
       ),
       floatingActionButton: const Padding(
-        padding: EdgeInsets.only(bottom: 80),
+        padding: EdgeInsets.only(bottom: 110),
         child: AddFloatingActionButton(),
       ),
     );

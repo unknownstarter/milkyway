@@ -292,9 +292,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // 글래시 네비 위로 띄움(겹침/잘림 방지)
+      // 하단 네비 위로 충분히 띄움(겹침 방지)
       floatingActionButton: const Padding(
-        padding: EdgeInsets.only(bottom: 80),
+        padding: EdgeInsets.only(bottom: 110),
         child: AddFloatingActionButton(),
       ),
       body: SafeArea(
