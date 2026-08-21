@@ -80,8 +80,9 @@ class CommentTile extends StatelessWidget {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => _openMenu(context),
+            // 터치 타깃 확보(44 권장에 맞춰 히트영역 확대)
             child: const Padding(
-              padding: EdgeInsets.only(left: 6, top: 2),
+              padding: EdgeInsets.all(8),
               child: Icon(Icons.more_horiz,
                   size: 18, color: AppColors.textTertiary),
             ),
@@ -123,7 +124,7 @@ class CommentTile extends StatelessWidget {
   Widget _item(BuildContext context, IconData icon, String label,
       VoidCallback? onTap,
       {bool danger = false}) {
-    final color = danger ? const Color(0xFFE05252) : Colors.white;
+    final color = danger ? AppColors.danger : AppColors.textBright;
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(label, style: AppTypography.body.copyWith(color: color)),

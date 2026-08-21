@@ -81,7 +81,7 @@ class CommentComposer extends StatelessWidget {
                         maxLength: 500,
                         maxLines: 4,
                         minLines: 1,
-                        cursorColor: Colors.white,
+                        cursorColor: AppColors.textBright,
                         style: AppTypography.bodySmall
                             .copyWith(color: AppColors.textPrimary),
                         decoration: InputDecoration(

@@ -165,8 +165,9 @@ class MemoCard extends StatelessWidget {
             lyraQuestion!,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            // 사유가 먼저 - 인용문은 보조 톤으로 죽이고 강조는 아이콘(초록)에만.
             style: AppTypography.caption.copyWith(
-              color: AppColors.accentGreen.withValues(alpha: 0.85),
+              color: AppColors.textSecondary,
               height: 1.4,
             ),
           ),

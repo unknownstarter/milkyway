@@ -53,6 +53,9 @@ class AppColors {
   /// 새 컴포넌트에선 가급적 [accentGreen] 사용을 권장. (4회, add_action_modal.dart 전용)
   static const Color accentPurple = Color(0xFF4117EB);
 
+  /// 파괴적 액션(삭제/신고) 위험색. 삭제 버튼/다이얼로그 등에서 공유.
+  static const Color danger = Color(0xFFE05252);
+
   // ──────────────────────────────────────────────────────────────────────
   // Divider / Outline.
   // ──────────────────────────────────────────────────────────────────────

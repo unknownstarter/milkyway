@@ -94,17 +94,22 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('댓글 삭제', style: TextStyle(color: Colors.white)),
-        content: const Text('이 댓글을 삭제할까요',
-            style: TextStyle(color: Colors.white)),
+        title: Text('댓글 삭제',
+            style: AppTypography.subtitle.copyWith(color: AppColors.textBright)),
+        content: Text('이 댓글을 삭제할까요',
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textPrimary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+            child: Text('취소',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('삭제', style: TextStyle(color: Color(0xFFE05252))),
+            child: Text('삭제',
+                style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
           ),
         ],
       ),
