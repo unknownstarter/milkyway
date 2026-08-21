@@ -17,6 +17,8 @@ import '../../../discovery/presentation/providers/discovery_providers.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
 import '../../../lyra/data/models/lyra_prompt.dart';
+import '../../../ranking/presentation/providers/ranking_providers.dart';
+import '../../../ranking/presentation/widgets/ranking_card.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../calendar/domain/calendar_logic.dart';
@@ -239,6 +241,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// 홈 하단 기록 = 이번 주 스트립. 메모 있는 날에 점, 탭하면 캘린더로.
+  /// 이번 주 나의 기록(익명 백분위 + 성장). 로딩/실패 시 조용히 숨김(에러는 모니터링됨).
+  Widget _rankingCard() {
+    final async = ref.watch(myRankingProvider);
+    return async.maybeWhen(
+      data: (stats) => Padding(
+        padding: const EdgeInsets.only(bottom: 34),
+        child: RankingCard(stats: stats),
+      ),
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+
   Widget _recordStrip() {
     final memos = ref.watch(allMemosProvider).asData?.value ?? const <Memo>[];
     final counts = countByDay<Memo>(memos, (m) => m.createdAt);
@@ -374,6 +388,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 28),
               _readPrompt(),
               const SizedBox(height: 34),
+              _rankingCard(),
               _recordStrip(),
             ],
           ),

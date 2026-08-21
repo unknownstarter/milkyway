@@ -48,6 +48,10 @@ class ErrorHandler {
     }
   }
 
+  /// 에러 -> ERR_XXXX 코드(모니터링/로그 공용 단일 소스).
+  /// 예: ErrorHandler.codeFor(e) == 'ERR_5001'.
+  static String codeFor(dynamic error) => _getErrorCode(_getErrorType(error));
+
   /// 에러 타입 분석
   static ErrorType _getErrorType(dynamic error) {
     if (error is SocketException) {

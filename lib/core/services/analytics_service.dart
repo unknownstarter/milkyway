@@ -123,6 +123,23 @@ class AnalyticsService {
     }
   }
 
+  /// 에러 모니터링(GA4). 에러코드 컨벤션(ERR_XXXX)과 함께 집계 -> 대시보드에서
+  /// code/operation별 에러율 추적. Crashlytics 미도입 환경의 경량 모니터링 방안.
+  Future<void> logError(String code, {String? operation}) async {
+    if (_analytics == null) return;
+    try {
+      await _analytics.logEvent(
+        name: 'app_error',
+        parameters: {
+          'code': code,
+          if (operation != null) 'operation': operation,
+        },
+      );
+    } catch (e) {
+      // Analytics 에러는 무시
+    }
+  }
+
   /// 범용 이벤트. 계측 확장용(온보딩 KPI 등).
   Future<void> logEvent(String name, [Map<String, Object>? params]) async {
     if (_analytics == null) return;
