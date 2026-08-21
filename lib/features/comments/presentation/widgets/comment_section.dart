@@ -44,13 +44,19 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   }
 
   void _refresh() {
-    // 댓글 목록 + 카드 댓글 수(comment_count computed column) 함께 갱신.
-    // invalidateMemoProviders는 Ref 전용이라 WidgetRef에선 직접 무효화한다.
+    if (!mounted) return; // async 이후 언마운트 시 ref 사용 방지
     ref.invalidate(commentsProvider(widget.memoId));
+    // 카드 댓글 수(comment_count computed column)도 갱신. invalidateMemoProviders는
+    // Ref 전용이라 WidgetRef에선 직접 호출하되, '동일 세트'를 유지해 카운트 누락을 막는다.
     ref.invalidate(memoProvider(widget.memoId));
     ref.invalidate(publicMemoFeedProvider);
+    ref.invalidate(allMemosProvider);
+    ref.invalidate(recentMemosProvider);
+    ref.invalidate(homeRecentMemosProvider);
     ref.invalidate(bookMemosProvider(widget.bookId));
     ref.invalidate(publicBookMemosProvider(widget.bookId));
+    ref.invalidate(paginatedMemosProvider(widget.bookId));
+    ref.invalidate(paginatedMemosProvider(null));
     ref.invalidate(paginatedPublicBookMemosProvider(widget.bookId));
   }
 
@@ -65,6 +71,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
         ref.read(analyticsProvider).logEvent(
             'click_add_comment', {'memo_id': widget.memoId});
       }
+      if (!mounted) return; // await 후 언마운트면 disposed controller 접근 금지
       _controller.clear();
       _editing = null;
       _refresh();
@@ -117,6 +124,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     if (ok != true) return;
     try {
       await ref.read(commentRepositoryProvider).deleteComment(c.id);
+      if (!mounted) return;
       if (_editing?.id == c.id) _cancelEdit();
       _refresh();
     } catch (_) {
