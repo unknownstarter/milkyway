@@ -32,8 +32,8 @@ class CachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      // 디코드 해상도만 제한(메모리/속도). 디스크엔 원본 저장 -> 전체화면 등이 캐시 재사용.
       memCacheWidth: cacheWidth,
+      maxWidthDiskCache: cacheWidth,
       fadeInDuration: const Duration(milliseconds: 150),
       placeholder: (_, __) => Container(color: AppColors.surface),
       errorWidget: (_, __, ___) => _fallback(),

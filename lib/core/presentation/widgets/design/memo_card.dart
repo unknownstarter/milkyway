@@ -4,7 +4,6 @@ import '../../../theme/app_spacing.dart';
 import '../../../theme/app_typography.dart';
 import 'avatar.dart';
 import 'chips.dart';
-import 'cached_image.dart';
 
 /// 조합: 메모 카드(피드·책 상세 공용, 03-COMPONENTS.md ★핵심 재사용).
 ///
@@ -27,9 +26,6 @@ class MemoCard extends StatelessWidget {
   /// 본문 최대 줄 수. 홈처럼 요약 노출 시 지정하면 초과분은 ...로 자른다.
   final int? maxLines;
 
-  /// 메모 첨부 이미지(있으면 카드 안에 썸네일 노출).
-  final String? imageUrl;
-
   const MemoCard({
     super.key,
     required this.content,
@@ -42,7 +38,6 @@ class MemoCard extends StatelessWidget {
     this.page,
     this.onTap,
     this.maxLines,
-    this.imageUrl,
   });
 
   @override
@@ -70,22 +65,6 @@ class MemoCard extends StatelessWidget {
               overflow: maxLines != null ? TextOverflow.ellipsis : null,
               style: AppTypography.body.copyWith(color: AppColors.textPrimary),
             ),
-            if (imageUrl != null && imageUrl!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.cover),
-                child: CachedImage(
-                  url: imageUrl,
-                  width: double.infinity,
-                  height: 180,
-                  cacheWidth: 700,
-                  fallback: Container(
-                    height: 180,
-                    color: AppColors.surfaceElevated,
-                  ),
-                ),
-              ),
-            ],
             if (bookTitle != null || page != null) ...[
               const SizedBox(height: 12),
               _metaRow(),

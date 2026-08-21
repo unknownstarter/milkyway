@@ -134,7 +134,6 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       showMineTag: _segment == 1 && memo.userId == Supabase.instance.client.auth.currentUser?.id,
       bookTitle: memo.bookTitle,
       page: memo.page,
-      imageUrl: memo.imageUrl,
       onTap: () => _openDetail(memo.id),
     );
   }
