@@ -19,6 +19,10 @@ class Memo {
   /// 없으면 0.
   final int commentCount;
 
+  /// PostgREST computed column(lyra_question). 이 메모가 답한 Lyra 물음 스냅샷.
+  /// 없으면 null.
+  final String? lyraQuestion;
+
   Memo({
     required this.id,
     required this.userId,
@@ -34,6 +38,7 @@ class Memo {
     this.userNickname,
     this.userAvatarUrl,
     this.commentCount = 0,
+    this.lyraQuestion,
   });
 
   /// 실제로 수정된 메모인지. createMemo가 created_at/updated_at을 각각 now()로
@@ -77,6 +82,7 @@ class Memo {
       userNickname: users?['nickname'],
       userAvatarUrl: users?['picture_url'],
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
+      lyraQuestion: json['lyra_question'] as String?,
     );
   }
 }

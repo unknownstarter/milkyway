@@ -26,11 +26,17 @@ class MemoCreateScreen extends ConsumerStatefulWidget {
   final String? bookTitle;
   final String? lyraQuestion;
 
+  /// Lyra 물음 출처(book|general) + 원본 질문 id. 답 저장 시 스냅샷으로 기록.
+  final String? lyraQuestionId;
+  final String? lyraSource;
+
   const MemoCreateScreen({
     super.key,
     this.bookId,
     this.bookTitle,
     this.lyraQuestion,
+    this.lyraQuestionId,
+    this.lyraSource,
   });
 
   @override
@@ -548,6 +554,10 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                 : null,
             imageUrl: imageUrl,
             visibility: visibility,
+            // Lyra 물음에 답한 메모면 질문 스냅샷 저장
+            lyraQuestionText: widget.lyraQuestion,
+            lyraQuestionId: widget.lyraQuestionId,
+            lyraSource: widget.lyraSource,
           );
 
       // 메모 = 그날 읽음. 읽음 자동 기록(비차단).

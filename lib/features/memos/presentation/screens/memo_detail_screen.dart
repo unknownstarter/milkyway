@@ -123,6 +123,10 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _authorRow(memo, isOwner, edited, date),
+            if (memo.lyraQuestion != null && memo.lyraQuestion!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _lyraSnapshot(memo.lyraQuestion!),
+            ],
             const SizedBox(height: 18),
             Text(memo.content,
                 style: AppTypography.body.copyWith(
@@ -184,6 +188,43 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// 이 메모가 답한 Lyra 물음 스냅샷(초록 딤 인용 블록).
+  Widget _lyraSnapshot(String question) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.accentGreen.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                    color: AppColors.accentGreen, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Text('Lyra의 물음',
+                  style: AppTypography.caption.copyWith(
+                      color: AppColors.accentGreen,
+                      fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(question,
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textBright, height: 1.55)),
+        ],
+      ),
     );
   }
 

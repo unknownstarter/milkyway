@@ -16,6 +16,7 @@ import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
+import '../../../lyra/data/models/lyra_prompt.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../calendar/domain/calendar_logic.dart';
@@ -118,10 +119,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _openSearch() => context.pushNamed(AppRoutes.bookSearchName);
 
-  void _answer(String bookId, String question) => context.pushNamed(
-        AppRoutes.memoCreateName,
-        queryParameters: {'bookId': bookId, 'lyraQuestion': question},
-      );
+  /// Lyra 물음에 답하기. 책 물음이면 그 책으로, 일반 물음이면 책 선택 화면으로.
+  /// 답하고 돌아오면 다음 물음으로 갱신.
+  Future<void> _answerPrompt(LyraPrompt p) async {
+    ref.read(analyticsProvider)
+        .logEvent('click_answer_lyra_in_home', {'source': p.source});
+    await context.pushNamed(
+      AppRoutes.memoCreateName,
+      queryParameters: {
+        'lyraQuestion': p.question,
+        'lyraSource': p.source,
+        if (p.questionId != null) 'lyraQuestionId': p.questionId!,
+        if (p.isBook && p.bookId != null) 'bookId': p.bookId!,
+      },
+    );
+    ref.invalidate(lyraPromptProvider);
+  }
 
   void _openBooksTab() => context.goNamed(AppRoutes.booksName);
   void _openCalendar() => context.pushNamed(AppRoutes.calendarName);
@@ -155,6 +168,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   maxLines: 4,
                   imageUrl: m.imageUrl,
                   commentCount: m.commentCount,
+                  lyraQuestion: m.lyraQuestion,
                   onTap: () => context.pushNamed(AppRoutes.memoDetailName,
                       pathParameters: {'id': m.id}),
                 ),
@@ -445,32 +459,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// 지금 읽는 책(없으면 첫 책)의 Lyra 물음. 물음 없으면 섹션 숨김.
+  /// 내가 아직 답 안 한 다음 Lyra 물음(책 물음 우선, 없으면 일반). 없으면 섹션 숨김.
+  /// 답하면 다음 물음으로 넘어간다.
   Widget _lyraHighlight(List<Book> books) {
-    if (books.isEmpty) return const SizedBox.shrink();
-    final reading = books.firstWhere(
-      (b) => b.status == BookStatus.reading,
-      orElse: () => books.first,
-    );
-    final questionAsync = ref.watch(bookQuestionProvider(reading.id));
-    return questionAsync.maybeWhen(
-      data: (q) {
-        if (q == null) return const SizedBox.shrink();
+    final promptAsync = ref.watch(lyraPromptProvider);
+    return promptAsync.maybeWhen(
+      data: (p) {
+        if (p == null) return const SizedBox.shrink();
+        // 책 물음이면 홈 책들에서 표지 찾기(있으면 카드에 미니 표지 노출)
+        String? cover;
+        if (p.isBook && p.bookId != null) {
+          final match = books.where((b) => b.id == p.bookId);
+          if (match.isNotEmpty) cover = match.first.coverUrl;
+        }
         if (!_lyraShownLogged) {
           _lyraShownLogged = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(analyticsProvider).logEvent(
-                'view_lyra_question_in_home', {'book_id': reading.id});
+                'view_lyra_question_in_home', {'source': p.source});
           });
         }
         return Padding(
           padding: const EdgeInsets.only(top: 22),
           child: LyraQuestionCard(
-            question: q.question,
-            bookTitle: reading.title,
-            bookCoverUrl: reading.coverUrl,
-            bookStatusLabel: reading.status.value,
-            onAnswer: () => _answer(reading.id, q.question),
+            question: p.question,
+            bookTitle: p.bookTitle,
+            bookCoverUrl: cover,
+            bookStatusLabel: p.isBook ? '읽는 중' : null,
+            onAnswer: () => _answerPrompt(p),
           ),
         );
       },

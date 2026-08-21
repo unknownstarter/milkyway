@@ -58,4 +58,14 @@ void main() {
     expect(find.text('수정됨'), findsOneWidget);
     expect(find.textContaining('아처'), findsOneWidget);
   });
+
+  testWidgets('MemoCard Lyra 물음 스냅샷 노출', (tester) async {
+    await tester.pumpWidget(wrap(const MemoCard(
+      content: '답을 적었다',
+      authorName: '노아',
+      lyraQuestion: '요즘 마음에 남는 문장은 뭐야?',
+    )));
+    expect(find.text('요즘 마음에 남는 문장은 뭐야?'), findsOneWidget);
+    expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
+  });
 }

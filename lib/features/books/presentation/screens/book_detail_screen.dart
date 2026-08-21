@@ -559,6 +559,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       page: m.page,
       imageUrl: m.imageUrl,
       commentCount: m.commentCount,
+      lyraQuestion: m.lyraQuestion,
       onTap: () => context.pushNamed(AppRoutes.memoDetailName,
           pathParameters: {'id': m.id}),
     );

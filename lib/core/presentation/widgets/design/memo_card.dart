@@ -33,6 +33,9 @@ class MemoCard extends StatelessWidget {
   /// 댓글 수(> 0이면 말풍선 아이콘 + 숫자 노출).
   final int commentCount;
 
+  /// 이 메모가 답한 Lyra 물음 스냅샷(있으면 본문 위에 인용 라인).
+  final String? lyraQuestion;
+
   const MemoCard({
     super.key,
     required this.content,
@@ -47,6 +50,7 @@ class MemoCard extends StatelessWidget {
     this.maxLines,
     this.imageUrl,
     this.commentCount = 0,
+    this.lyraQuestion,
   });
 
   @override
@@ -67,6 +71,10 @@ class MemoCard extends StatelessWidget {
             if (authorName != null) ...[
               _authorRow(),
               const SizedBox(height: 12),
+            ],
+            if (lyraQuestion != null && lyraQuestion!.isNotEmpty) ...[
+              _lyraLine(),
+              const SizedBox(height: 8),
             ],
             Text(
               content,
@@ -137,6 +145,30 @@ class MemoCard extends StatelessWidget {
               if (dateText != null)
                 Text(dateText!, style: AppTypography.caption),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 답한 Lyra 물음 인용 라인(초록 라벨 + 물음 요약).
+  Widget _lyraLine() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 3, right: 6),
+          child: Icon(Icons.auto_awesome, size: 12, color: AppColors.accentGreen),
+        ),
+        Expanded(
+          child: Text(
+            lyraQuestion!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.accentGreen.withValues(alpha: 0.85),
+              height: 1.4,
+            ),
           ),
         ),
       ],

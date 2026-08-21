@@ -210,9 +210,13 @@ final router = GoRouter(
       builder: (context, state) {
         final bookId = state.uri.queryParameters['bookId'];
         final lyraQuestion = state.uri.queryParameters['lyraQuestion'];
+        final lyraQuestionId = state.uri.queryParameters['lyraQuestionId'];
+        final lyraSource = state.uri.queryParameters['lyraSource'];
         return MemoCreateScreen(
           bookId: bookId,
           lyraQuestion: lyraQuestion,
+          lyraQuestionId: lyraQuestionId,
+          lyraSource: lyraSource,
         );
       },
     ),

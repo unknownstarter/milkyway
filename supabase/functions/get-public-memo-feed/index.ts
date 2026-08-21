@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
         `
         *,
         comment_count,
+        lyra_question,
         books (
           id,
           title,

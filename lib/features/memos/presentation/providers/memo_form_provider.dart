@@ -115,6 +115,9 @@ class MemoFormController extends StateNotifier<AsyncValue<void>> {
     int? page,
     String? imageUrl,
     MemoVisibility visibility = MemoVisibility.private,
+    String? lyraQuestionId,
+    String? lyraQuestionText,
+    String? lyraSource,
   }) async {
     if (content.isEmpty) return false;
 
@@ -127,6 +130,9 @@ class MemoFormController extends StateNotifier<AsyncValue<void>> {
         page: page,
         imageUrl: imageUrl,
         visibility: visibility,
+        lyraQuestionId: lyraQuestionId,
+        lyraQuestionText: lyraQuestionText,
+        lyraSource: lyraSource,
       );
 
       // visibility에 따라 조건부 무효화

@@ -17,6 +17,7 @@ class MemoRepository {
         .select('''
           *,
           comment_count,
+          lyra_question,
           books (
             id,
             title,
@@ -62,6 +63,7 @@ class MemoRepository {
     final response = await _client.from('memos').select('''
           *,
           comment_count,
+          lyra_question,
           books (
             id,
             title,
@@ -251,6 +253,9 @@ class MemoRepository {
     int? page,
     String? imageUrl,
     MemoVisibility visibility = MemoVisibility.private,
+    String? lyraQuestionId,
+    String? lyraQuestionText,
+    String? lyraSource,
   }) async {
     log('Creating memo with imageUrl: $imageUrl, visibility: ${visibility.value}');
     // created_at/updated_at은 동일 타임스탬프로. (따로 now()를 두 번 부르면 새 메모도
@@ -269,6 +274,20 @@ class MemoRepository {
 
     final memoId = response['id'] as String;
     final currentUserId = _client.auth.currentUser!.id;
+
+    // Lyra 물음에 답한 메모면 질문 스냅샷 저장(원본 바뀌어도 유지). 실패는 무시.
+    if (lyraQuestionText != null && lyraQuestionText.isNotEmpty) {
+      try {
+        await _client.from('memo_question_context').insert({
+          'memo_id': memoId,
+          'source': lyraSource ?? 'book',
+          'question_id': lyraQuestionId,
+          'question_text': lyraQuestionText,
+        });
+      } catch (e) {
+        log('Lyra 스냅샷 저장 실패(무시): $e');
+      }
+    }
 
     // 공개 메모인 경우 알림 전송
     if (visibility == MemoVisibility.public) {
@@ -368,6 +387,7 @@ class MemoRepository {
         .select('''
           *,
           comment_count,
+          lyra_question,
           books (
             id,
             title,
@@ -393,6 +413,7 @@ class MemoRepository {
     var query = _client.from('memos').select('''
       *,
       comment_count,
+      lyra_question,
       books (
         id,
         title,

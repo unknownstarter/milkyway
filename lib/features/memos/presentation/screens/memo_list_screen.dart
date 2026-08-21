@@ -136,6 +136,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       page: memo.page,
       imageUrl: memo.imageUrl,
       commentCount: memo.commentCount,
+      lyraQuestion: memo.lyraQuestion,
       onTap: () => _openDetail(memo.id),
     );
   }
