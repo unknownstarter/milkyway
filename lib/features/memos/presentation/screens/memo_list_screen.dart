@@ -49,7 +49,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text('메모', style: AppTypography.title),
+        title: const Text('Memos', style: AppTypography.title),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today_outlined,

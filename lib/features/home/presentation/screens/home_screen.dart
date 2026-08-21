@@ -302,7 +302,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.invalidate(booksSavedByOthersProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.only(bottom: 40),
+            padding: const EdgeInsets.only(bottom: 120),
             children: [
               _header(),
               const SizedBox(height: 6),

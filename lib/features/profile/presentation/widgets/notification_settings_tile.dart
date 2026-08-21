@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:app_settings/app_settings.dart';
@@ -164,32 +166,35 @@ class _NotificationSettingsTileState
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(
-        Icons.notifications_outlined,
-        color: Colors.white,
+    // 프로필 메뉴의 _menuRow 와 동일한 구성(아이콘 20/textSecondary + body + 우측 trailing).
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.notifications_outlined,
+              size: 20, color: AppColors.textSecondary),
+          const SizedBox(width: 14),
+          Text('알림', style: AppTypography.body),
+          const Spacer(),
+          _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.accentGreen),
+                )
+              : Transform.scale(
+                  scale: 0.85,
+                  child: Switch(
+                    value: _notificationEnabled,
+                    onChanged: _toggleNotification,
+                    activeColor: Colors.black,
+                    activeTrackColor: AppColors.accentGreen,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+        ],
       ),
-      title: const Text(
-        '알림',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-        ),
-      ),
-      trailing: _isLoading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color(0xFF48FF00),
-              ),
-            )
-          : Switch(
-              value: _notificationEnabled,
-              onChanged: _toggleNotification,
-              activeColor: const Color(0xFF48FF00),
-            ),
     );
   }
 }

@@ -41,7 +41,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
-        title: const Text('나', style: AppTypography.heading),
+        title: const Text('Profile', style: AppTypography.heading),
       ),
       body: userAsync.when(
         loading: () => const Center(

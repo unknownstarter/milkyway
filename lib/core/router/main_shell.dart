@@ -37,13 +37,9 @@ class MainShell extends StatelessWidget {
         child: Padding(
           padding:
               const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-          child: Container(
-            constraints: const BoxConstraints(
-              minHeight: 64,
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 8),
+          child: DecoratedBox(
+            // Layer 5: Shadow (떠있는 깊이감)
             decoration: BoxDecoration(
-              color: const Color(0xFF2C2C2C),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -55,17 +51,47 @@ class MainShell extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
+              // Layer 1: Backdrop Blur
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                 child: Container(
+                  constraints: const BoxConstraints(minHeight: 64),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2C2C2C).withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(24),
+                    // Layer 2: Tint (현재 다크 색 참고 - 상단 밝고 하단 어둡게)
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF2C2C2C).withValues(alpha: 0.80),
+                        const Color(0xFF1F1F1F).withValues(alpha: 0.74),
+                      ],
+                    ),
+                    // Layer 4: Border (유리 테두리)
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.10),
+                      width: 0.5,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  child: Stack(
                     children: [
+                      // Layer 3: Inner Highlight (상단 빛 반사)
+                      Positioned(
+                        top: 0,
+                        left: 14,
+                        right: 14,
+                        height: 0.5,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.14),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                       _buildNavButton(
                         context: context,
                         icon: Icons.home_outlined,
@@ -98,6 +124,8 @@ class MainShell extends StatelessWidget {
                         isActive: currentIndex == 3,
                         onTap: () => _onTabTapped(context, 3),
                       ),
+                    ],
+                  ),
                     ],
                   ),
                 ),
