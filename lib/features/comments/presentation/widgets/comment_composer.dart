@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/avatar.dart';
 
-/// 조합: 하단 고정 댓글 입력창.
+/// 조합: 하단 고정 댓글 입력창(ComposePrompt와 같은 결 - 아바타 + 둥근 입력).
 ///  - [locked]=true(책 미저장)이면 입력 대신 탭 시 [onLockedTap] (책 담기 유도)
 ///  - [isEditing]이면 전송 아이콘 대신 체크(수정 확정)
 class CommentComposer extends StatelessWidget {
@@ -10,6 +11,8 @@ class CommentComposer extends StatelessWidget {
   final bool locked;
   final bool sending;
   final bool isEditing;
+  final String? avatarUrl;
+  final String? avatarInitial;
   final ValueChanged<String> onSend;
   final VoidCallback? onLockedTap;
   final VoidCallback? onCancelEdit;
@@ -21,6 +24,8 @@ class CommentComposer extends StatelessWidget {
     this.locked = false,
     this.sending = false,
     this.isEditing = false,
+    this.avatarUrl,
+    this.avatarInitial,
     this.onLockedTap,
     this.onCancelEdit,
   });
@@ -48,6 +53,14 @@ class CommentComposer extends StatelessWidget {
                     child: Icon(Icons.close,
                         size: 20, color: AppColors.textTertiary),
                   ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(right: 10, bottom: 2),
+                  child: Avatar(
+                      imageUrl: avatarUrl,
+                      initial: avatarInitial,
+                      size: AvatarSize.sm),
                 ),
               Expanded(
                 child: GestureDetector(

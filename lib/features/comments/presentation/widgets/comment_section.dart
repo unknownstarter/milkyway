@@ -219,7 +219,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
 
   @override
   Widget build(BuildContext context) {
-    final myId = ref.watch(authProvider).value?.id;
+    final me = ref.watch(authProvider).value;
+    final myId = me?.id;
     final commentsAsync = ref.watch(commentsProvider(widget.memoId));
     final saved = ref.watch(isBookSavedProvider(widget.bookId)).value ?? false;
 
@@ -259,6 +260,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
           locked: !saved,
           sending: _sending,
           isEditing: _editing != null,
+          avatarUrl: me?.pictureUrl,
+          avatarInitial: me?.nickname,
           onSend: _send,
           onLockedTap: _saveBookPrompt,
           onCancelEdit: _cancelEdit,
