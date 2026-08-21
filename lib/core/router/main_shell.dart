@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
+import '../presentation/widgets/add_floating_action_button.dart';
 
 /// 메인 앱 Shell
 ///
@@ -19,11 +20,16 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final index = _getCurrentIndex(location);
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
       // extendBody: 본문이 네비 뒤로 확장돼 유리 뒤로 콘텐츠가 블러되어 비침.
       extendBody: true,
       body: child,
+      // FAB를 네비와 같은 Scaffold에 둬서 Flutter가 네비 위에 자동 정렬(겹침/가림 없음).
+      // 홈/책 탭에서만 노출.
+      floatingActionButton:
+          (index == 0 || index == 1) ? const AddFloatingActionButton() : null,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }

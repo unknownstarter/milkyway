@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../widgets/book_grid_item.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
-import '../../../../core/presentation/widgets/add_floating_action_button.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../home/domain/models/book_status.dart';
@@ -174,10 +173,6 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
             ],
           );
         },
-      ),
-      floatingActionButton: const Padding(
-        padding: EdgeInsets.only(bottom: 110),
-        child: AddFloatingActionButton(),
       ),
     );
   }

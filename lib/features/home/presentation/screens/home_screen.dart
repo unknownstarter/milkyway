@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/analytics_provider.dart';
-import '../../../../core/presentation/widgets/add_floating_action_button.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
@@ -14,7 +12,6 @@ import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
-import '../../../discovery/data/models/recommended_book.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
@@ -292,11 +289,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // 하단 네비 위로 충분히 띄움(겹침 방지)
-      floatingActionButton: const Padding(
-        padding: EdgeInsets.only(bottom: 110),
-        child: AddFloatingActionButton(),
-      ),
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.accentGreen,
