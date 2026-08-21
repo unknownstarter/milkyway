@@ -137,7 +137,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('최근 메모', style: AppTypography.title),
+          child: Text('다른 별들이 남긴 생각들', style: AppTypography.title),
         ),
         const SizedBox(height: 16),
         Padding(
