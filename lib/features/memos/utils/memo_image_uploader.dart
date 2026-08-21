@@ -4,11 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// 메모 이미지를 Supabase Storage에 업로드하는 유틸리티 클래스
 class MemoImageUploader {
-  /// 로컬 파일 경로를 Supabase Storage에 업로드하고 signed URL을 반환
-  /// 
+  /// 로컬 파일 경로를 Supabase Storage에 업로드하고 공개 URL을 반환
+  ///
   /// [filePath] 로컬 파일 경로
-  /// 
-  /// Returns 업로드된 이미지의 signed URL, 실패 시 null
+  ///
+  /// Returns 업로드된 이미지의 public URL(만료 없음), 실패 시 null
   static Future<String?> uploadImage(String filePath) async {
     try {
       final supabase = Supabase.instance.client;
@@ -31,10 +31,9 @@ class MemoImageUploader {
       // Supabase Storage에 업로드
       await supabase.storage.from('memo_images').upload(fileName, file);
 
-      // Signed URL 생성 (1년 유효)
-      final imageUrl = await supabase.storage
-          .from('memo_images')
-          .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+      // 공개 URL 반환 (버킷 public, 만료 없음 - 서명 URL 만료로 이미지가 죽던 문제 해결)
+      final imageUrl =
+          supabase.storage.from('memo_images').getPublicUrl(fileName);
 
       return imageUrl;
     } catch (e, stackTrace) {

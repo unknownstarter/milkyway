@@ -33,7 +33,8 @@ class CachedImage extends StatelessWidget {
       height: height,
       fit: fit,
       memCacheWidth: cacheWidth,
-      maxWidthDiskCache: cacheWidth,
+      // 디스크엔 원본 저장(maxWidthDiskCache 미지정) -> 상세(작게 디코드)와
+      // 전체화면(원본)이 URL 기준 같은 캐시를 공유해 재다운로드 없이 즉시 표시.
       fadeInDuration: const Duration(milliseconds: 150),
       placeholder: (_, __) => Container(color: AppColors.surface),
       errorWidget: (_, __, ___) => _fallback(),
