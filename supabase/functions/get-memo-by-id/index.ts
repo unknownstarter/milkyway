@@ -28,8 +28,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Service Role Key를 사용하므로 RLS 정책을 우회하여 메모와 사용자 정보 조회 가능
-    // 공개/비공개 모두 조회 가능 (메모 상세 화면에서 필요)
+    // 호출자 식별(가시성 검사용). service role client로 전달된 사용자 JWT를 검증.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    let callerId: string | null = null;
+    if (token && token !== SUPABASE_SERVICE_ROLE_KEY) {
+      const { data: userData } = await supabase.auth.getUser(token);
+      callerId = userData?.user?.id ?? null;
+    }
+
+    // Service Role Key를 사용하므로 RLS를 우회한다. 가시성은 아래에서 직접 강제한다.
     const { data, error } = await supabase
       .from('memos')
       .select(
@@ -61,6 +69,16 @@ Deno.serve(async (req) => {
     }
 
     if (!data) {
+      return new Response(JSON.stringify({ error: "메모를 찾을 수 없습니다." }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 404,
+      });
+    }
+
+    // 가시성 강제: 공개 메모이거나 본인 메모만. 남의 비공개는 존재 자체를 숨겨 404.
+    const isPublic = data.visibility === 'public';
+    const isOwner = callerId !== null && data.user_id === callerId;
+    if (!isPublic && !isOwner) {
       return new Response(JSON.stringify({ error: "메모를 찾을 수 없습니다." }), {
         headers: { 'Content-Type': 'application/json' },
         status: 404,
