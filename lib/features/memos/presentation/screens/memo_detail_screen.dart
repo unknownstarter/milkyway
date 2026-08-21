@@ -16,6 +16,8 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../comments/presentation/widgets/comment_section.dart';
+import '../../domain/memo_exceptions.dart';
+import '../../../home/presentation/providers/book_provider.dart';
 
 /// 메모 상세 = 작성자행 + 본문 + 이미지 + 책행 + 공개표시. 목업 memo-detail 기준.
 class MemoDetailScreen extends ConsumerStatefulWidget {
@@ -69,15 +71,47 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
               color: AppColors.textSecondary, strokeWidth: 2),
         ),
       ),
-      error: (e, _) => Scaffold(
-        backgroundColor: AppColors.bgPrimary,
-        body: Center(
-          child: Text('메모를 불러오지 못했어요',
-              style: AppTypography.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-        ),
-      ),
+      error: (e, _) {
+        // 남의 비공개 메모: 책을 저장했으면 책 상세로 보내고, 아니면 뒤로/홈.
+        if (e is MemoRestrictedException) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _routeRestricted(e.bookId);
+          });
+          return const Scaffold(backgroundColor: AppColors.bgPrimary);
+        }
+        return Scaffold(
+          backgroundColor: AppColors.bgPrimary,
+          body: Center(
+            child: Text('메모를 불러오지 못했어요',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+        );
+      },
     );
+  }
+
+  /// 남의 비공개 메모 접근 시: 그 책을 저장했으면 책 상세로 대체 이동, 아니면 뒤로/홈.
+  Future<void> _routeRestricted(String? bookId) async {
+    if (bookId != null && bookId.isNotEmpty) {
+      final repo = ref.read(bookRepositoryProvider);
+      bool saved = false;
+      try {
+        saved = await repo.hasUserBookConnection(bookId, repo.getCurrentUserId());
+      } catch (_) {}
+      if (!mounted) return;
+      if (saved) {
+        context.pushReplacementNamed(AppRoutes.bookDetailName,
+            pathParameters: {'id': bookId});
+        return;
+      }
+    }
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(AppRoutes.homeName);
+    }
   }
 
   Widget _content(Memo memo) {

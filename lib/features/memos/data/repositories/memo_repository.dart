@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/memo.dart';
 import '../../domain/models/memo_visibility.dart';
+import '../../domain/memo_exceptions.dart';
 import 'dart:developer';
 import '../../../../core/utils/retry_helper.dart';
 import '../../../../core/utils/response_cache.dart';
@@ -363,6 +364,12 @@ class MemoRepository {
       }
 
       final result = response.data as Map<String, dynamic>;
+
+      // 남의 비공개 메모: 접근 제한. bookId를 담아 던져 책 상세로 유도(저장한 경우).
+      if (result['restricted'] == true) {
+        throw MemoRestrictedException(result['book_id'] as String?);
+      }
+
       final memoData = result['memo'] as Map<String, dynamic>?;
 
       if (memoData == null) {

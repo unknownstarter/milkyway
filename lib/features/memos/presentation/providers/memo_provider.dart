@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/memo_repository.dart';
 import '../../domain/models/memo.dart';
+import '../../domain/memo_exceptions.dart';
 import 'dart:io';
 import 'dart:developer';
 import '../../../../core/providers/supabase_client_provider.dart';
@@ -59,6 +60,9 @@ final memoProvider = FutureProvider.family<Memo?, String>((ref, memoId) async {
     final memo = await repository.getMemoById(memoId);
     log('memoProvider 성공: userNickname=${memo.userNickname}, userAvatarUrl=${memo.userAvatarUrl}');
     return memo;
+  } on MemoRestrictedException {
+    // 남의 비공개 메모: 화면이 책 상세로 유도하도록 그대로 전파.
+    rethrow;
   } catch (e, stackTrace) {
     // 메모가 삭제되었거나 존재하지 않는 경우 null 반환
     log('메모 조회 실패 (삭제되었을 수 있음): $e');

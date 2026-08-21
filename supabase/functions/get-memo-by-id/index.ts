@@ -75,14 +75,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 가시성 강제: 공개 메모이거나 본인 메모만. 남의 비공개는 존재 자체를 숨겨 404.
+    // 가시성 강제: 공개 메모이거나 본인 메모만. 남의 비공개는 본문을 숨기되,
+    // 책 상세로 유도할 수 있게 book_id만 전달(클라가 저장 여부 확인 후 라우팅).
     const isPublic = data.visibility === 'public';
     const isOwner = callerId !== null && data.user_id === callerId;
     if (!isPublic && !isOwner) {
-      return new Response(JSON.stringify({ error: "메모를 찾을 수 없습니다." }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 404,
-      });
+      return new Response(
+        JSON.stringify({ restricted: true, book_id: data.book_id }),
+        { headers: { 'Content-Type': 'application/json' }, status: 200 },
+      );
     }
 
     return new Response(

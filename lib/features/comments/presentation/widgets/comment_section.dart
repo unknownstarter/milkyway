@@ -225,13 +225,21 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     }
   }
 
+  /// 칩 형태의 짧은 토스트(플로팅 pill, 1.4초, 겹치면 즉시 교체).
   void _toast(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
-        backgroundColor: AppColors.surfaceMuted,
         content: Text(msg,
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary)),
+            textAlign: TextAlign.center,
+            style: AppTypography.caption.copyWith(color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surfaceElevated,
+        behavior: SnackBarBehavior.floating,
+        shape: const StadiumBorder(),
+        elevation: 0,
+        duration: const Duration(milliseconds: 800),
+        margin: const EdgeInsets.only(left: 44, right: 44, bottom: 90),
       ),
     );
   }
