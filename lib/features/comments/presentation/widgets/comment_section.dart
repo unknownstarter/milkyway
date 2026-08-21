@@ -44,8 +44,14 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   }
 
   void _refresh() {
+    // 댓글 목록 + 카드 댓글 수(comment_count computed column) 함께 갱신.
+    // invalidateMemoProviders는 Ref 전용이라 WidgetRef에선 직접 무효화한다.
     ref.invalidate(commentsProvider(widget.memoId));
     ref.invalidate(memoProvider(widget.memoId));
+    ref.invalidate(publicMemoFeedProvider);
+    ref.invalidate(bookMemosProvider(widget.bookId));
+    ref.invalidate(publicBookMemosProvider(widget.bookId));
+    ref.invalidate(paginatedPublicBookMemosProvider(widget.bookId));
   }
 
   Future<void> _send(String text) async {
@@ -141,7 +147,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            Text('신고 사유', style: AppTypography.label),
+            const Text('신고 사유', style: AppTypography.label),
             const SizedBox(height: 4),
             for (final e in reasons.entries)
               ListTile(

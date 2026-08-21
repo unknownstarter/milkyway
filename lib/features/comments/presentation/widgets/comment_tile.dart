@@ -64,7 +64,7 @@ class CommentTile extends StatelessWidget {
                         style: AppTypography.caption),
                     if (comment.isEdited) ...[
                       const SizedBox(width: 4),
-                      Text('수정됨', style: AppTypography.caption),
+                      const Text('수정됨', style: AppTypography.caption),
                     ],
                   ],
                 ),
