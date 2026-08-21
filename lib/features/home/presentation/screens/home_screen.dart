@@ -341,7 +341,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
           child: ListView(
             // 네비 + FAB(우하단) 위로 마지막 섹션(내 기록)이 완전히 나오도록 넉넉히.
-            padding: const EdgeInsets.only(bottom: 160),
+            padding: const EdgeInsets.only(bottom: 210),
             children: [
               _header(),
               const SizedBox(height: 6),
