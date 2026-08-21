@@ -15,6 +15,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../comments/presentation/widgets/comment_section.dart';
 
 /// 메모 상세 = 작성자행 + 본문 + 이미지 + 책행 + 공개표시. 목업 memo-detail 기준.
 class MemoDetailScreen extends ConsumerStatefulWidget {
@@ -114,9 +115,11 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
               ]
             : null,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-        child: Column(
+      // 본문을 댓글 영역 header로 넘겨 함께 스크롤 + 하단 입력창 고정
+      body: CommentSection(
+        memoId: widget.memoId,
+        bookId: memo.bookId,
+        header: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _authorRow(memo, isOwner, edited, date),

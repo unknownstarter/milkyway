@@ -15,6 +15,10 @@ class Memo {
   final String? userNickname;
   final String? userAvatarUrl;
 
+  /// PostgREST computed column(comment_count). select에 포함될 때만 채워지고,
+  /// 없으면 0.
+  final int commentCount;
+
   Memo({
     required this.id,
     required this.userId,
@@ -29,6 +33,7 @@ class Memo {
     this.imageUrl,
     this.userNickname,
     this.userAvatarUrl,
+    this.commentCount = 0,
   });
 
   /// 실제로 수정된 메모인지. createMemo가 created_at/updated_at을 각각 now()로
@@ -71,6 +76,7 @@ class Memo {
       imageUrl: json['image_url'],
       userNickname: users?['nickname'],
       userAvatarUrl: users?['picture_url'],
+      commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

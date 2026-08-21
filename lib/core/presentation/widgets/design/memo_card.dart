@@ -30,6 +30,9 @@ class MemoCard extends StatelessWidget {
   /// 메모 첨부 이미지(있으면 카드 안에 썸네일 노출).
   final String? imageUrl;
 
+  /// 댓글 수(> 0이면 말풍선 아이콘 + 숫자 노출).
+  final int commentCount;
+
   const MemoCard({
     super.key,
     required this.content,
@@ -43,6 +46,7 @@ class MemoCard extends StatelessWidget {
     this.onTap,
     this.maxLines,
     this.imageUrl,
+    this.commentCount = 0,
   });
 
   @override
@@ -86,7 +90,7 @@ class MemoCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (bookTitle != null || page != null) ...[
+            if (bookTitle != null || page != null || commentCount > 0) ...[
               const SizedBox(height: 12),
               _metaRow(),
             ],
@@ -154,6 +158,15 @@ class MemoCard extends StatelessWidget {
             style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
           ),
         ),
+        if (commentCount > 0) ...[
+          const SizedBox(width: 8),
+          const Icon(Icons.chat_bubble_outline,
+              size: 13, color: AppColors.textTertiary),
+          const SizedBox(width: 4),
+          Text('$commentCount',
+              style: AppTypography.caption
+                  .copyWith(color: AppColors.textTertiary)),
+        ],
       ],
     );
   }

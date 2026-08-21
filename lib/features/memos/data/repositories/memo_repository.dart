@@ -16,6 +16,7 @@ class MemoRepository {
         .from('memos')
         .select('''
           *,
+          comment_count,
           books (
             id,
             title,
@@ -60,6 +61,7 @@ class MemoRepository {
   Future<List<Memo>> getBookMemos(String bookId) async {
     final response = await _client.from('memos').select('''
           *,
+          comment_count,
           books (
             id,
             title,
@@ -365,6 +367,7 @@ class MemoRepository {
         .from('memos')
         .select('''
           *,
+          comment_count,
           books (
             id,
             title,
@@ -389,6 +392,7 @@ class MemoRepository {
   }) async {
     var query = _client.from('memos').select('''
       *,
+      comment_count,
       books (
         id,
         title,

@@ -1,0 +1,305 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/providers/analytics_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../home/presentation/providers/book_provider.dart';
+import '../../../books/presentation/providers/user_books_provider.dart';
+import '../../../memos/presentation/providers/memo_provider.dart';
+import '../../domain/models/comment.dart';
+import '../providers/comment_providers.dart';
+import 'comment_tile.dart';
+import 'comment_composer.dart';
+
+/// 조합: 메모 상세의 댓글 영역 전체.
+/// [header](메모 본문)를 스크롤 상단에 함께 넣고, 하단에 입력창을 고정한다.
+/// 편집/삭제/신고/숨김/책담기 게이트를 한 곳에서 관리(상태 분산 방지).
+class CommentSection extends ConsumerStatefulWidget {
+  final String memoId;
+  final String bookId;
+  final Widget header;
+
+  const CommentSection({
+    super.key,
+    required this.memoId,
+    required this.bookId,
+    required this.header,
+  });
+
+  @override
+  ConsumerState<CommentSection> createState() => _CommentSectionState();
+}
+
+class _CommentSectionState extends ConsumerState<CommentSection> {
+  final _controller = TextEditingController();
+  Comment? _editing;
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _refresh() {
+    ref.invalidate(commentsProvider(widget.memoId));
+    ref.invalidate(memoProvider(widget.memoId));
+  }
+
+  Future<void> _send(String text) async {
+    setState(() => _sending = true);
+    final repo = ref.read(commentRepositoryProvider);
+    try {
+      if (_editing != null) {
+        await repo.updateComment(_editing!.id, text);
+      } else {
+        await repo.addComment(widget.memoId, text);
+        ref.read(analyticsProvider).logEvent(
+            'click_add_comment', {'memo_id': widget.memoId});
+      }
+      _controller.clear();
+      _editing = null;
+      _refresh();
+    } catch (_) {
+      if (mounted) _toast('댓글을 남기지 못했어요');
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  void _startEdit(Comment c) {
+    setState(() {
+      _editing = c;
+      _controller.text = c.content;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editing = null;
+      _controller.clear();
+    });
+  }
+
+  Future<void> _delete(Comment c) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('댓글 삭제', style: TextStyle(color: Colors.white)),
+        content: const Text('이 댓글을 삭제할까요',
+            style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('삭제', style: TextStyle(color: Color(0xFFE05252))),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(commentRepositoryProvider).deleteComment(c.id);
+      if (_editing?.id == c.id) _cancelEdit();
+      _refresh();
+    } catch (_) {
+      if (mounted) _toast('삭제하지 못했어요');
+    }
+  }
+
+  Future<void> _hide(Comment c) async {
+    try {
+      await ref.read(commentRepositoryProvider).hideComment(c.id);
+      _refresh();
+    } catch (_) {
+      if (mounted) _toast('숨기지 못했어요');
+    }
+  }
+
+  Future<void> _report(Comment c) async {
+    const reasons = <String, String>{
+      'spam': '스팸/도배',
+      'inappropriate': '부적절한 내용',
+      'harassment': '괴롭힘/혐오',
+      'sexual': '선정적',
+      'other': '기타',
+    };
+    final reason = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Text('신고 사유', style: AppTypography.label),
+            const SizedBox(height: 4),
+            for (final e in reasons.entries)
+              ListTile(
+                title: Text(e.value, style: AppTypography.body),
+                onTap: () => Navigator.pop(context, e.key),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (reason == null) return;
+    try {
+      await ref.read(commentRepositoryProvider).reportComment(c.id, reason);
+      if (mounted) _toast('신고했어요. 이 댓글은 숨겨집니다');
+      _refresh();
+    } catch (_) {
+      if (mounted) _toast('신고하지 못했어요');
+    }
+  }
+
+  /// 책 미저장 시: 담기 팝업 → 담고 게이트 해제.
+  Future<void> _saveBookPrompt() async {
+    final repo = ref.read(bookRepositoryProvider);
+    final userId = repo.getCurrentUserId();
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceMuted,
+        title: Text('책 담기',
+            style: AppTypography.subtitle.copyWith(color: Colors.white)),
+        content: Text('이 책을 담아야 댓글을 남길 수 있어요. 담을까요',
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textPrimary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('취소',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('담기',
+                style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.accentGreen,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (save != true) return;
+    try {
+      await repo.createUserBookConnection(widget.bookId, userId);
+      ref.read(analyticsProvider)
+          .logEvent('click_save_book_in_comment', {'book_id': widget.bookId});
+      ref.invalidate(isBookSavedProvider(widget.bookId));
+      ref.invalidate(homeBooksProvider);
+      ref.invalidate(userBooksProvider);
+    } catch (_) {
+      if (mounted) _toast('책을 담지 못했어요');
+    }
+  }
+
+  void _toast(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.surfaceMuted,
+        content: Text(msg,
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textPrimary)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final myId = ref.watch(authProvider).value?.id;
+    final commentsAsync = ref.watch(commentsProvider(widget.memoId));
+    final saved = ref.watch(isBookSavedProvider(widget.bookId)).value ?? false;
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                widget.header,
+                const SizedBox(height: 20),
+                const Divider(color: AppColors.divider, height: 1),
+                const SizedBox(height: 16),
+                commentsAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+                  error: (_, __) => _empty('댓글을 불러오지 못했어요'),
+                  data: (comments) => _list(comments, myId),
+                ),
+              ],
+            ),
+          ),
+        ),
+        CommentComposer(
+          controller: _controller,
+          locked: !saved,
+          sending: _sending,
+          isEditing: _editing != null,
+          onSend: _send,
+          onLockedTap: _saveBookPrompt,
+          onCancelEdit: _cancelEdit,
+        ),
+      ],
+    );
+  }
+
+  Widget _list(List<Comment> comments, String? myId) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          comments.isEmpty ? '댓글' : '댓글 ${comments.length}',
+          style: AppTypography.label.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (comments.isEmpty)
+          _empty('첫 댓글을 남겨보세요')
+        else
+          for (final c in comments)
+            CommentTile(
+              comment: c,
+              isMine: c.userId == myId,
+              onEdit: () => _startEdit(c),
+              onDelete: () => _delete(c),
+              onReport: () => _report(c),
+              onHide: () => _hide(c),
+            ),
+      ],
+    );
+  }
+
+  Widget _empty(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: Text(text,
+            style: AppTypography.bodySmall
+                .copyWith(color: AppColors.textTertiary)),
+      ),
+    );
+  }
+}

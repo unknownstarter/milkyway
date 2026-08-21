@@ -558,6 +558,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       showMineTag: _memoSegment == 1,
       page: m.page,
       imageUrl: m.imageUrl,
+      commentCount: m.commentCount,
       onTap: () => context.pushNamed(AppRoutes.memoDetailName,
           pathParameters: {'id': m.id}),
     );

@@ -154,6 +154,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   page: m.page,
                   maxLines: 4,
                   imageUrl: m.imageUrl,
+                  commentCount: m.commentCount,
                   onTap: () => context.pushNamed(AppRoutes.memoDetailName,
                       pathParameters: {'id': m.id}),
                 ),
