@@ -289,7 +289,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      // bottom:false 로 콘텐츠가 네비 뒤로 확장(책탭과 동일) -> 유리 뒤로 비침.
       body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           color: AppColors.accentGreen,
           backgroundColor: AppColors.surface,
@@ -298,7 +300,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.invalidate(booksSavedByOthersProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.only(bottom: 120),
+            padding: const EdgeInsets.only(bottom: 110),
             children: [
               _header(),
               const SizedBox(height: 6),
