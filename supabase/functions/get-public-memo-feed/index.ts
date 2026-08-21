@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
       .select(
         `
         *,
+        comment_count,
         books (
           id,
           title,

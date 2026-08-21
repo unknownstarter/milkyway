@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/comment.dart';
 
@@ -51,7 +52,25 @@ class CommentRepository {
         })
         .select(_withAuthor)
         .single();
-    return Comment.fromJson(res);
+    final comment = Comment.fromJson(res);
+
+    // 메모 작성자에게 푸시(fire-and-forget). 실패해도 댓글 작성은 성공.
+    unawaited(_notifyNewComment(comment.id));
+
+    return comment;
+  }
+
+  /// 댓글 알림 발송 요청. 서버가 comment_id로 전부 조회 -> 자기 메모 자기 댓글이면
+  /// 발송 안 함. 실패는 무시(댓글 작성 성공을 막지 않는다).
+  Future<void> _notifyNewComment(String commentId) async {
+    try {
+      await _client.functions.invoke(
+        'notify-new-comment',
+        body: {'comment_id': commentId},
+      );
+    } catch (_) {
+      // 알림 실패 무시
+    }
   }
 
   /// 본인 댓글 수정.
