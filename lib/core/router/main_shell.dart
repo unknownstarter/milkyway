@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
@@ -8,7 +7,7 @@ import 'app_routes.dart';
 /// 메인 앱 Shell
 ///
 /// BottomNavigationBar와 FAB를 포함한 메인 레이아웃
-class MainShell extends StatefulWidget {
+class MainShell extends StatelessWidget {
   final Widget child;
   final String location;
 
@@ -19,49 +18,18 @@ class MainShell extends StatefulWidget {
   });
 
   @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  bool _navVisible = true;
-
-  // 스크롤 방향에 따라 하단 네비를 부드럽게 숨김/표시 (일반적 모바일 UX).
-  bool _onScroll(UserScrollNotification n) {
-    if (n.metrics.axis != Axis.vertical) return false;
-    final dir = n.direction;
-    if (dir == ScrollDirection.reverse && _navVisible) {
-      setState(() => _navVisible = false);
-    } else if (dir == ScrollDirection.forward && !_navVisible) {
-      setState(() => _navVisible = true);
-    }
-    return false;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
-      // extendBody: 본문이 네비 뒤로 확장돼 은은한 블러가 걸림.
+      // extendBody: 본문이 네비 뒤로 확장돼 유리 뒤로 콘텐츠가 블러되어 비침.
       extendBody: true,
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: _onScroll,
-        child: widget.child,
-      ),
-      bottomNavigationBar: AnimatedSlide(
-        offset: _navVisible ? Offset.zero : const Offset(0, 1.6),
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        child: AnimatedOpacity(
-          opacity: _navVisible ? 1 : 0,
-          duration: const Duration(milliseconds: 200),
-          child: _buildBottomNavigationBar(context),
-        ),
-      ),
+      body: child,
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
   Widget _buildBottomNavigationBar(BuildContext context) {
-    final currentIndex = _getCurrentIndex(widget.location);
+    final currentIndex = _getCurrentIndex(location);
 
     // 배경 불투명 채움 없음(투명) — 콘텐츠가 네비 뒤로 비쳐 블러됨.
     return SafeArea(
@@ -92,11 +60,17 @@ class _MainShellState extends State<MainShell> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    // 깔끔한 반투명 다크(전 탭 동일). 약한 블러로 뒤 콘텐츠는 은은히
-                    // 눌러 표시 - 초록 배너 등이 튀지 않게.
-                    color: const Color(0xFF232323).withValues(alpha: 0.86),
+                    // 투명 유리 - 불투명 배경 없음. 블러된 콘텐츠가 뒤로 비침(momo 방식).
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.10),
+                        Colors.white.withValues(alpha: 0.04),
+                      ],
+                    ),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.07),
+                      color: Colors.white.withValues(alpha: 0.10),
                       width: 0.5,
                     ),
                   ),
