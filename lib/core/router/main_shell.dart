@@ -71,28 +71,14 @@ class MainShell extends StatelessWidget {
                     ),
                     // Layer 4: Border (유리 테두리)
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.16),
+                      color: Colors.white.withValues(alpha: 0.08),
                       width: 0.5,
                     ),
                   ),
-                  child: Stack(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Layer 3: Inner Highlight (상단 빛 반사 - 유리 테두리 라인, full-width)
-                      Positioned(
-                        top: 0,
-                        left: 0.5,
-                        right: 0.5,
-                        height: 0.5,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.28),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
                       _buildNavButton(
                         context: context,
                         icon: Icons.home_outlined,
@@ -125,8 +111,6 @@ class MainShell extends StatelessWidget {
                         isActive: currentIndex == 3,
                         onTap: () => _onTabTapped(context, 3),
                       ),
-                    ],
-                  ),
                     ],
                   ),
                 ),
