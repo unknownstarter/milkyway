@@ -69,7 +69,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       _editing = null;
       _refresh();
     } catch (_) {
-      if (mounted) _toast('댓글을 남기지 못했어요');
+      if (mounted) _toast('댓글을 못 남겼어');
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -96,7 +96,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
         backgroundColor: AppColors.surface,
         title: Text('댓글 삭제',
             style: AppTypography.subtitle.copyWith(color: AppColors.textBright)),
-        content: Text('이 댓글을 삭제할까요',
+        content: Text('이 댓글을 지울까',
             style: AppTypography.bodySmall
                 .copyWith(color: AppColors.textPrimary)),
         actions: [
@@ -120,7 +120,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       if (_editing?.id == c.id) _cancelEdit();
       _refresh();
     } catch (_) {
-      if (mounted) _toast('삭제하지 못했어요');
+      if (mounted) _toast('못 지웠어');
     }
   }
 
@@ -129,7 +129,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       await ref.read(commentRepositoryProvider).hideComment(c.id);
       _refresh();
     } catch (_) {
-      if (mounted) _toast('숨기지 못했어요');
+      if (mounted) _toast('못 숨겼어');
     }
   }
 
@@ -167,10 +167,10 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     if (reason == null) return;
     try {
       await ref.read(commentRepositoryProvider).reportComment(c.id, reason);
-      if (mounted) _toast('신고했어요. 이 댓글은 숨겨집니다');
+      if (mounted) _toast('신고했어. 이 댓글은 이제 안 보여');
       _refresh();
     } catch (_) {
-      if (mounted) _toast('신고하지 못했어요');
+      if (mounted) _toast('신고하지 못했어');
     }
   }
 
@@ -183,8 +183,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceMuted,
         title: Text('책 담기',
-            style: AppTypography.subtitle.copyWith(color: Colors.white)),
-        content: Text('이 책을 담아야 댓글을 남길 수 있어요. 담을까요',
+            style: AppTypography.subtitle.copyWith(color: AppColors.textBright)),
+        content: Text('이 책을 담아야 댓글을 남길 수 있어. 담을까',
             style: AppTypography.bodySmall
                 .copyWith(color: AppColors.textPrimary)),
         actions: [
@@ -213,7 +213,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       ref.invalidate(homeBooksProvider);
       ref.invalidate(userBooksProvider);
     } catch (_) {
-      if (mounted) _toast('책을 담지 못했어요');
+      if (mounted) _toast('책을 못 담았어');
     }
   }
 
@@ -259,7 +259,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
                       ),
                     ),
                   ),
-                  error: (_, __) => _empty('댓글을 불러오지 못했어요'),
+                  error: (_, __) => _empty('댓글을 못 불러왔어'),
                   data: (comments) => _list(comments, myId),
                 ),
               ],
@@ -291,7 +291,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
         ),
         const SizedBox(height: AppSpacing.sm),
         if (comments.isEmpty)
-          _empty('첫 댓글을 남겨보세요')
+          _empty('첫 댓글을 남겨봐')
         else
           for (final c in comments)
             CommentTile(

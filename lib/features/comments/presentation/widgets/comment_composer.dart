@@ -89,7 +89,7 @@ class CommentComposer extends StatelessWidget {
                           border: InputBorder.none,
                           counterText: '',
                           hintText: locked
-                              ? '책을 담으면 댓글을 남길 수 있어요'
+                              ? '책을 담으면 댓글을 남길 수 있어'
                               : (isEditing ? '댓글 수정' : '댓글 남기기'),
                           hintStyle: AppTypography.bodySmall
                               .copyWith(color: AppColors.textTertiary),

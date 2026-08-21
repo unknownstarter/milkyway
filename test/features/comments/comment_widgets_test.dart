@@ -69,7 +69,7 @@ void main() {
         onSend: (_) {},
         onLockedTap: () => locked = true,
       )));
-      expect(find.text('책을 담으면 댓글을 남길 수 있어요'), findsOneWidget);
+      expect(find.text('책을 담으면 댓글을 남길 수 있어'), findsOneWidget);
       // locked면 AbsorbPointer가 TextField를 막고 상위 GestureDetector가 탭을 받음
       await tester.tap(find.byType(TextField), warnIfMissed: false);
       expect(locked, isTrue);
