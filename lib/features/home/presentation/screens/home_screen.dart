@@ -8,6 +8,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
+import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
@@ -124,6 +125,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _openBooksTab() => context.goNamed(AppRoutes.booksName);
   void _openCalendar() => context.pushNamed(AppRoutes.calendarName);
+
+  /// 최근 공개 메모를 카드로(Threads식). 탭 -> 메모 상세. 긴 본문은 4줄로 자름.
+  Widget _recentMemos() {
+    final memos =
+        ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+    final items = memos.take(5).toList();
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('최근 메모', style: AppTypography.title),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              for (final m in items) ...[
+                MemoCard(
+                  content: m.content,
+                  authorName: m.userNickname ?? '밀키웨이',
+                  authorImageUrl: m.userAvatarUrl,
+                  dateText: _rel(m.createdAt),
+                  bookTitle: m.bookTitle,
+                  page: m.page,
+                  maxLines: 4,
+                  onTap: () => context.pushNamed(AppRoutes.memoDetailName,
+                      pathParameters: {'id': m.id}),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   /// 최근 공개 메모가 올라온 책(피드에서 책 단위로 중복 제거).
   Widget _recentMemoBooks() {
@@ -309,6 +349,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _lyraHighlight(books),
               const SizedBox(height: 34),
               _discoverySection(books),
+              const SizedBox(height: 34),
+              _recentMemos(),
               const SizedBox(height: 34),
               _recentMemoBooks(),
               const SizedBox(height: 28),

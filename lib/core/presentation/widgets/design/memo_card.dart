@@ -23,6 +23,9 @@ class MemoCard extends StatelessWidget {
   final int? page;
   final VoidCallback? onTap;
 
+  /// 본문 최대 줄 수. 홈처럼 요약 노출 시 지정하면 초과분은 ...로 자른다.
+  final int? maxLines;
+
   const MemoCard({
     super.key,
     required this.content,
@@ -34,6 +37,7 @@ class MemoCard extends StatelessWidget {
     this.bookTitle,
     this.page,
     this.onTap,
+    this.maxLines,
   });
 
   @override
@@ -57,6 +61,8 @@ class MemoCard extends StatelessWidget {
             ],
             Text(
               content,
+              maxLines: maxLines,
+              overflow: maxLines != null ? TextOverflow.ellipsis : null,
               style: AppTypography.body.copyWith(color: AppColors.textPrimary),
             ),
             if (bookTitle != null || page != null) ...[
