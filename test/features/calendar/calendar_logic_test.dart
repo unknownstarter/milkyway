@@ -24,12 +24,12 @@ void main() {
   });
 
   group('monthGrid', () {
-    test('일요일 시작 + 7의 배수 칸 + 첫날은 이달 1일 직전 일요일', () {
+    test('월요일 시작 + 7의 배수 칸 + 첫날은 이달 1일 직전 월요일', () {
       final cells = monthGrid(2026, 8);
       expect(cells.length % 7, 0);
-      expect(cells.first.date.weekday % 7, 0); // 일요일
+      expect(cells.first.date.weekday, DateTime.monday); // 월요일 시작
       final first = DateTime(2026, 8, 1);
-      final leading = first.weekday % 7;
+      final leading = first.weekday - 1;
       expect(cells.first.date, DateTime(2026, 8, 1 - leading));
       final aug1 = cells.firstWhere((c) => c.date == first);
       expect(aug1.inMonth, isTrue);

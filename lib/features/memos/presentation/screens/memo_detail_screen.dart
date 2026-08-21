@@ -197,6 +197,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           aspectRatio: 1,
           child: CachedImage(
             url: url,
+            cacheWidth: 1000,
             fallback: Container(
               color: AppColors.surface,
               child: const Center(

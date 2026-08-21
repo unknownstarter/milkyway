@@ -30,7 +30,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late int _segment;
   late DateTime _month; // 해당 월 1일
 
-  static const _weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
   @override
   void initState() {
@@ -124,7 +124,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Text(
                   _weekdays[i],
                   style: AppTypography.caption.copyWith(
-                    color: i == 0 ? const Color(0xFFA05252) : AppColors.textTertiary,
+                    color: i == 6 ? const Color(0xFFA05252) : AppColors.textTertiary,
                     fontSize: 11.5,
                   ),
                 ),

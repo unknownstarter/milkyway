@@ -394,7 +394,9 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         ),
       );
       if (source != null) {
-        final image = await picker.pickImage(source: source, imageQuality: 85);
+        // 캡처 시점에 리사이즈(최대 1280px) + 압축 -> 업로드/로딩 대폭 빨라짐.
+        final image = await picker.pickImage(
+            source: source, imageQuality: 80, maxWidth: 1280, maxHeight: 1280);
         if (image != null) {
           setState(() => _selectedImagePath = image.path);
           _checkChanges();

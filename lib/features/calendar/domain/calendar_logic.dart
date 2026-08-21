@@ -39,7 +39,7 @@ class MonthCell {
 /// 일요일 시작 월 그리드. 필요한 주 수만큼만 생성(빈 주 없음).
 List<MonthCell> monthGrid(int year, int month) {
   final first = DateTime(year, month, 1);
-  final leading = first.weekday % 7; // Mon=1..Sun=7 -> Sun=0
+  final leading = first.weekday - 1; // Mon=1..Sun=7 -> Mon=0 (월요일 시작)
   final daysInMonth = DateTime(year, month + 1, 0).day;
   final weeks = ((leading + daysInMonth) / 7).ceil();
   final start = first.subtract(Duration(days: leading));

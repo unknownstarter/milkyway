@@ -11,6 +11,9 @@ class CachedImage extends StatelessWidget {
   final BoxFit fit;
   final Widget? fallback;
 
+  /// 디코드 해상도 상한(px). 큰 원본이라도 이 폭으로 디코드해 메모리/속도 개선.
+  final int? cacheWidth;
+
   const CachedImage({
     super.key,
     required this.url,
@@ -18,6 +21,7 @@ class CachedImage extends StatelessWidget {
     this.height,
     this.fit = BoxFit.cover,
     this.fallback,
+    this.cacheWidth,
   });
 
   @override
@@ -28,6 +32,8 @@ class CachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      memCacheWidth: cacheWidth,
+      maxWidthDiskCache: cacheWidth,
       fadeInDuration: const Duration(milliseconds: 150),
       placeholder: (_, __) => Container(color: AppColors.surface),
       errorWidget: (_, __, ___) => _fallback(),

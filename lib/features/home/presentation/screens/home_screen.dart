@@ -227,8 +227,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final memos = ref.watch(allMemosProvider).asData?.value ?? const <Memo>[];
     final counts = countByDay<Memo>(memos, (m) => m.createdAt);
     final today = dayKey(DateTime.now());
-    final weekStart = today.subtract(Duration(days: today.weekday % 7));
-    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    // 월요일 시작 (weekday: Mon=1..Sun=7 -> 월요일까지 뒤로)
+    final weekStart = today.subtract(Duration(days: today.weekday - 1));
+    const labels = ['월', '화', '수', '목', '금', '토', '일'];
     return GestureDetector(
       onTap: _openCalendar,
       behavior: HitTestBehavior.opaque,
