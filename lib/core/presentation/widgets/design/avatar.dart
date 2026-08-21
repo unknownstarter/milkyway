@@ -39,6 +39,9 @@ class Avatar extends StatelessWidget {
               url: imageUrl,
               width: _d,
               height: _d,
+              // 34-40px 아바타는 원본을 그대로 디코드하면 낭비 -> 축소 디코드로
+              // 로딩/메모리 절약(레티나 3x 여유).
+              cacheWidth: 150,
               fallback: _initialText(),
             )
           : _initialText(),

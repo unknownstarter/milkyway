@@ -9,6 +9,7 @@ import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
+import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
@@ -67,33 +68,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
       return;
     }
-    final save = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceMuted,
-        title: Text('책 담기',
-            style: AppTypography.subtitle.copyWith(color: Colors.white)),
-        content: Text('이 책을 서재에 담을까요',
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('취소',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('담기',
-                style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.accentGreen,
-                    fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+    final save = await showAppConfirm(
+      context,
+      title: '책 담기',
+      message: '이 책을 서재에 담을까',
+      confirmText: '담기',
     );
-    if (save != true || !mounted) return;
+    if (!save || !mounted) return;
     try {
       await repo.createUserBookConnection(bookId, userId);
       ref.read(analyticsProvider)

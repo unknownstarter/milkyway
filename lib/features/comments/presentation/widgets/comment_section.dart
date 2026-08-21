@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/book_provider.dart';
@@ -97,31 +98,14 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   }
 
   Future<void> _delete(Comment c) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('댓글 삭제',
-            style: AppTypography.subtitle.copyWith(color: AppColors.textBright)),
-        content: Text('이 댓글을 지울까',
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('취소',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('삭제',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
-          ),
-        ],
-      ),
+    final ok = await showAppConfirm(
+      context,
+      title: '댓글 삭제',
+      message: '이 댓글을 지울까',
+      confirmText: '삭제',
+      tone: ConfirmTone.danger,
     );
-    if (ok != true) return;
+    if (!ok) return;
     try {
       await ref.read(commentRepositoryProvider).deleteComment(c.id);
       if (!mounted) return;
@@ -186,33 +170,13 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   Future<void> _saveBookPrompt() async {
     final repo = ref.read(bookRepositoryProvider);
     final userId = repo.getCurrentUserId();
-    final save = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceMuted,
-        title: Text('책 담기',
-            style: AppTypography.subtitle.copyWith(color: AppColors.textBright)),
-        content: Text('이 책을 담아야 댓글을 남길 수 있어. 담을까',
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('취소',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('담기',
-                style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.accentGreen,
-                    fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+    final save = await showAppConfirm(
+      context,
+      title: '책 담기',
+      message: '이 책을 담아야 댓글을 남길 수 있어. 담을까',
+      confirmText: '담기',
     );
-    if (save != true) return;
+    if (!save) return;
     try {
       await repo.createUserBookConnection(widget.bookId, userId);
       ref.read(analyticsProvider)

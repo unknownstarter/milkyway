@@ -401,13 +401,10 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
         ),
       );
 
-      // Signed URL 생성 (1년 유효)
-      final signedUrl = await supabase.storage
+      // 공개 URL(만료 없음). 서명 URL 만료로 아바타가 죽던 문제 방지.
+      final signedUrl = supabase.storage
           .from('profile_images')
-          .createSignedUrl(
-            filePathInStorage,
-            31536000, // 1년 (초 단위)
-          );
+          .getPublicUrl(filePathInStorage);
 
       return signedUrl;
     } catch (e) {

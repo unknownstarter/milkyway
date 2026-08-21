@@ -822,10 +822,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       // Supabase Storage에 업로드
       await supabase.storage.from('profile_images').upload(fileName, file);
 
-      // Signed URL 생성 (1년 유효)
-      final imageUrl = await supabase.storage
-          .from('profile_images')
-          .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+      // 공개 URL(만료 없음). 서명 URL 만료로 아바타가 죽던 문제 방지.
+      final imageUrl =
+          supabase.storage.from('profile_images').getPublicUrl(fileName);
 
       return imageUrl;
     } catch (e) {

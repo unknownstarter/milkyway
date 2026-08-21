@@ -18,6 +18,7 @@ import '../../../../core/utils/error_handler.dart';
 import '../../../comments/presentation/widgets/comment_section.dart';
 import '../../domain/memo_exceptions.dart';
 import '../../../home/presentation/providers/book_provider.dart';
+import '../../../../core/presentation/widgets/design/app_dialog.dart';
 
 /// 메모 상세 = 작성자행 + 본문 + 이미지 + 책행 + 공개표시. 목업 memo-detail 기준.
 class MemoDetailScreen extends ConsumerStatefulWidget {
@@ -91,21 +92,50 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     );
   }
 
-  /// 남의 비공개 메모 접근 시: 그 책을 저장했으면 책 상세로 대체 이동, 아니면 뒤로/홈.
+  /// 남의 비공개 메모 접근 시: 그 책을 저장했으면 책 상세로 대체 이동.
+  /// 저장 안 했으면 담기 팝업 -> 담으면 책 상세로, 아니면 뒤로/홈.
   Future<void> _routeRestricted(String? bookId) async {
-    if (bookId != null && bookId.isNotEmpty) {
-      final repo = ref.read(bookRepositoryProvider);
-      bool saved = false;
-      try {
-        saved = await repo.hasUserBookConnection(bookId, repo.getCurrentUserId());
-      } catch (_) {}
-      if (!mounted) return;
-      if (saved) {
-        context.pushReplacementNamed(AppRoutes.bookDetailName,
-            pathParameters: {'id': bookId});
-        return;
-      }
+    if (bookId == null || bookId.isEmpty) {
+      _leave();
+      return;
     }
+    final repo = ref.read(bookRepositoryProvider);
+    final userId = repo.getCurrentUserId();
+    bool saved = false;
+    try {
+      saved = await repo.hasUserBookConnection(bookId, userId);
+    } catch (_) {}
+    if (!mounted) return;
+    if (saved) {
+      context.pushReplacementNamed(AppRoutes.bookDetailName,
+          pathParameters: {'id': bookId});
+      return;
+    }
+    final save = await showAppConfirm(
+      context,
+      title: '책 담기',
+      message: '지금은 볼 수 없는 메모야. 이 책을 담고 책 상세로 가볼까',
+      confirmText: '담기',
+    );
+    if (!mounted) return;
+    if (!save) {
+      _leave();
+      return;
+    }
+    try {
+      await repo.createUserBookConnection(bookId, userId);
+      ref.read(analyticsProvider)
+          .logEvent('click_save_book_in_restricted', {'book_id': bookId});
+      if (!mounted) return;
+      context.pushReplacementNamed(AppRoutes.bookDetailName,
+          pathParameters: {'id': bookId});
+    } catch (e) {
+      if (mounted) ErrorHandler.showError(context, e, operation: '책 담기');
+      _leave();
+    }
+  }
+
+  void _leave() {
     if (!mounted) return;
     if (context.canPop()) {
       context.pop();
@@ -405,28 +435,15 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   }
 
   Future<void> _deleteMemo(Memo memo) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('메모 삭제', style: TextStyle(color: Colors.white)),
-        content: const Text('이 메모를 삭제하시겠습니까?',
-            style: TextStyle(color: Colors.white)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제', style: TextStyle(color: Color(0xFFE05252))),
-          ),
-        ],
-      ),
+    final shouldDelete = await showAppConfirm(
+      context,
+      title: '메모 삭제',
+      message: '이 메모를 삭제할까',
+      confirmText: '삭제',
+      tone: ConfirmTone.danger,
     );
 
-    if (shouldDelete == true) {
+    if (shouldDelete) {
       try {
         await ref
             .read(deleteMemoProvider((memoId: memo.id, bookId: memo.bookId))

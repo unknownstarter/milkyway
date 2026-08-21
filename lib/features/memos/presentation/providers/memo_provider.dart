@@ -368,9 +368,10 @@ Future<String?> _uploadMemoImage(String filePath) async {
         .from('memo_images')
         .upload(fileName, file);
 
+    // 공개 URL(만료 없음). 서명 URL 만료로 이미지가 죽던 문제 방지.
     final imageUrl = Supabase.instance.client.storage
         .from('memo_images')
-        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+        .getPublicUrl(fileName);
 
     return imageUrl;
   } catch (e) {
