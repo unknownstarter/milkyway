@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 
 /// 전체 화면 이미지 뷰어
-/// 
-/// 이미지를 전체 화면으로 보여주고, 뒤로가기로 닫을 수 있음
+///
+/// 이미지를 전체 화면으로 보여주고, 뒤로가기로 닫을 수 있음.
+/// CachedImage로 상세 화면에서 받아둔 디스크 캐시를 재사용 -> 즉시 표시.
 class FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
 
@@ -27,27 +29,12 @@ class FullScreenImageViewer extends StatelessWidget {
         child: InteractiveViewer(
           minScale: 0.5,
           maxScale: 4.0,
-          child: Image.network(
-            imageUrl,
+          child: CachedImage(
+            url: imageUrl,
             fit: BoxFit.contain,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFECECEC),
-                  strokeWidth: 2,
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: Icon(
-                  Icons.image,
-                  color: Colors.grey,
-                  size: 64,
-                ),
-              );
-            },
+            fallback: const Center(
+              child: Icon(Icons.image, color: Colors.grey, size: 64),
+            ),
           ),
         ),
       ),
