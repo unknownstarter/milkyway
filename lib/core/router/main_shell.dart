@@ -135,26 +135,23 @@ class MainShell extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // 가벼운 진동 피드백
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(12),
-          // 클릭 영역을 넓히기 위해 최소 높이 설정 (보이지 않는 영역)
-          child: Container(
-            constraints: const BoxConstraints(
-              minHeight: 48, // 최소 터치 영역 (보이지 않는 영역 포함)
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+      // InkWell 물결/하이라이트 사각형이 유리 바 밖으로 튀어나가서 GestureDetector로 교체.
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 48, // 최소 터치 영역
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
                 Icon(
                   isActive ? activeIcon : icon,
                   size: 20, // 원래 크기로 복원
@@ -184,7 +181,6 @@ class MainShell extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 
