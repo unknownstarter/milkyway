@@ -112,8 +112,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
             ref.invalidate(_segment == 0 ? allMemosProvider : publicMemoFeedProvider);
           },
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxxl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 110),
             itemCount: memos.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (_, i) => _card(memos[i]),

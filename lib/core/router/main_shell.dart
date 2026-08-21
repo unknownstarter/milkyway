@@ -21,6 +21,8 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
+      // extendBody: 본문이 네비 뒤로 확장돼야 BackdropFilter가 실제 콘텐츠를 흐려 유리가 됨.
+      extendBody: true,
       body: child,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
@@ -29,12 +31,11 @@ class MainShell extends StatelessWidget {
   Widget _buildBottomNavigationBar(BuildContext context) {
     final currentIndex = _getCurrentIndex(location);
 
-    return Container(
-      color: const Color(0xFF181818), // 배경은 181818
-      child: SafeArea(
-        top: false,
-        bottom: true,
-        child: Padding(
+    // 배경 불투명 채움 없음(투명) — 콘텐츠가 네비 뒤로 비쳐 블러됨.
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Padding(
           padding:
               const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
           child: DecoratedBox(
@@ -59,32 +60,32 @@ class MainShell extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    // Layer 2: Tint (현재 다크 색 참고 - 상단 밝고 하단 어둡게)
+                    // Layer 2: Tint (투명 white - 블러된 콘텐츠가 비쳐 프로스티드 글래스)
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        const Color(0xFF2C2C2C).withValues(alpha: 0.80),
-                        const Color(0xFF1F1F1F).withValues(alpha: 0.74),
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.white.withValues(alpha: 0.05),
                       ],
                     ),
                     // Layer 4: Border (유리 테두리)
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
+                      color: Colors.white.withValues(alpha: 0.16),
                       width: 0.5,
                     ),
                   ),
                   child: Stack(
                     children: [
-                      // Layer 3: Inner Highlight (상단 빛 반사)
+                      // Layer 3: Inner Highlight (상단 빛 반사 - 유리 테두리 라인, full-width)
                       Positioned(
                         top: 0,
-                        left: 14,
-                        right: 14,
+                        left: 0.5,
+                        right: 0.5,
                         height: 0.5,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.14),
+                            color: Colors.white.withValues(alpha: 0.28),
                           ),
                         ),
                       ),
@@ -133,8 +134,7 @@ class MainShell extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildNavButton({

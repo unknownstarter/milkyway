@@ -36,13 +36,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPrimary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        titleSpacing: 20,
-        title: const Text('Profile', style: AppTypography.heading),
-      ),
+      // 앱바 없이 유저 영역을 위로. extendBody 대비 하단 여백 확보.
       body: userAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
@@ -59,15 +53,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary)),
               )
-            : ListView(
-                padding: const EdgeInsets.only(bottom: 40),
-                children: [
-                  _profileRow(context, user),
-                  _statsCard(ref),
-                  _menuGroup(context, ref),
-                  const SizedBox(height: 22),
-                  _footer(),
-                ],
+            : SafeArea(
+                bottom: false,
+                child: ListView(
+                  padding: const EdgeInsets.only(top: 16, bottom: 110),
+                  children: [
+                    _profileRow(context, user),
+                    _statsCard(ref),
+                    _menuGroup(context, ref),
+                    const SizedBox(height: 22),
+                    _footer(),
+                  ],
+                ),
               ),
       ),
     );
