@@ -5,6 +5,9 @@ import '../../../../core/router/app_routes.dart';
 import '../widgets/book_grid_item.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../home/domain/models/book_status.dart';
 import '../../../home/domain/models/book_status_extension.dart';
@@ -89,26 +92,11 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
     final booksAsync = ref.watch(userBooksProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
-        surfaceTintColor: Colors.transparent, // Material 3에서 스크롤 시 색상 변경 방지
-        elevation: 0,
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            'Books',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Pretendard',
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-              height: 28 / 20,
-            ),
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: AppColors.bgPrimary,
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
+        title: const Text('Books', style: AppTypography.title),
+        bottom: filterBar(_pillRow()),
       ),
       body: booksAsync.when(
         loading: () => const Center(
@@ -116,92 +104,57 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
         ),
         error: (err, stack) => Center(
           child: SelectableText.rich(
-            TextSpan(text: '에러: $err', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '에러: $err', style: const TextStyle(color: Colors.red)),
           ),
         ),
         data: (books) {
           final filteredBooks = _getFilteredBooks(books);
-
-          if (filteredBooks.isEmpty) {
-            return Column(
-              children: [
-                _buildFilterButtons(),
-                Expanded(
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        context.pushNamed(AppRoutes.bookSearchName);
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.note_add,
-                            color: Colors.grey,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 16),
-                          MediaQuery(
-                            data: MediaQuery.of(context).copyWith(
-                              textScaler: TextScaler.linear(1.0),
-                            ),
-                            child: const Text(
-                              '새로운 책을 추가해주세요',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Pretendard',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-
-          return Column(
-            children: [
-              _buildFilterButtons(),
-              Expanded(
-                child: _BookGrid(books: filteredBooks),
-              ),
-            ],
-          );
+          final topPad = glassTopPadding(context, bottomHeight: kFilterBarHeight);
+          if (filteredBooks.isEmpty) return _emptyState();
+          return _BookGrid(books: filteredBooks, topPadding: topPad);
         },
       ),
     );
   }
 
-  Widget _buildFilterButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Row(
-        children: _filterOptions
-            .map((option) => [
-                  PillFilterButton(
-                    label: option.label,
-                    isActive: _selectedFilter == option.status,
-                    onTap: () {
-                      setState(() {
-                        _selectedFilter = option.status;
-                        // 필터 변경 시 캐시 무효화
-                        _cachedFilteredBooks = null;
-                        _cachedFilter = null;
-                        _cachedAllBooks = null;
-                      });
-                    },
-                    width: option.width,
+  /// 표준 필터바에 들어갈 상태 필터(전체/읽는중/완독 등).
+  Widget _pillRow() {
+    return Row(
+      children: _filterOptions
+          .map((option) => [
+                PillFilterButton(
+                  label: option.label,
+                  isActive: _selectedFilter == option.status,
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = option.status;
+                      _cachedFilteredBooks = null;
+                      _cachedFilter = null;
+                      _cachedAllBooks = null;
+                    });
+                  },
+                  width: option.width,
+                ),
+                if (option != _filterOptions.last) const SizedBox(width: 13),
+              ])
+          .expand((widgets) => widgets)
+          .toList(),
+    );
+  }
+
+  Widget _emptyState() {
+    return Center(
+      child: GestureDetector(
+        onTap: () => context.pushNamed(AppRoutes.bookSearchName),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.note_add, color: Colors.grey, size: 48),
+            const SizedBox(height: 16),
+            Text('새로운 책을 추가해주세요',
+                style: AppTypography.body.copyWith(color: AppColors.textBright)),
+          ],
         ),
-                  if (option != _filterOptions.last)
-                    const SizedBox(width: 13),
-                ])
-            .expand((widgets) => widgets)
-            .toList(),
       ),
     );
   }
@@ -209,12 +162,13 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
 
 class _BookGrid extends StatelessWidget {
   final List<Book> books;
-  const _BookGrid({required this.books});
+  final double topPadding;
+  const _BookGrid({required this.books, this.topPadding = 0});
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
+      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 110),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 20,

@@ -67,7 +67,6 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const double segH = 46;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       // 본문이 글래스 앱바 뒤로 확장돼 블러됨(넓어 보임)
@@ -90,24 +89,17 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
             ),
           ),
         ],
-        // 세그먼트를 앱바 하단 스티키로(위에 착 붙음)
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(segH),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: SegmentFilter(
-                segments: const ['내 메모', '공개'],
-                selectedIndex: _segment,
-                onChanged: (i) => setState(() => _segment = i),
-              ),
-            ),
+        // 세그먼트를 앱바 하단 스티키로(표준 filterBar - 책탭과 동일 높이/여백)
+        bottom: filterBar(
+          SegmentFilter(
+            segments: const ['내 메모', '공개'],
+            selectedIndex: _segment,
+            onChanged: (i) => setState(() => _segment = i),
           ),
         ),
       ),
-      body: _feed(topPadding: glassTopPadding(context, bottomHeight: segH)),
+      body: _feed(
+          topPadding: glassTopPadding(context, bottomHeight: kFilterBarHeight)),
     );
   }
 
