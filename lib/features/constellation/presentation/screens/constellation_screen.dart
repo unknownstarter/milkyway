@@ -57,14 +57,14 @@ class ConstellationScreen extends ConsumerWidget {
                   size: 28, color: AppColors.textTertiary),
               const SizedBox(height: AppSpacing.base),
               Text(
-                count == 0 ? '아직 별이 없어' : '별 하나가 떴어',
+                count == 0 ? '아직 이어진 별이 없어' : '별 하나가 떴어',
                 style:
                     AppTypography.body.copyWith(color: AppColors.textBright),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 count == 0
-                    ? '멈춤이 쌓이면 여기 밤하늘이 생겨'
+                    ? '멈춤이 쌓이면 서로 이어져 밤하늘이 생겨'
                     : '다음 멈춤이 오면 첫 선이 그어져',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall
@@ -113,7 +113,7 @@ class _StarMapState extends State<_StarMap> {
         adj[e.memoB]!.add(e.memoA);
       }
     }
-    const iterations = 160;
+    const iterations = 120;
     const kRep = 0.010; // 반발
     const kSpring = 0.020; // 연결된 별끼리 당김
     const rest = 0.18; // 스프링 자연길이
@@ -216,11 +216,22 @@ class _StarMapState extends State<_StarMap> {
                     .copyWith(color: AppColors.textPrimary)),
           ],
           if (e.rationale != null && e.rationale!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(e.rationale!,
-                style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.accentGreen.withValues(alpha: 0.85),
-                    height: 1.5)),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2, right: 6),
+                  child: Icon(Icons.auto_awesome,
+                      size: 12, color: AppColors.accentGreen),
+                ),
+                Expanded(
+                  child: Text(e.rationale!,
+                      style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textPrimary, height: 1.5)),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -360,7 +371,7 @@ class _MapPainter extends CustomPainter {
       [Offset(size.width * 0.32, size.height * 0.38), size.width * 0.7,
         AppColors.accentGreen.withValues(alpha: 0.05)],
       [Offset(size.width * 0.72, size.height * 0.66), size.width * 0.6,
-        const Color(0xFF3A4AA0).withValues(alpha: 0.06)],
+        AppColors.nebula.withValues(alpha: 0.06)],
     ];
     for (final s in specs) {
       final center = s[0] as Offset;
