@@ -212,9 +212,9 @@ String _relLabel(RelType? t) {
     case RelType.extends_:
       return '확장';
     case RelType.reverses:
-      return '뒤집힘';
+      return '달라짐';
     case RelType.echo:
-      return '메아리';
+      return '다시 떠오름';
     case RelType.similar:
       return '닮음';
     default:
