@@ -20,6 +20,8 @@
 | **GhostCTA** | 보조 행동 | 테두리 pill, accent 텍스트+테두리(예: "이 물음에 메모 남기기") |
 | **BottomNav** | 전역 내비 | 홈 / 책 / 메모 / 나. 활성 `white`, 비활성 `tertiary`. **구현체 1개로 통일**(기존 2개 폐기) |
 | **FAB** | 메모 쓰기 | 원형 56, bg `accent`, 검정 `+`. 홈에만 |
+| **AppDialog** (`showAppConfirm`) | 확인 팝업 | 제목+본문+취소/확인. `surface`+`modal 24`. 톤 `accent`(긍정)/`danger`(파괴). 앱 전역 팝업은 이걸로 통일(AlertDialog 직접 X) |
+| **AsyncView** | 비동기 섹션 렌더 | 로딩/에러/빈/데이터를 **부드럽게**(skipLoadingOnReload+고정높이+크로스페이드). 섹션 로딩에 스피너 직접 박기 금지. 규칙 `04-COMPOSITION.md §7` |
 
 ## 조합 컴포넌트 (Composite)
 

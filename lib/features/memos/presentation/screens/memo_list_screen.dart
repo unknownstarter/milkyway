@@ -99,9 +99,13 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   }
 
   Widget _feed() {
-    final async =
-        _segment == 0 ? ref.watch(allMemosProvider) : ref.watch(publicMemoFeedProvider);
+    // 두 세그먼트 미리 구독 + 재로드 시 이전 유지 -> 전환 시 스피너 깜빡임 없음(표준)
+    final mine = ref.watch(allMemosProvider);
+    final public = ref.watch(publicMemoFeedProvider);
+    final async = _segment == 0 ? mine : public;
     return async.when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
       loading: () => const Center(
         child: CircularProgressIndicator(
             color: AppColors.textSecondary, strokeWidth: 2),

@@ -20,6 +20,7 @@ import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/chips.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
+import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../reading/presentation/providers/reading_providers.dart';
 
@@ -516,41 +517,23 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          child: async.when(
-            // 갱신 중엔 이전 리스트 유지(깜빡임 방지)
-            skipLoadingOnReload: true,
-            skipLoadingOnRefresh: true,
-            // 콜드 로딩은 고정 높이로(섹션이 줄었다 늘어나는 점프 방지)
-            loading: () => const SizedBox(
-              key: ValueKey('memo-loading'),
-              height: 140,
-              child: Center(
-                child: CircularProgressIndicator(
-                    color: AppColors.textSecondary, strokeWidth: 2),
-              ),
+        // 디자인 시스템 표준: 부드러운 비동기 렌더(깜빡임/점프 없음)
+        AsyncView<List<Memo>>(
+          value: async,
+          errorText: '메모를 불러오지 못했어요',
+          isEmpty: (memos) => memos.isEmpty,
+          emptyBuilder: () => _memoSectionMessage(
+              _memoSegment == 0 ? '아직 공개된 메모가 없어요' : '아직 남긴 메모가 없어요'),
+          builder: (memos) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                for (final m in memos) ...[
+                  _memoCard(m),
+                  const SizedBox(height: 12),
+                ],
+              ],
             ),
-            error: (_, __) => _memoSectionMessage('메모를 불러오지 못했어요'),
-            data: (memos) {
-              if (memos.isEmpty) {
-                return _memoSectionMessage(_memoSegment == 0
-                    ? '아직 공개된 메모가 없어요'
-                    : '아직 남긴 메모가 없어요');
-              }
-              return Padding(
-                key: ValueKey('memo-list-$_memoSegment'),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    for (final m in memos) ...[
-                      _memoCard(m),
-                      const SizedBox(height: 12),
-                    ],
-                  ],
-                ),
-              );
-            },
           ),
         ),
       ],
