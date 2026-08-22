@@ -22,6 +22,7 @@
 | **FAB** | 메모 쓰기 | 원형 56, bg `accent`, 검정 `+`. 홈에만 |
 | **AppDialog** (`showAppConfirm`) | 확인 팝업 | 제목+본문+취소/확인. `surface`+`modal 24`. 톤 `accent`(긍정)/`danger`(파괴). 앱 전역 팝업은 이걸로 통일(AlertDialog 직접 X) |
 | **AsyncView** | 비동기 섹션 렌더 | 로딩/에러/빈/데이터를 **부드럽게**(skipLoadingOnReload+고정높이+크로스페이드). 섹션 로딩에 스피너 직접 박기 금지. 규칙 `04-COMPOSITION.md §7` |
+| **glassAppBar** | 앱바(표준) | 반투명 55% + 블러 18(콘텐츠가 뒤로 비쳐 넓어 보임). `Scaffold(extendBodyBehindAppBar: true)` + 스크롤 본문 상단 `glassTopPadding` 필수. 정렬/세그먼트 칩은 `bottom`에 넣어 상단 스티키. 불투명 AppBar 직접 쓰기 지양 |
 
 ## 조합 컴포넌트 (Composite)
 

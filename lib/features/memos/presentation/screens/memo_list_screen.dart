@@ -8,11 +8,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
-import '../../../../core/presentation/widgets/design/compose_prompt.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../domain/models/memo.dart';
 import '../providers/memo_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// 메모 탭 = 피드. 내 메모 / 공개(타 유저 포함) 세그먼트 + 쓰기 진입.
 /// 컴포넌트(SegmentFilter · ComposePrompt · MemoCard)를 조합.
@@ -44,8 +43,9 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   /// 바닥 근처에서 다음 페이지 로드(무한 스크롤). 동시 호출 방지.
   Future<void> _onScroll() async {
     if (_loadingMore || !_scroll.hasClients) return;
-    if (_scroll.position.pixels <
-        _scroll.position.maxScrollExtent - 320) return;
+    if (_scroll.position.pixels < _scroll.position.maxScrollExtent - 320) {
+      return;
+    }
     final bool more = _segment == 0
         ? ref.read(paginatedMemosProvider(null).notifier).hasMore
         : ref.read(paginatedPublicFeedProvider.notifier).hasMore;
@@ -59,8 +59,6 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
     _loadingMore = false;
   }
 
-  void _openCompose() => context.pushNamed(AppRoutes.memoCreateName);
-
   void _openDetail(Memo memo) => context.pushNamed(
         AppRoutes.memoDetailName,
         pathParameters: {'id': memo.id},
@@ -69,14 +67,12 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final me = ref.watch(authProvider).value;
+    const double segH = 46;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPrimary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
+      // 본문이 글래스 앱바 뒤로 확장돼 블러됨(넓어 보임)
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         title: const Text('Memos', style: AppTypography.title),
         actions: [
           IconButton(
@@ -94,38 +90,28 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
             ),
           ),
         ],
-      ),
-      body: Column(
-        children: [
-          Padding(
+        // 세그먼트를 앱바 하단 스티키로(위에 착 붙음)
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(segH),
+          child: Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.base),
-            child: Column(
-              children: [
-                ComposePrompt(
-                  avatarUrl: me?.pictureUrl,
-                  initial: me?.nickname ?? '나',
-                  onTap: _openCompose,
-                ),
-                const SizedBox(height: AppSpacing.base),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SegmentFilter(
-                    segments: const ['내 메모', '공개'],
-                    selectedIndex: _segment,
-                    onChanged: (i) => setState(() => _segment = i),
-                  ),
-                ),
-              ],
+                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SegmentFilter(
+                segments: const ['내 메모', '공개'],
+                selectedIndex: _segment,
+                onChanged: (i) => setState(() => _segment = i),
+              ),
             ),
           ),
-          Expanded(child: _feed()),
-        ],
+        ),
       ),
+      body: _feed(topPadding: glassTopPadding(context, bottomHeight: segH)),
     );
   }
 
-  Widget _feed() {
+  Widget _feed({double topPadding = 0}) {
     // 두 세그먼트 모두 페이지네이션(무한 스크롤). 둘 다 미리 구독 -> 전환 즉시.
     final mine = ref.watch(paginatedMemosProvider(null));
     final public = ref.watch(paginatedPublicFeedProvider);
@@ -162,7 +148,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
           },
           child: ListView.separated(
             controller: _scroll,
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 110),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, topPadding, AppSpacing.lg, 110),
             itemCount: memos.length + (hasMore ? 1 : 0),
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (_, i) {

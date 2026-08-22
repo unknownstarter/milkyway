@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../data/models/constellation.dart';
 import '../providers/constellation_providers.dart';
 
@@ -17,12 +18,8 @@ class ConstellationScreen extends ConsumerWidget {
     final async = ref.watch(constellationProvider);
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPrimary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0, // 스크롤 시 표면 틴트로 배경과 달라지는 것 방지
-        centerTitle: true,
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         title: const Text('별자리', style: AppTypography.subtitle),
       ),
       body: async.when(
@@ -37,7 +34,8 @@ class ConstellationScreen extends ConsumerWidget {
         error: (_, __) => _center('별자리를 불러오지 못했어'),
         data: (c) {
           if (c.edges.isEmpty) return _empty();
-          return _ConnectionList(constellation: c);
+          return _ConnectionList(
+              constellation: c, topPadding: glassTopPadding(context));
         },
       ),
     );
@@ -74,7 +72,8 @@ class ConstellationScreen extends ConsumerWidget {
 
 class _ConnectionList extends StatelessWidget {
   final Constellation constellation;
-  const _ConnectionList({required this.constellation});
+  final double topPadding;
+  const _ConnectionList({required this.constellation, this.topPadding = 12});
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +86,7 @@ class _ConnectionList extends StatelessWidget {
         .toList();
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
+      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 110),
       itemCount: valid.length + 1,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, i) {

@@ -30,8 +30,9 @@ class MainShell extends StatelessWidget {
       body: ConnectionRevealListener(child: child),
       // FAB를 네비와 같은 Scaffold에 둬서 Flutter가 네비 위에 자동 정렬(겹침/가림 없음).
       // 홈/책 탭에서만 노출.
-      floatingActionButton:
-          (index == 0 || index == 1) ? const AddFloatingActionButton() : null,
+      floatingActionButton: (index == 0 || index == 1 || index == 2)
+          ? const AddFloatingActionButton()
+          : null,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
