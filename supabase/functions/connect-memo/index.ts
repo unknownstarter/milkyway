@@ -115,10 +115,12 @@ Deno.serve(async (req) => {
 
     // 3) 유사 후보 검색 (관대 구간은 상위 3개만)
     const k = (count ?? 0) < 10 ? 3 : 5;
-    const { data: cands } = await supabase.rpc('match_memos', {
+    const { data: rawCands } = await supabase.rpc('match_memos', {
       p_memo_id: memoId, p_k: k, p_threshold: threshold(count ?? 0),
     });
-    if (!cands || cands.length === 0) return ok({ message: '아직 이을 별이 없음', edges: 0 });
+    // 유사도 0.985 이상은 사실상 같은 메모(중복)라 연결에서 제외
+    const cands = ((rawCands ?? []) as any[]).filter((c) => c.strength < 0.985);
+    if (cands.length === 0) return ok({ message: '아직 이을 별이 없음', edges: 0 });
 
     // 후보 메모 내용
     const candIds = cands.map((c: any) => c.memo_b);
