@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
 import '../presentation/widgets/add_floating_action_button.dart';
+import '../../features/constellation/presentation/widgets/connection_reveal.dart';
 
 /// 메인 앱 Shell
 ///
@@ -25,7 +26,8 @@ class MainShell extends StatelessWidget {
       backgroundColor: const Color(0xFF181818),
       // extendBody: 본문이 네비 뒤로 확장돼 유리 뒤로 콘텐츠가 블러되어 비침.
       extendBody: true,
-      body: child,
+      // 연결이 생기면(memo_edges insert) 어느 탭이든 조용히 Lyra 리빌을 띄운다(push).
+      body: ConnectionRevealListener(child: child),
       // FAB를 네비와 같은 Scaffold에 둬서 Flutter가 네비 위에 자동 정렬(겹침/가림 없음).
       // 홈/책 탭에서만 노출.
       floatingActionButton:
