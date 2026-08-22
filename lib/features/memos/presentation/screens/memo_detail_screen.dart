@@ -24,7 +24,10 @@ import '../../../../core/presentation/widgets/design/app_dialog.dart';
 class MemoDetailScreen extends ConsumerStatefulWidget {
   final String memoId;
 
-  const MemoDetailScreen({super.key, required this.memoId});
+  /// 카드에서 넘어올 때 이미 로드된 메모. 있으면 즉시 렌더(엣지펑션 대기 없이).
+  final Memo? initialMemo;
+
+  const MemoDetailScreen({super.key, required this.memoId, this.initialMemo});
 
   @override
   ConsumerState<MemoDetailScreen> createState() => _MemoDetailScreenState();
@@ -49,46 +52,51 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final memoAsync = ref.watch(memoProvider(widget.memoId));
-    return memoAsync.when(
-      data: (memo) {
-        if (memo == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.goNamed(AppRoutes.homeName);
-              }
-            }
-          });
-          return const Scaffold(backgroundColor: AppColors.bgPrimary);
+
+    // 남의 비공개 메모: 책 상세로 유도.
+    if (memoAsync.hasError && memoAsync.error is MemoRestrictedException) {
+      final e = memoAsync.error as MemoRestrictedException;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _routeRestricted(e.bookId);
+      });
+      return const Scaffold(backgroundColor: AppColors.bgPrimary);
+    }
+    // 삭제됨(로드 완료 + null): 뒤로/홈.
+    if (memoAsync.hasValue && memoAsync.value == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.goNamed(AppRoutes.homeName);
+          }
         }
-        return _content(memo);
-      },
-      loading: () => const Scaffold(
+      });
+      return const Scaffold(backgroundColor: AppColors.bgPrimary);
+    }
+
+    // 넘어온 메모(initialMemo)가 있으면 즉시 렌더. 서버 값이 오면 자동 갱신.
+    final memo = memoAsync.value ?? widget.initialMemo;
+    if (memo != null) return _content(memo);
+
+    // 로드 실패(넘어온 것도 없음)
+    if (memoAsync.hasError) {
+      return Scaffold(
         backgroundColor: AppColors.bgPrimary,
         body: Center(
-          child: CircularProgressIndicator(
-              color: AppColors.textSecondary, strokeWidth: 2),
+          child: Text('메모를 불러오지 못했어요',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
         ),
+      );
+    }
+    // 로딩 중 + 넘어온 메모 없음
+    return const Scaffold(
+      backgroundColor: AppColors.bgPrimary,
+      body: Center(
+        child: CircularProgressIndicator(
+            color: AppColors.textSecondary, strokeWidth: 2),
       ),
-      error: (e, _) {
-        // 남의 비공개 메모: 책을 저장했으면 책 상세로 보내고, 아니면 뒤로/홈.
-        if (e is MemoRestrictedException) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _routeRestricted(e.bookId);
-          });
-          return const Scaffold(backgroundColor: AppColors.bgPrimary);
-        }
-        return Scaffold(
-          backgroundColor: AppColors.bgPrimary,
-          body: Center(
-            child: Text('메모를 불러오지 못했어요',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-        );
-      },
     );
   }
 
@@ -319,6 +327,39 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     );
   }
 
+  /// 책 행 탭: 저장한 책이면 바로 책 상세, 아니면 담기 팝업(미저장 책 바로 열면 에러).
+  Future<void> _openBook(String bookId) async {
+    final repo = ref.read(bookRepositoryProvider);
+    final uid = repo.getCurrentUserId();
+    bool saved = false;
+    try {
+      saved = await repo.hasUserBookConnection(bookId, uid);
+    } catch (_) {}
+    if (!mounted) return;
+    if (saved) {
+      context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
+      return;
+    }
+    final save = await showAppConfirm(
+      context,
+      title: '책 담기',
+      message: '이 책을 담아야 상세를 볼 수 있어. 담을까',
+      confirmText: '담기',
+    );
+    if (!mounted || !save) return;
+    try {
+      await repo.createUserBookConnection(bookId, uid);
+      ref.read(analyticsProvider)
+          .logEvent('click_save_book_in_memo_detail', {'book_id': bookId});
+      if (mounted) {
+        context.pushNamed(AppRoutes.bookDetailName,
+            pathParameters: {'id': bookId});
+      }
+    } catch (e) {
+      if (mounted) ErrorHandler.showError(context, e, operation: '책 담기');
+    }
+  }
+
   Widget _bookRow(Memo memo) {
     final author = memo.books['author'] as String?;
     final coverUrl = memo.books['cover_url'] as String?;
@@ -327,8 +368,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       if (memo.page != null) 'p${memo.page}',
     ].join(' / ');
     return GestureDetector(
-      onTap: () => context.pushNamed(AppRoutes.bookDetailName,
-          pathParameters: {'id': memo.bookId}),
+      onTap: () => _openBook(memo.bookId),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(12),

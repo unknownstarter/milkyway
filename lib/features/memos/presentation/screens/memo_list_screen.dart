@@ -34,9 +34,10 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
 
   void _openCompose() => context.pushNamed(AppRoutes.memoCreateName);
 
-  void _openDetail(String memoId) => context.pushNamed(
+  void _openDetail(Memo memo) => context.pushNamed(
         AppRoutes.memoDetailName,
-        pathParameters: {'id': memoId},
+        pathParameters: {'id': memo.id},
+        extra: memo, // 즉시 렌더용(엣지펑션 대기 없이)
       );
 
   @override
@@ -143,7 +144,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       imageUrl: memo.imageUrl,
       commentCount: memo.commentCount,
       lyraQuestion: memo.lyraQuestion,
-      onTap: () => _openDetail(memo.id),
+      onTap: () => _openDetail(memo),
     );
   }
 

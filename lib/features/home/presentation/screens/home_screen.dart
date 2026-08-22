@@ -153,7 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   commentCount: m.commentCount,
                   lyraQuestion: m.lyraQuestion,
                   onTap: () => context.pushNamed(AppRoutes.memoDetailName,
-                      pathParameters: {'id': m.id}),
+                      pathParameters: {'id': m.id}, extra: m),
                 ),
                 const SizedBox(height: 12),
               ],

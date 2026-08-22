@@ -495,9 +495,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Widget _buildMemosSection(Book book) {
-    final async = _memoSegment == 0
-        ? ref.watch(publicBookMemosProvider(book.id))
-        : ref.watch(bookMemosProvider(book.id));
+    // 두 세그먼트를 미리 구독 -> 전환 시 콜드 스피너 없이 즉시 표시(뚝뚝 끊김 방지).
+    final publicAsync = ref.watch(publicBookMemosProvider(book.id));
+    final mineAsync = ref.watch(bookMemosProvider(book.id));
+    final async = _memoSegment == 0 ? publicAsync : mineAsync;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -515,32 +516,42 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        async.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: CircularProgressIndicator(
-                  color: AppColors.textSecondary, strokeWidth: 2),
-            ),
-          ),
-          error: (_, __) => _memoSectionMessage('메모를 불러오지 못했어요'),
-          data: (memos) {
-            if (memos.isEmpty) {
-              return _memoSectionMessage(
-                  _memoSegment == 0 ? '아직 공개된 메모가 없어요' : '아직 남긴 메모가 없어요');
-            }
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  for (final m in memos) ...[
-                    _memoCard(m),
-                    const SizedBox(height: 12),
-                  ],
-                ],
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: async.when(
+            // 갱신 중엔 이전 리스트 유지(깜빡임 방지)
+            skipLoadingOnReload: true,
+            skipLoadingOnRefresh: true,
+            // 콜드 로딩은 고정 높이로(섹션이 줄었다 늘어나는 점프 방지)
+            loading: () => const SizedBox(
+              key: ValueKey('memo-loading'),
+              height: 140,
+              child: Center(
+                child: CircularProgressIndicator(
+                    color: AppColors.textSecondary, strokeWidth: 2),
               ),
-            );
-          },
+            ),
+            error: (_, __) => _memoSectionMessage('메모를 불러오지 못했어요'),
+            data: (memos) {
+              if (memos.isEmpty) {
+                return _memoSectionMessage(_memoSegment == 0
+                    ? '아직 공개된 메모가 없어요'
+                    : '아직 남긴 메모가 없어요');
+              }
+              return Padding(
+                key: ValueKey('memo-list-$_memoSegment'),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    for (final m in memos) ...[
+                      _memoCard(m),
+                      const SizedBox(height: 12),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -561,7 +572,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       commentCount: m.commentCount,
       lyraQuestion: m.lyraQuestion,
       onTap: () => context.pushNamed(AppRoutes.memoDetailName,
-          pathParameters: {'id': m.id}),
+          pathParameters: {'id': m.id}, extra: m),
     );
   }
 

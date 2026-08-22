@@ -16,6 +16,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
+import '../../features/memos/domain/models/memo.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_create_screen.dart';
@@ -254,6 +255,7 @@ final router = GoRouter(
       name: AppRoutes.memoDetailName,
       builder: (context, state) => MemoDetailScreen(
         memoId: state.requirePathParam('id'),
+        initialMemo: state.extra is Memo ? state.extra as Memo : null,
       ),
     ),
     
