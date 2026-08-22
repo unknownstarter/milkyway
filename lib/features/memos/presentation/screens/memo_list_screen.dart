@@ -25,11 +25,38 @@ class MemoListScreen extends ConsumerStatefulWidget {
 
 class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   int _segment = 0; // 0 = 내 메모, 1 = 공개
+  final _scroll = ScrollController();
+  bool _loadingMore = false;
 
   @override
   void initState() {
     super.initState();
     ref.read(analyticsProvider).logScreenView('memo_tab');
+    _scroll.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// 바닥 근처에서 다음 페이지 로드(무한 스크롤). 동시 호출 방지.
+  Future<void> _onScroll() async {
+    if (_loadingMore || !_scroll.hasClients) return;
+    if (_scroll.position.pixels <
+        _scroll.position.maxScrollExtent - 320) return;
+    final bool more = _segment == 0
+        ? ref.read(paginatedMemosProvider(null).notifier).hasMore
+        : ref.read(paginatedPublicFeedProvider.notifier).hasMore;
+    if (!more) return;
+    _loadingMore = true;
+    if (_segment == 0) {
+      await ref.read(paginatedMemosProvider(null).notifier).loadMoreMemos();
+    } else {
+      await ref.read(paginatedPublicFeedProvider.notifier).loadMore();
+    }
+    _loadingMore = false;
   }
 
   void _openCompose() => context.pushNamed(AppRoutes.memoCreateName);
@@ -99,10 +126,13 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
   }
 
   Widget _feed() {
-    // 두 세그먼트 미리 구독 + 재로드 시 이전 유지 -> 전환 시 스피너 깜빡임 없음(표준)
-    final mine = ref.watch(allMemosProvider);
-    final public = ref.watch(publicMemoFeedProvider);
+    // 두 세그먼트 모두 페이지네이션(무한 스크롤). 둘 다 미리 구독 -> 전환 즉시.
+    final mine = ref.watch(paginatedMemosProvider(null));
+    final public = ref.watch(paginatedPublicFeedProvider);
     final async = _segment == 0 ? mine : public;
+    final hasMore = _segment == 0
+        ? ref.read(paginatedMemosProvider(null).notifier).hasMore
+        : ref.read(paginatedPublicFeedProvider.notifier).hasMore;
     return async.when(
       skipLoadingOnReload: true,
       skipLoadingOnRefresh: true,
@@ -120,13 +150,37 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
           color: AppColors.accentGreen,
           backgroundColor: AppColors.surface,
           onRefresh: () async {
-            ref.invalidate(_segment == 0 ? allMemosProvider : publicMemoFeedProvider);
+            if (_segment == 0) {
+              await ref
+                  .read(paginatedMemosProvider(null).notifier)
+                  .loadInitialMemos();
+            } else {
+              await ref
+                  .read(paginatedPublicFeedProvider.notifier)
+                  .loadInitial();
+            }
           },
           child: ListView.separated(
+            controller: _scroll,
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 110),
-            itemCount: memos.length,
+            itemCount: memos.length + (hasMore ? 1 : 0),
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (_, i) => _card(memos[i]),
+            itemBuilder: (_, i) {
+              if (i >= memos.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.textSecondary),
+                    ),
+                  ),
+                );
+              }
+              return _card(memos[i]);
+            },
           ),
         );
       },

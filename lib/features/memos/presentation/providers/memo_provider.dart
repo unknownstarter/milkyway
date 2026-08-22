@@ -38,6 +38,7 @@ void invalidateMemoProviders(
   // publicMemoFeedProvider: 홈 '다른 별들이 남긴 생각들' + 메모탭 공개 세그먼트.
   // 공개->비공개 전환·삭제도 피드에 반영돼야 하므로 항상 무효화.
   ref.invalidate(publicMemoFeedProvider);
+  ref.invalidate(paginatedPublicFeedProvider);
   ref.invalidate(bookMemosProvider(bookId));
   ref.invalidate(recentMemosProvider);
   ref.invalidate(homeRecentMemosProvider);
@@ -356,6 +357,54 @@ final paginatedMemosProvider = StateNotifierProvider.family<
     repository: ref.watch(memoRepositoryProvider),
     bookId: bookId,
   ),
+);
+
+/// 전역 공개 피드 페이지네이션(메모 탭 '공개'). 무한 스크롤.
+class PaginatedPublicFeedNotifier extends StateNotifier<AsyncValue<List<Memo>>> {
+  final MemoRepository _repository;
+  static const int _limit = 20;
+  int _page = 0;
+  bool _hasMore = true;
+
+  PaginatedPublicFeedNotifier(this._repository)
+      : super(const AsyncValue.loading()) {
+    loadInitial();
+  }
+
+  Future<void> loadInitial() async {
+    state = const AsyncValue.loading();
+    _page = 0;
+    _hasMore = true;
+    await _load();
+  }
+
+  Future<void> loadMore() async {
+    if (!_hasMore || !mounted) return;
+    _page++;
+    await _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final memos = await _repository.getPublicFeed(
+          limit: _limit, offset: _page * _limit);
+      if (!mounted) return;
+      _hasMore = memos.length == _limit;
+      state = _page == 0
+          ? AsyncValue.data(memos)
+          : AsyncValue.data([...state.value ?? [], ...memos]);
+    } catch (e, st) {
+      if (!mounted) return;
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  bool get hasMore => _hasMore;
+}
+
+final paginatedPublicFeedProvider =
+    StateNotifierProvider<PaginatedPublicFeedNotifier, AsyncValue<List<Memo>>>(
+  (ref) => PaginatedPublicFeedNotifier(ref.watch(memoRepositoryProvider)),
 );
 
 Future<String?> _uploadMemoImage(String filePath) async {

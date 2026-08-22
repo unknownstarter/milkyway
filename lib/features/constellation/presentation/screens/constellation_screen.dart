@@ -21,6 +21,7 @@ class ConstellationScreen extends ConsumerWidget {
         backgroundColor: AppColors.bgPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0, // 스크롤 시 표면 틴트로 배경과 달라지는 것 방지
         centerTitle: true,
         title: const Text('별자리', style: AppTypography.subtitle),
       ),
@@ -127,17 +128,8 @@ class _ConnectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 관계 라벨
-          Row(
-            children: [
-              Container(width: 12, height: 2, color: _relColor(edge.relType)),
-              const SizedBox(width: 8),
-              Text(_relLabel(edge.relType),
-                  style: AppTypography.caption.copyWith(
-                      color: _relColor(edge.relType),
-                      fontWeight: FontWeight.w600)),
-            ],
-          ),
+          // 관계 칩
+          _relChip(edge.relType),
           // Lyra 근거
           if (edge.rationale != null && edge.rationale!.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -200,18 +192,33 @@ class _ConnectionCard extends StatelessWidget {
   }
 }
 
+/// 짧고 쉬운 관계 칩(누가봐도 이해). 색은 은은한 배경 틴트 + 텍스트.
+Widget _relChip(RelType? t) {
+  final c = _relColor(t);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: c.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+    ),
+    child: Text(_relLabel(t),
+        style: AppTypography.caption
+            .copyWith(color: c, fontWeight: FontWeight.w700)),
+  );
+}
+
 String _relLabel(RelType? t) {
   switch (t) {
     case RelType.extends_:
-      return '더 밀고 나감';
+      return '확장';
     case RelType.reverses:
-      return '정면으로 어긋남';
+      return '뒤집힘';
     case RelType.echo:
-      return '밑바닥이 같음';
+      return '메아리';
     case RelType.similar:
-      return '같은 결';
+      return '닮음';
     default:
-      return '이어짐';
+      return '연결';
   }
 }
 

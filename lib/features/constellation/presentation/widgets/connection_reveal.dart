@@ -12,15 +12,15 @@ import '../../data/models/constellation.dart';
 String _relLabel(RelType? t) {
   switch (t) {
     case RelType.extends_:
-      return '더 밀고 나감';
+      return '확장';
     case RelType.reverses:
-      return '정면으로 어긋남';
+      return '뒤집힘';
     case RelType.echo:
-      return '밑바닥이 같음';
+      return '메아리';
     case RelType.similar:
-      return '같은 결';
+      return '닮음';
     default:
-      return '이어짐';
+      return '연결';
   }
 }
 
