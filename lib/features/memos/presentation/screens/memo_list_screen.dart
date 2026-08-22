@@ -52,6 +52,12 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
         title: const Text('Memos', style: AppTypography.title),
         actions: [
           IconButton(
+            icon: const Icon(Icons.hub_outlined,
+                size: 20, color: AppColors.textSecondary),
+            tooltip: '별자리',
+            onPressed: () => context.pushNamed(AppRoutes.constellationName),
+          ),
+          IconButton(
             icon: const Icon(Icons.calendar_today_outlined,
                 size: 20, color: AppColors.textSecondary),
             onPressed: () => context.pushNamed(

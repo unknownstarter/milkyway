@@ -26,6 +26,7 @@ class AppRoutes {
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const calendar = '/calendar';
+  static const constellation = '/constellation';
 
   // 라우트 경로 생성 헬퍼 (deprecated: named routes 사용 권장)
   @Deprecated('Use context.pushNamed(AppRoutes.bookDetailName, pathParameters: {\'id\': bookId}) instead')
@@ -57,4 +58,5 @@ class AppRoutes {
   static const profileName = 'profile';
   static const profileEditName = 'profile-edit';
   static const calendarName = 'calendar';
+  static const constellationName = 'constellation';
 }

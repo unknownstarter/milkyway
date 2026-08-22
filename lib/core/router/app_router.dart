@@ -15,6 +15,7 @@ import '../../features/memos/presentation/screens/memo_list_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
+import '../../features/constellation/presentation/screens/constellation_screen.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_create_screen.dart';
@@ -239,7 +240,14 @@ final router = GoRouter(
         return CalendarScreen(initialSegment: seg);
       },
     ),
-    
+
+    // 별자리(사유의 커넥톰) — 메모 탭 앱바에서 진입
+    GoRoute(
+      path: AppRoutes.constellation,
+      name: AppRoutes.constellationName,
+      builder: (context, state) => const ConstellationScreen(),
+    ),
+
     // 메모 상세 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)
     GoRoute(
       path: '${AppRoutes.memoDetail}/:id',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/memo.dart';
@@ -289,6 +290,13 @@ class MemoRepository {
         log('Lyra 스냅샷 저장 실패(무시): $e');
       }
     }
+
+    // 커넥톰: 이 메모를 임베딩하고 과거 메모와 연결(fire-and-forget, 실패 무시)
+    unawaited(
+      _client.functions
+          .invoke('connect-memo', body: {'memo_id': memoId})
+          .then((_) {}, onError: (_) {}),
+    );
 
     // 공개 메모인 경우 알림 전송
     if (visibility == MemoVisibility.public) {
