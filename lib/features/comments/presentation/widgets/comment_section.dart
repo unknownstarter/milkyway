@@ -219,6 +219,10 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       children: [
         Expanded(
           child: SingleChildScrollView(
+            // 스크롤을 아래로 끌면 키보드가 내려간다(채팅 표준 동작).
+            // 댓글이 적어도 드래그가 먹히도록 항상 스크롤 가능하게.
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
