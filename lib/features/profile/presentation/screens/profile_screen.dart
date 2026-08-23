@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_stats_provider.dart';
 import '../../domain/profile_stats.dart';
@@ -53,18 +54,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary)),
               )
-            : SafeArea(
-                bottom: false,
-                child: ListView(
-                  padding: const EdgeInsets.only(top: 16, bottom: 110),
-                  children: [
-                    _profileRow(context, user),
-                    _statsCard(ref),
-                    _menuGroup(context, ref),
-                    const SizedBox(height: 22),
-                    _footer(),
-                  ],
-                ),
+            : Stack(
+                children: [
+                  ListView(
+                    padding: EdgeInsets.only(
+                        top: glassStatusTop(context, gap: 16), bottom: 110),
+                    children: [
+                      _profileRow(context, user),
+                      _statsCard(ref),
+                      _menuGroup(context, ref),
+                      const SizedBox(height: 22),
+                      _footer(),
+                    ],
+                  ),
+                  const Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: GlassStatusBar(),
+                  ),
+                ],
               ),
       ),
     );

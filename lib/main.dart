@@ -10,6 +10,7 @@ import 'core/config/env_config.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/router/app_routes.dart';
+import 'package:inspire_blur/inspire_blur.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -244,6 +245,9 @@ void main() async {
   }
 
   await FirebaseService.initialize();
+
+  // 글래스 앱바 progressive blur 셰이더 프리로드(첫 렌더 깜빡임 방지)
+  await Inspire.warmUp();
 
   runApp(
     const ProviderScope(

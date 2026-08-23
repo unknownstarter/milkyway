@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/book_detail_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/providers/seen_tracker_provider.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
@@ -21,6 +22,7 @@ import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/chips.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../../core/presentation/widgets/design/async_view.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../reading/presentation/providers/reading_providers.dart';
 
@@ -50,6 +52,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   void initState() {
     super.initState();
     ref.read(analyticsProvider).logScreenView('book_detail_screen');
+    // 어떤 경로로 들어오든 이 책을 '봤음'으로 로컬 기록 → 홈/책탭 새 표시 해제.
+    ref.read(seenTrackerProvider).markBookViewed(widget.bookId);
   }
 
   @override
@@ -58,10 +62,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
-        surfaceTintColor: Colors.transparent, // Material 3에서 스크롤 시 색상 변경 방지
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
@@ -90,7 +92,6 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             ),
           ),
         ),
-        centerTitle: true,
         actions: [
           bookAsync.when(
             data: (book) => TextButton(
@@ -140,7 +141,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: bottomPadding),
+          padding: EdgeInsets.only(
+              top: glassTopPadding(context), bottom: bottomPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

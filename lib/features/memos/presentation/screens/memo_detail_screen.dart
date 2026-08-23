@@ -10,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
 import '../../../../core/presentation/widgets/design/chips.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
@@ -160,11 +161,8 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPrimary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: AppColors.textPrimary),
@@ -187,10 +185,12 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
               ]
             : null,
       ),
-      // 본문을 댓글 영역 header로 넘겨 함께 스크롤 + 하단 입력창 고정
+      // 본문을 댓글 영역 header로 넘겨 함께 스크롤 + 하단 입력창 고정.
+      // topPadding으로 스크롤이 글래스 앱바 뒤에서 시작(CASE B).
       body: CommentSection(
         memoId: widget.memoId,
         bookId: memo.bookId,
+        topPadding: glassTopPadding(context),
         header: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

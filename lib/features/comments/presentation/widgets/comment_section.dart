@@ -21,12 +21,15 @@ class CommentSection extends ConsumerStatefulWidget {
   final String memoId;
   final String bookId;
   final Widget header;
+  // 스크롤 상단 패딩(글래스 앱바 뒤로 콘텐츠가 가려지지 않게). CASE B: glassTopPadding(context).
+  final double topPadding;
 
   const CommentSection({
     super.key,
     required this.memoId,
     required this.bookId,
     required this.header,
+    this.topPadding = 8,
   });
 
   @override
@@ -223,7 +226,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
             // 댓글이 적어도 드래그가 먹히도록 항상 스크롤 가능하게.
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            padding: EdgeInsets.fromLTRB(20, widget.topPadding, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

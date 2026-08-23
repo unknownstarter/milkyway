@@ -54,3 +54,6 @@ android/app/*.keystore
 
 # Claude Code local settings (개인 권한 설정)
 .claude/settings.local.json
+
+# 로컬 핸드오프 노트 (커밋 X)
+/handoff/

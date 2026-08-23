@@ -8,6 +8,7 @@ import '../../domain/models/naver_book.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 
 class BookSearchScreen extends ConsumerStatefulWidget {
   final bool isFromOnboarding;
@@ -72,8 +73,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
           child: const Text(
@@ -92,6 +93,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       ),
       body: Column(
         children: [
+          SizedBox(height: glassTopPadding(context)),
           // 검색 입력
           _buildSearchInput(),
           
