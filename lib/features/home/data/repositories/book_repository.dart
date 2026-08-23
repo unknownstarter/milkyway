@@ -55,6 +55,30 @@ class BookRepository {
     }
   }
 
+  /// 홈 스토리 원 전용: 내 메모/타인 공개 메모 활동으로 랭킹된 책 목록.
+  ///
+  /// `get_home_books_by_last_activity`와 동일 컬럼 + my_last_memo_at,
+  /// others_last_public_memo_at 를 뒤에 추가로 반환하는 RPC.
+  /// 정렬/링 계산은 presentation(homeStoriesProvider)에서 처리.
+  Future<List<Book>> getHomeBooksRanked() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not logged in');
+
+      final response = await _client.rpc(
+        'get_home_books_ranked',
+        params: {'p_user_id': userId},
+      ) as List<dynamic>;
+
+      return response
+          .map((item) => Book.fromHomeRanked(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('Error getting home books ranked: $e');
+      rethrow;
+    }
+  }
+
   Future<Book> getBookDetail(String bookId) async {
     final response = await _client
         .from('books')

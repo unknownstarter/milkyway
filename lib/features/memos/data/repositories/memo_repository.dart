@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/memo.dart';
+import '../../domain/models/memo_badge_activity.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../domain/memo_exceptions.dart';
 import 'dart:developer';
@@ -451,6 +452,32 @@ class MemoRepository {
         .range(offset, offset + limit - 1);
 
     return response.map((json) => Memo.fromJson(json)).toList();
+  }
+
+  /// Memos 탭 하단 네비 빨간 점용 활동 시각을 가져온다.
+  ///
+  /// RPC `get_memos_badge_activity`: 남의 마지막 공개 메모 / 내 메모에 달린
+  /// 남의 마지막 댓글 시각. 실패 시 빈 값(null/null)으로 폴백(점 안 뜸).
+  Future<MemoBadgeActivity> getMemosBadgeActivity() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return const MemoBadgeActivity();
+
+      final response = await _client.rpc(
+        'get_memos_badge_activity',
+        params: {'p_user_id': userId},
+      );
+
+      // RPC는 단일 행 반환(SETOF 아님이면 Map, TABLE이면 List).
+      final row = response is List
+          ? (response.isEmpty ? null : response.first)
+          : response;
+      if (row is! Map) return const MemoBadgeActivity();
+      return MemoBadgeActivity.fromJson(Map<String, dynamic>.from(row));
+    } catch (e) {
+      log('Error getting memos badge activity: $e');
+      return const MemoBadgeActivity();
+    }
   }
 }
 

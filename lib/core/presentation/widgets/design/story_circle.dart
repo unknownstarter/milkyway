@@ -4,8 +4,13 @@ import '../../../theme/app_typography.dart';
 import 'cached_image.dart';
 
 /// 조합: 홈 상단 "좋아하는 책" 스토리 원(인스타 문법).
-/// ring - active(초록 conic = 새 활동) / seen(회색) / add(+).
-enum StoryRing { active, seen, add }
+/// ring - active(초록 conic = 안 본 남의 새 공개 메모) / mine(파랑 = 내 메모 있음)
+///        / seen(회색) / add(+).
+enum StoryRing { active, seen, add, mine }
+
+/// mine 링 색 (내 메모 있는 책). nebula(0xFF3A4AA0)보다 밝은 파랑으로
+/// active(초록)와 명확히 구분.
+const Color _mineRingColor = Color(0xFF6E8BE0);
 
 class StoryCircle extends StatelessWidget {
   final String label;
@@ -46,11 +51,12 @@ class StoryCircle extends StatelessWidget {
                         transform: GradientRotation(2.35),
                       )
                     : null,
-                color: ring == StoryRing.active
-                    ? null
-                    : (ring == StoryRing.add
-                        ? AppColors.surfaceMuted
-                        : AppColors.surfaceElevated),
+                color: switch (ring) {
+                  StoryRing.active => null,
+                  StoryRing.mine => _mineRingColor,
+                  StoryRing.add => AppColors.surfaceMuted,
+                  StoryRing.seen => AppColors.surfaceElevated,
+                },
               ),
               child: Container(
                 decoration: BoxDecoration(

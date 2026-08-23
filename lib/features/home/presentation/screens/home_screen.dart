@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
@@ -11,7 +12,6 @@ import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../domain/models/book.dart';
-import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
@@ -65,7 +65,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (_) {}
     if (!mounted) return;
     if (owned) {
-      context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
+      await context.pushNamed(AppRoutes.bookDetailName,
+          pathParameters: {'id': bookId});
+      // 상세를 보고 돌아오면 lastViewed가 갱신됐으므로 스토리 링 재계산.
+      ref.invalidate(homeStoriesProvider);
       return;
     }
     final save = await showAppConfirm(
@@ -341,23 +344,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // bottom:false 로 콘텐츠가 네비 뒤로 확장(책탭과 동일) -> 유리 뒤로 비침.
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: AppColors.accentGreen,
-          backgroundColor: AppColors.surface,
-          onRefresh: () async {
-            ref.invalidate(homeBooksProvider);
-            ref.invalidate(booksSavedByOthersProvider);
-          },
-          child: ListView(
-            // 네비 + FAB(우하단) 위로 마지막 섹션(내 기록)이 완전히 나오도록 넉넉히.
-            padding: const EdgeInsets.only(bottom: 210),
-            children: [
+      // 콘텐츠가 상태바 뒤까지 확장 -> 상단 GlassStatusBar가 스크롤 콘텐츠를 유리 처리.
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            color: AppColors.accentGreen,
+            backgroundColor: AppColors.surface,
+            onRefresh: () async {
+              ref.invalidate(homeBooksProvider);
+              ref.invalidate(booksSavedByOthersProvider);
+            },
+            child: ListView(
+              // 상단=상태바 높이(콘텐츠가 상태바 아래에서 시작, 스크롤 시 뒤로). 하단=네비+FAB 여유.
+              padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top, bottom: 210),
+              children: [
               _header(),
               const SizedBox(height: 6),
-              _stories(books),
+              _stories(),
               if (books.isEmpty) _emptyWelcome(),
               _lyraHighlight(books),
               const SizedBox(height: 34),
@@ -374,6 +378,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: GlassStatusBar(),
+          ),
+        ],
       ),
     );
   }
@@ -427,7 +438,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _stories(List<Book> books) {
+  Widget _stories() {
+    final stories =
+        ref.watch(homeStoriesProvider).asData?.value ?? const <HomeStory>[];
     return SizedBox(
       height: 92,
       child: ListView(
@@ -439,15 +452,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ring: StoryRing.add,
             onTap: _openSearch,
           ),
-          for (final b in books) ...[
+          for (final s in stories) ...[
             const SizedBox(width: 14),
             StoryCircle(
-              label: b.title,
-              coverUrl: b.coverUrl,
-              ring: b.status == BookStatus.reading
-                  ? StoryRing.active
-                  : StoryRing.seen,
-              onTap: () => _openBook(b.id),
+              label: s.book.title,
+              coverUrl: s.book.coverUrl,
+              ring: s.ring,
+              onTap: () => _openBook(s.book.id),
             ),
           ],
         ],
