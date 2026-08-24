@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_stats_provider.dart';
 import '../../domain/profile_stats.dart';
@@ -36,36 +37,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // 앱바 없이 유저 영역을 위로. extendBody 대비 하단 여백 확보.
-      body: userAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-              color: AppColors.textSecondary, strokeWidth: 2),
-        ),
-        error: (e, st) => Center(
-          child: Text('불러오지 못했어요',
-              style: AppTypography.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-        ),
-        data: (user) => user == null
-            ? Center(
-                child: Text('로그인이 필요해요',
-                    style: AppTypography.bodySmall
-                        .copyWith(color: AppColors.textSecondary)),
-              )
-            : SafeArea(
-                bottom: false,
-                child: ListView(
-                  padding: const EdgeInsets.only(top: 16, bottom: 110),
-                  children: [
-                    _profileRow(context, user),
-                    _statsCard(ref),
-                    _menuGroup(context, ref),
-                    const SizedBox(height: 22),
-                    _footer(),
-                  ],
-                ),
-              ),
+      // CASE C(타이틀 없음): 상태바 영역만 순수 블러(StatusBarBlur). 콘텐츠는 상태바 아래에서
+      // 시작하고, 상태바 뒤로 스크롤될 때만 노치 영역에서 흐려진다.
+      body: Stack(
+        children: [
+          userAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                  color: AppColors.textSecondary, strokeWidth: 2),
+            ),
+            error: (e, st) => Center(
+              child: Text('불러오지 못했어요',
+                  style: AppTypography.bodySmall
+                      .copyWith(color: AppColors.textSecondary)),
+            ),
+            data: (user) => user == null
+                ? Center(
+                    child: Text('로그인이 필요해요',
+                        style: AppTypography.bodySmall
+                            .copyWith(color: AppColors.textSecondary)),
+                  )
+                : ListView(
+                    padding: EdgeInsets.only(
+                        top: statusBarTop(context), bottom: 110),
+                    children: [
+                      _profileRow(context, user),
+                      _statsCard(ref),
+                      _menuGroup(context, ref),
+                      const SizedBox(height: 22),
+                      _footer(),
+                    ],
+                  ),
+          ),
+          const Positioned(
+              top: 0, left: 0, right: 0, child: StatusBarBlur()),
+        ],
       ),
     );
   }

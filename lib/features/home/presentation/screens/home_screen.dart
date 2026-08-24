@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
@@ -343,20 +344,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // 타이틀 없는 화면 = 상태바 아래에서 콘텐츠 시작(SafeArea). 얇은 유리 스트립은
-      // 실기기에서 아티팩트(비침/밴딩/띠) 반복 -> 제거. 깔끔·안정 우선.
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: AppColors.accentGreen,
-          backgroundColor: AppColors.surface,
-          onRefresh: () async {
-            ref.invalidate(homeBooksProvider);
-            ref.invalidate(booksSavedByOthersProvider);
-          },
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 210),
-            children: [
+      // 타이틀 없는 화면(CASE C): 상태바 영역만 순수 블러(StatusBarBlur). 콘텐츠는 상태바
+      // 아래에서 시작하고, 상태바 뒤로 스크롤될 때만 노치 영역에서 흐려진다.
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            color: AppColors.accentGreen,
+            backgroundColor: AppColors.surface,
+            onRefresh: () async {
+              ref.invalidate(homeBooksProvider);
+              ref.invalidate(booksSavedByOthersProvider);
+            },
+            child: ListView(
+              padding: EdgeInsets.only(top: statusBarTop(context), bottom: 210),
+              children: [
               _header(),
               const SizedBox(height: 6),
               _stories(),
@@ -376,6 +377,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+          const Positioned(
+              top: 0, left: 0, right: 0, child: StatusBarBlur()),
+        ],
       ),
     );
   }

@@ -19,11 +19,11 @@ import '../../../theme/app_spacing.dart';
 // │   appBar: glassAppBar(title: Text('...'), leading: BackButton(...)),
 // │   body: <Scroll>(padding: top = glassTopPadding(context)))   // bottomHeight 없음
 // │
-// └ CASE C ─ 타이틀 없음 (예: 홈, 프로필) ────────────────────────────────
+// └ CASE C ─ 타이틀 없음 (예: 홈, 프로필) = 상태바만 순수 블러(글래스 아님) ──────
 //   Scaffold(  // extendBodyBehindAppBar 불필요(appBar 없음)
 //     body: Stack(children: [
-//       <Scroll>(padding: top = glassStatusTop(context)),      // SafeArea top 쓰지 말 것
-//       const Positioned(top:0,left:0,right:0, child: GlassStatusBar()),
+//       <Scroll>(padding: top = statusBarTop(context)),        // SafeArea top 쓰지 말 것
+//       const Positioned(top:0,left:0,right:0, child: StatusBarBlur()),
 //     ]))
 //
 // 하단 네비(BottomNav)는 별개(momo 화이트 프로스트) — 이 파일과 무관, 건드리지 말 것.
@@ -42,8 +42,10 @@ PreferredSizeWidget glassAppBar({
   Widget? leading,
   PreferredSizeWidget? bottom,
   bool centerTitle = true,
+  double? toolbarHeight,
 }) {
   return AppBar(
+    toolbarHeight: toolbarHeight,
     // 유리 효과는 flexibleSpace(GlassBackground)가 전담. AppBar 자체는 완전 투명.
     // 배경/서피스틴트/그림자 0 = 유리 위에 텍스트·칩만 뜸.
     backgroundColor: Colors.transparent,
@@ -101,32 +103,23 @@ class GlassBackground extends StatelessWidget {
 /// 타이틀 없는 화면(홈/프로필)용 상단 상태바 글래스 스트립.
 /// body를 Stack으로 감싸 최상단에 얹고, 본문은 상태바 뒤까지 확장(SafeArea top 제거) +
 /// top 패딩 = 상태바 높이(+[extra]). 스크롤 시 콘텐츠가 상태바 뒤로 들어가도 유리 처리로 일관.
-class GlassStatusBar extends StatelessWidget {
-  final double extra;
-  const GlassStatusBar({super.key, this.extra = 8});
+/// [CASE C] 타이틀 없는 화면(홈/프로필)용 = **정확히 상태바(노치) 높이만 순수 블러**.
+/// 글래스 아님(틴트/셰이더 없음). 상태바 뒤로 들어간 콘텐츠만 흐려지고, 상태바 아래는
+/// 절대 안 흐려짐(높이 = MediaQuery.padding.top 딱 그만큼, 그 아래로 안 내려감).
+/// 얇은 스트립이라 inspire 셰이더는 좌우 비대칭 버그 -> 균일 BackdropFilter.
+/// body를 Stack으로: 스크롤(top 패딩 [statusBarTop]) + `Positioned(top:0, child: StatusBarBlur())`.
+class StatusBarBlur extends StatelessWidget {
+  const StatusBarBlur({super.key});
   @override
   Widget build(BuildContext context) {
-    // ⚠️ 여기선 inspire 셰이더(GlassBackground) 쓰지 말 것: 얇은 스트립에서 좌우 비대칭
-    // 렌더 버그(한쪽만 블러됨). 얇은 상태바 영역은 균일 BackdropFilter가 안전(전체폭 확실).
     return IgnorePointer(
       child: SizedBox(
         width: double.infinity,
-        height: MediaQuery.of(context).padding.top + extra,
+        height: MediaQuery.of(context).padding.top, // 딱 상태바 높이만
         child: ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF181818).withValues(alpha: 0.55),
-                    const Color(0xFF181818).withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: const SizedBox.expand(), // 순수 블러 - 틴트/배경색 없음
           ),
         ),
       ),
@@ -135,9 +128,9 @@ class GlassStatusBar extends StatelessWidget {
 }
 
 /// 타이틀 없는 화면 본문 top 패딩(상태바 + 숨쉴 여백).
-double glassStatusTop(BuildContext context, {double gap = AppSpacing.md}) {
-  return MediaQuery.of(context).padding.top + gap;
-}
+/// StatusBarBlur를 쓰는 화면 본문 top 패딩 = 상태바 + 여백(콘텐츠가 상태바 아래에서 시작).
+double statusBarTop(BuildContext context) =>
+    MediaQuery.of(context).padding.top + AppSpacing.md;
 
 /// glassAppBar를 쓰는 스크롤 본문의 상단 패딩(상태바 + 툴바 + bottom 높이 + 숨쉴 여백).
 /// [gap] = 바 바닥과 첫 콘텐츠 사이 여백. 표지처럼 여백 없는 콘텐츠가 바에 씹히지 않게 기본 12.
