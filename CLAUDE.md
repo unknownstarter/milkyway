@@ -51,6 +51,7 @@ lib/
 - 신규 surface(v2의 별자리·책 스레드)는 **신규 feature 폴더**로 (기존 폴더 오염 X)
 - DB는 **신규 테이블·RPC**로 확장 (기존 테이블 스키마 변경 금지 — `REFACTORING_RULES.md`)
 - 파일 길이 300줄 초과 시 분할 검토. 한 위젯에 비즈니스 로직 X
+- **이미지(표지·메모사진·프로필) 올리거나 불러올 땐 `Image.network` 직접 금지.** 표시는 `CachedImage`, 업로드/변환/재호스팅은 정해진 모듈만 사용. 규격(cacheWidth·WebP·버킷·폴백)은 `docs/DEVELOPER_RULES.md` §🖼️ 이미지 업로드/표시 프로토콜 참조
 
 ## 전문 직군 에이전트
 `.claude/agents/<name>.md` 정의. 필요 시 `Agent(subagent_type: "<name>")` 호출:

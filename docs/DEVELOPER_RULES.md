@@ -133,6 +133,41 @@ const double memoTitleToFilter = 20.0;      // 책 메모 타이틀과 필터 �
 const double filterToFirstMemo = 32.0;       // 필터 버튼과 첫 번째 메모 카드 사이
 ```
 
+## 🖼️ 이미지 업로드/표시 프로토콜 (2026-08-24 추가 - 필수 준수)
+
+> **모든 이미지(책 표지·메모 사진·프로필)는 이 규격을 따른다. 새 화면에서 이미지를 올리거나 불러올 때 반드시 이 절을 먼저 본다.** 안 지키면 홈/책탭에서 풀해상도 로드로 과부하 걸린다. 모듈(디자인 시스템)로 강제하니 직접 `Image.network` 쓰지 말 것.
+
+### 원칙 3줄 요약
+1. **표시(불러오기)는 무조건 `CachedImage`** 를 쓴다. `Image.network` 직접 사용 **금지**.
+2. **업로드는 원본 금지** - image_picker 단계에서 리사이즈/압축(표지 재호스팅 포함).
+3. **전송은 Supabase on-the-fly 변환**(표시폭 WebP)으로 자동 축소. `CachedImage`가 알아서 처리.
+
+### 모듈 (직접 만들지 말고 이걸 써라)
+| 목적 | 모듈 | 위치 |
+|---|---|---|
+| 이미지 표시(캐시+변환+WebP) | `CachedImage` | `lib/core/presentation/widgets/design/cached_image.dart` |
+| URL 변환 순수함수 | `supabaseRenderUrl`, `bookCoverStoragePath` | `lib/core/utils/supabase_image.dart` |
+| 메모 사진 업로드 | `MemoImageUploader` | `lib/features/memos/utils/memo_image_uploader.dart` |
+| 네이버 표지 재호스팅 | `BookCoverUploader` | `lib/features/books/utils/book_cover_uploader.dart` |
+
+### 표시 규격 (반드시 `CachedImage` + 표시폭 `cacheWidth` 지정)
+```dart
+// 금지 ❌
+Image.network(url, fit: BoxFit.cover)
+// 필수 ✅ (cacheWidth = 표시폭 x 대략 2~3배(레티나), 그 값으로 서버 변환폭도 자동 결정)
+CachedImage(url: url, fit: BoxFit.cover, cacheWidth: 300, fallback: <플레이스홀더>)
+```
+- 표준 `cacheWidth`(surface별): 스토리 원 156 / 아바타 120~150 / 그리드·검색 표지 240~300 / 카드 대형 700 / 메모 상세 1000. 풀스크린 확대 뷰어만 `cacheWidth` 없이(원본).
+- `CachedImage`는 Supabase 공개 URL이면 자동으로 `/render/image/public/...?width=&quality=80` + `Accept: image/webp`로 요청한다. **네이버 등 외부 URL은 그대로 통과**(변환 안 됨)라, 표지는 아래처럼 우리 스토리지로 재호스팅해야 변환 대상이 된다.
+
+### 업로드 규격
+- **image_picker**: 항상 `imageQuality`(80~85) + `maxWidth/maxHeight`(메모 1280, 프로필 1024) 지정. 원본 그대로 올리지 말 것.
+- **책 표지(네이버)**: 저장 시 `BookCoverUploader.rehostFromNaver(naverUrl, isbn)`로 `book_covers` 버킷(공개)에 ISBN 결정적 경로로 복사. 실패 시 **네이버 URL 폴백**(저장 절대 안 깨지게).
+- **버킷은 모두 public + `getPublicUrl`**(서명 URL 만료로 이미지 죽던 문제 재발 방지, 레슨런).
+
+### 테스트 규격
+- URL 변환·경로 계산은 순수함수라 반드시 유닛테스트: `test/core/supabase_image_test.dart`(업로드->저장->다시 불러오기 라운드트립 포함), `test/features/memos/memo_image_uploader_test.dart`.
+
 ## 🔧 코딩 규칙
 
 ### 1. 함수형 프로그래밍 우선
