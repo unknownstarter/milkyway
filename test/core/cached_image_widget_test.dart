@@ -14,6 +14,14 @@ void main() {
   CachedNetworkImage _cni(WidgetTester t) =>
       t.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
 
+  // cacheWidth 지정 시 Image.network 는 provider를 ResizeImage로 감싼다 -> 언랩.
+  String _networkUrl(WidgetTester t) {
+    final img = t.widget<Image>(find.byType(Image));
+    final p = img.image;
+    final network = p is ResizeImage ? p.imageProvider as NetworkImage : p as NetworkImage;
+    return network.url;
+  }
+
   testWidgets('Supabase 표지는 render 변환 URL + WebP Accept 로 요청', (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: CachedImage(url: supabaseCover, cacheWidth: 156),
@@ -25,11 +33,21 @@ void main() {
     expect(cni.httpHeaders?['Accept'], contains('webp'));
   });
 
-  testWidgets('외부(네이버) 표지는 원본 URL 그대로 요청(변환 안 함)', (tester) async {
+  testWidgets('외부(네이버) 표지는 CachedNetworkImage 아닌 순수 Image.network 로', (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: CachedImage(url: naverCover, cacheWidth: 300),
     ));
-    expect(_cni(tester).imageUrl, naverCover);
+    expect(find.byType(CachedNetworkImage), findsNothing);
+    expect(_networkUrl(tester), naverCover);
+  });
+
+  testWidgets('구글 아바타(외부)도 순수 Image.network(프로필 회귀 방지)', (tester) async {
+    const google = 'https://lh3.googleusercontent.com/a/ABC=s96-c';
+    await tester.pumpWidget(const MaterialApp(
+      home: CachedImage(url: google, cacheWidth: 150),
+    ));
+    expect(find.byType(CachedNetworkImage), findsNothing);
+    expect(_networkUrl(tester), google);
   });
 
   testWidgets('cacheWidth 없으면 원본 URL(풀스크린 뷰어용)', (tester) async {

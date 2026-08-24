@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -576,13 +577,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('메모가 저장되었습니다',
-                style: TextStyle(color: Colors.white)),
-            backgroundColor: AppColors.surfaceMuted,
-          ),
-        );
+        showAppSnackBar(context, '메모가 저장되었습니다');
         context.pop();
       }
     } catch (e) {

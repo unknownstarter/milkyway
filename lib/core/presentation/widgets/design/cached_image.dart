@@ -42,10 +42,24 @@ class CachedImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) return _fallback();
+    // 외부 URL(구글 아바타·네이버 표지 등)은 변환 대상이 아니므로 플랫폼 기본
+    // Image.network 로 로드한다(프로덕션에서 검증된 경로). 우리 스토리지 URL에만
+    // cached_network_image + on-the-fly 변환(WebP) + Accept 헤더를 적용.
+    // -> 외부 CDN에 Accept 헤더를 붙여 프로필 사진이 깨지던 회귀 방지.
+    if (!isSupabasePublicObjectUrl(url!)) {
+      return Image.network(
+        url!,
+        width: width,
+        height: height,
+        fit: fit,
+        cacheWidth: cacheWidth, // 표시폭 축소 디코드(메모리 절약)
+        errorBuilder: (_, __, ___) => _fallback(),
+      );
+    }
     return CachedNetworkImage(
       imageUrl: supabaseRenderUrl(url!,
           width: transformWidth ?? cacheWidth, quality: transformQuality),
-      // WebP를 명시적으로 수락 -> CDN이 표시폭 WebP로 응답(Accept 미전송 시 png로 커짐).
+      // WebP를 명시적으로 수락 -> CDN이 표시폭 WebP로 응답(우리 스토리지에만).
       httpHeaders: const {'Accept': 'image/webp,image/*,*/*'},
       width: width,
       height: height,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/book_detail_provider.dart';
@@ -665,15 +666,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           .read(bookDetailProvider(widget.bookId).notifier)
           .updateStatus(newStatus);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '상태를 "${newStatus.value}"로 변경했습니다',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF242424),
-          ),
-        );
+        showAppSnackBar(context, '상태를 "${newStatus.value}"로 변경했습니다');
       }
     } catch (e) {
       if (mounted) {
