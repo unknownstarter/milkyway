@@ -175,6 +175,15 @@ CachedImage(url: url, fit: BoxFit.cover, cacheWidth: 300, fallback: <플레이�
 ### 테스트 규격
 - URL 변환·경로 계산은 순수함수라 반드시 유닛테스트: `test/core/supabase_image_test.dart`(업로드->저장->다시 불러오기 라운드트립 포함), `test/features/memos/memo_image_uploader_test.dart`.
 
+## 🚨 에러 표시 규칙 (2026-08-24 추가 - 필수)
+
+> **raw 에러/예외 메시지를 유저 화면에 절대 노출 금지.** `Text('Error: $err')`, `SelectableText('에러: $e')` 같은 코드 금지. 원본 에러는 repository/provider의 `log()`/GA4로만 적재(모니터링용), 유저에겐 **친화 문구 + 재시도(또는 폴백)**.
+
+- 비동기 화면/섹션은 `AsyncView`(`core/presentation/widgets/design/async_view.dart`)를 쓴다. 에러 시 친화 문구(`errorText`) + `onRetry`(재시도 버튼) 제공. `.when(error: ...)`에 raw `$err`를 그리지 말 것.
+- `onRetry`는 보통 `ref.invalidate(<해당 provider>)`.
+- 카피는 카피 부호 룰 준수(느낌표 금지 등). 예: "불러오지 못했어" + "다시 시도".
+- provider가 세션/타이밍으로 에러 캐시되면 재로그인 시 남을 수 있음 → 로그인 완료 후 데이터 provider 재invalidate(`_clearAllDataProviders`)로 새로고침(이미 반영).
+
 ## 🔧 코딩 규칙
 
 ### 1. 함수형 프로그래밍 우선

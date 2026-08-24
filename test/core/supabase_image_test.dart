@@ -17,6 +17,14 @@ void main() {
       expect(out, isNot(contains('/object/public/')));
     });
 
+    test('비율 왜곡 방지 - height + resize=contain 포함(회귀 잠금)', () {
+      // width만 주면 Supabase가 세로로 짓눌린 왜곡본을 반환하던 버그 방지.
+      final out = supabaseRenderUrl(publicObj, width: 150);
+      expect(out, contains('width=150'));
+      expect(out, contains('height=450')); // width*3
+      expect(out, contains('resize=contain'));
+    });
+
     test('width 미지정이면 원본 URL 그대로(변환 안 함)', () {
       expect(supabaseRenderUrl(publicObj), publicObj);
       expect(supabaseRenderUrl(publicObj, width: null), publicObj);
@@ -37,7 +45,9 @@ void main() {
     test('이미 쿼리스트링이 있으면 & 로 이어붙임', () {
       const withQuery = '$base/storage/v1/object/public/memo_images/u1/123.jpg?v=2';
       final out = supabaseRenderUrl(withQuery, width: 200);
-      expect(out, contains('.jpg?v=2&width=200&quality='));
+      expect(out, contains('.jpg?v=2&width=200'));
+      expect(out, contains('resize=contain'));
+      expect(out, contains('quality='));
     });
 
     test('quality 는 1-100 로 클램프', () {
@@ -88,7 +98,7 @@ void main() {
       // 2) 다시 불러오기(표시): 스토리 원 156px WebP 변환
       final display = supabaseRenderUrl(storedUrl, width: 156, quality: 80);
       expect(display,
-          '$base/storage/v1/render/image/public/book_covers/covers/9788934985907.jpg?width=156&quality=80');
+          '$base/storage/v1/render/image/public/book_covers/covers/9788934985907.jpg?width=156&height=468&resize=contain&quality=80');
     });
 
     test('레거시(네이버 URL 그대로 저장된 기존 책)는 표시 때도 원본 유지', () {

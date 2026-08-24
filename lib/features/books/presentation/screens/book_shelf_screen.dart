@@ -6,6 +6,7 @@ import '../widgets/book_grid_item.dart';
 import '../providers/book_shelf_provider.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../home/domain/models/book_status.dart';
@@ -58,20 +59,16 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
         title: const Text('Books', style: AppTypography.title),
         bottom: filterBar(_statusFilter()),
       ),
-      body: booksAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFFECECEC)),
-        ),
-        error: (err, stack) => Center(
-          child: SelectableText.rich(
-            TextSpan(
-                text: '에러: $err', style: const TextStyle(color: Colors.red)),
-          ),
-        ),
-        data: (books) {
+      body: AsyncView<List<ShelfBook>>(
+        value: booksAsync,
+        loadingHeight: MediaQuery.of(context).size.height * 0.6,
+        errorText: '책을 불러오지 못했어',
+        onRetry: () => ref.invalidate(bookShelfProvider),
+        isEmpty: (books) => _applyStatusFilter(books).isEmpty,
+        emptyBuilder: () => _emptyState(),
+        builder: (books) {
           final filteredBooks = _applyStatusFilter(books);
           final topPad = glassTopPadding(context, bottomHeight: kFilterBarHeight);
-          if (filteredBooks.isEmpty) return _emptyState();
           return _BookGrid(books: filteredBooks, topPadding: topPad);
         },
       ),

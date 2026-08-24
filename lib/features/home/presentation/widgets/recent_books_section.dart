@@ -17,7 +17,21 @@ class RecentBooksSection extends ConsumerWidget {
       loading: () => const Center(
         child: CircularProgressIndicator(color: Color(0xFFECECEC)),
       ),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      error: (err, stack) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('불러오지 못했어',
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => ref.invalidate(recentBooksProvider),
+              child: const Text('다시 시도',
+                  style: TextStyle(color: Colors.white, fontSize: 14)),
+            ),
+          ],
+        ),
+      ),
       data: (books) {
         if (books.isEmpty) {
           return Column(

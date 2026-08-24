@@ -49,6 +49,10 @@ class Auth extends _$Auth {
           final currentUser = await getCurrentUser();
           if (currentUser != null) {
             state = AsyncValue.data(currentUser);
+            // 로그인 완료 후 데이터 provider 강제 새로고침. 로그아웃 순간 currentUser=null로
+            // 에러/빈 상태가 캐시된 provider(책탭·프로필 등)가 재로그인해도 그대로 남아
+            // 데이터가 안 보이던 문제 해결(메모는 타이밍상 보였음). 데이터 유실 아님.
+            _clearAllDataProviders();
           } else {
             state = const AsyncValue.data(null);
           }
@@ -73,6 +77,10 @@ class Auth extends _$Auth {
           final currentUser = await getCurrentUser();
           if (currentUser != null) {
             state = AsyncValue.data(currentUser);
+            // 로그인 완료 후 데이터 provider 강제 새로고침. 로그아웃 순간 currentUser=null로
+            // 에러/빈 상태가 캐시된 provider(책탭·프로필 등)가 재로그인해도 그대로 남아
+            // 데이터가 안 보이던 문제 해결(메모는 타이밍상 보였음). 데이터 유실 아님.
+            _clearAllDataProviders();
           } else {
             state = const AsyncValue.data(null);
           }

@@ -23,7 +23,11 @@ String supabaseRenderUrl(String url, {int? width, int quality = 80}) {
   final q = quality.clamp(1, 100);
   final rendered = url.replaceFirst(kSupabasePublicMarker, kSupabaseRenderMarker);
   final sep = rendered.contains('?') ? '&' : '?';
-  return '$rendered${sep}width=$width&quality=$q';
+  // ⚠️ width 만 주면 Supabase가 높이를 원본 그대로 둬서 세로로 짓눌린 왜곡본을 반환한다.
+  // 반드시 height + resize=contain 으로 **비율 보존**해야 함. height 는 넉넉히(width*3)
+  // 줘서 사실상 폭 기준으로 바운드되게(대부분 이미지 aspect < 1:3) 한다. contain 은
+  // 패딩 없이 비율대로 축소만 하므로 최종 표시 크롭은 Flutter BoxFit.cover 가 담당.
+  return '$rendered${sep}width=$width&height=${width * 3}&resize=contain&quality=$q';
 }
 
 /// Supabase Storage에 재호스팅할 책 표지의 오브젝트 경로.
