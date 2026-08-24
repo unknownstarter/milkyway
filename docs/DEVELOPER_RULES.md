@@ -16,12 +16,19 @@
 - 정말 안 되면 그때서야 "X 를 시도했고 Y 때문에 안 됨, 대안은 Z" 형태로 보고
 - 사용자가 같은 지시를 두 번 하게 만들지 말 것
 
-### 0-1. iOS 빌드 절대 금지 (2026-07-01 레슨런)
-**Xcode 26+ 의 scene-based architecture 자동 마이그레이션 절대 수락 금지.** 라이브 OAuth(Google/Apple) / 딥링크 / 푸시 탭 라우팅 전면 마비됨.
-- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 키 추가 금지
-- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택하거나 `didInitializeImplicitFlutterEngine` 안에서 플러그인 등록 금지. 플러그인 등록은 `didFinishLaunchingWithOptions` 에서 `GeneratedPluginRegistrant.register(with: self)` 유지
-- 새 머신/새 Xcode 에서 첫 빌드 후 반드시 `git diff ios/Runner/Info.plist ios/Runner/AppDelegate.swift` 로 자동 변경 여부 확인 + 실제 Google/Apple 로그인 수동 테스트
-- 자세한 원인: `docs/LESSONS_LEARNED.md` 의 "2026-07-01: Xcode 26 자동 마이그레이션 함정"
+### 0-1. iOS scene 라이프사이클 (2026-08-20 전략 전환 - momo 방식 채택)
+> ⚠️ 이전 룰("scene 마이그레이션 절대 금지 / 되돌려라")은 **폐기**. 되돌리는 방식은 `flutter build ipa`가 매 빌드마다 재마이그레이션해 CLI/Transporter 배포가 불가능했음. momo-app이 scene을 채택하고 그 위에서 OAuth를 작동시켜 정상 배포하는 걸 확인 → **scene을 되돌리지 않고 정식 채택**한다.
+
+**정상 상태(되돌리지 말 것):**
+- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 존재(`UISceneDelegateClassName = FlutterSceneDelegate`)
+- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택 + `didInitializeImplicitFlutterEngine` 에서 `GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)` + OAuth 이중방어용 `application(open:)` override
+
+**작동 원리:** OAuth 콜백 URL은 scene 환경에서 `FlutterSceneDelegate.scene(openURLContexts:)` 가 Flutter 플러그인 체인(google_sign_in)으로 전달 → Google 로그인 정상. Apple 로그인은 네이티브(ASAuthorizationController)라 URL 콜백 없이 작동.
+
+**⚠️ 배포 전 필수 확인(OAuth가 깨지는 영역):**
+- 파일이 이미 scene 상태라 `flutter build ipa` 가 재마이그레이션 안 함 → 빌드 후 `git diff ios/Runner/AppDelegate.swift ios/Runner/Info.plist` **깨끗해야 정상**(diff 생기면 오히려 문제)
+- 실기기에서 Google/Apple 로그인 · 푸시 탭 라우팅 · 딥링크 실제로 눌러서 확인
+- 자세한 배경: `docs/LESSONS_LEARNED.md`, `CLAUDE.md` 의 "iOS scene 라이프사이클" 절
 
 ### 1. 코드 품질 우선
 - **단순명료한 코드** 작성
