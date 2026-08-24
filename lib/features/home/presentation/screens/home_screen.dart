@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
@@ -344,21 +343,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // 콘텐츠가 상태바 뒤까지 확장 -> 상단 GlassStatusBar가 스크롤 콘텐츠를 유리 처리.
-      body: Stack(
-        children: [
-          RefreshIndicator(
-            color: AppColors.accentGreen,
-            backgroundColor: AppColors.surface,
-            onRefresh: () async {
-              ref.invalidate(homeBooksProvider);
-              ref.invalidate(booksSavedByOthersProvider);
-            },
-            child: ListView(
-              // 상단=상태바 높이(콘텐츠가 상태바 아래에서 시작, 스크롤 시 뒤로). 하단=네비+FAB 여유.
-              padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top, bottom: 210),
-              children: [
+      // 타이틀 없는 화면 = 상태바 아래에서 콘텐츠 시작(SafeArea). 얇은 유리 스트립은
+      // 실기기에서 아티팩트(비침/밴딩/띠) 반복 -> 제거. 깔끔·안정 우선.
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: AppColors.accentGreen,
+          backgroundColor: AppColors.surface,
+          onRefresh: () async {
+            ref.invalidate(homeBooksProvider);
+            ref.invalidate(booksSavedByOthersProvider);
+          },
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 210),
+            children: [
               _header(),
               const SizedBox(height: 6),
               _stories(),
@@ -378,13 +376,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: GlassStatusBar(),
-          ),
-        ],
       ),
     );
   }
