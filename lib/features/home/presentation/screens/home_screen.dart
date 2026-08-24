@@ -128,7 +128,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 최근 공개 메모를 카드로(Threads식). 탭 -> 메모 상세. 긴 본문은 4줄로 자름.
   Widget _recentMemos() {
     final memos =
-        ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+        ref.watch(homePublicMemoFeedProvider).asData?.value ?? const <Memo>[];
     final items = memos.take(5).toList();
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -169,7 +169,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// 최근 공개 메모가 올라온 책(피드에서 책 단위로 중복 제거).
   Widget _recentMemoBooks() {
-    final memos = ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+    final memos = ref.watch(homePublicMemoFeedProvider).asData?.value ?? const <Memo>[];
     final seen = <String>{};
     final books = <Memo>[];
     for (final m in memos) {

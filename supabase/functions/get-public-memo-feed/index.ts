@@ -23,8 +23,12 @@ Deno.serve(async (req) => {
     const limit = Math.min(body.limit || 20, 50);
     const offset = Math.max(body.offset || 0, 0);
     const includeCount = body.include_count !== false;
+    // 본인 메모 제외(홈 '다른 별들이 남긴 생각들' 전용). 메모탭 '공개'는 미전달 -> 전체.
+    const excludeUserId = typeof body.exclude_user_id === 'string'
+      ? body.exclude_user_id
+      : null;
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('memos')
       .select(
         `
@@ -44,7 +48,13 @@ Deno.serve(async (req) => {
       `,
         includeCount && offset === 0 ? { count: 'exact' } : undefined,
       )
-      .eq('visibility', 'public')
+      .eq('visibility', 'public');
+
+    if (excludeUserId) {
+      query = query.neq('user_id', excludeUserId);
+    }
+
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

@@ -40,11 +40,20 @@ class MemoRepository {
   }
 
   /// 전역 공개 메모 피드(메모 탭 '공개'/홈). RLS상 타 유저 조인 불가라 Edge Function 경유.
-  Future<List<Memo>> getPublicFeed({int limit = 20, int offset = 0}) async {
+  /// [excludeSelf]=true 면 본인 공개 메모를 뺀다(홈 '다른 별들이 남긴 생각들' 전용).
+  /// 메모탭 '공개'는 전체 공개라 false.
+  Future<List<Memo>> getPublicFeed(
+      {int limit = 20, int offset = 0, bool excludeSelf = false}) async {
     try {
+      final excludeUserId =
+          excludeSelf ? _client.auth.currentUser?.id : null;
       final response = await _client.functions.invoke(
         'get-public-memo-feed',
-        body: {'limit': limit, 'offset': offset},
+        body: {
+          'limit': limit,
+          'offset': offset,
+          if (excludeUserId != null) 'exclude_user_id': excludeUserId,
+        },
       );
       if (response.status != 200) {
         log('공개 피드 조회 실패: ${response.data ?? '알 수 없는 오류'}');
