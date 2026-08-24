@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../home/domain/models/book.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 
 class BookSearchItem extends StatelessWidget {
   final Book book;
@@ -33,12 +34,13 @@ class BookSearchItem extends StatelessWidget {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: Image.network(
-                book.coverUrl ?? 'https://picsum.photos/200/300',
+              child: CachedImage(
+                url: book.coverUrl,
                 width: 80,
                 height: 120,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+                cacheWidth: 240,
+                fallback: Container(
                   width: 80,
                   height: 120,
                   color: Colors.grey.shade900,

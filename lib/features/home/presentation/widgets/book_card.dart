@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/models/book.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 
 class BookCard extends StatelessWidget {
   final Book? book;
@@ -83,11 +84,12 @@ class BookCard extends StatelessWidget {
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                book!.coverUrl ?? 'https://picsum.photos/200/300',
+              child: CachedImage(
+                url: book!.coverUrl,
                 width: double.infinity,
                 height: 400,
                 fit: BoxFit.cover,
+                cacheWidth: 800,
               ),
             ),
           ],

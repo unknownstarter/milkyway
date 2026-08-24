@@ -58,23 +58,33 @@ class StoryCircle extends StatelessWidget {
                   StoryRing.seen => AppColors.surfaceElevated,
                 },
               ),
+              // 링과 사진 사이 얇은 다크 갭. 갭 안쪽은 ClipOval로 사진을 원에 꽉 채움
+              // (사진 크기 = 클립 영역과 정확히 일치해야 가로/세로 여백 없이 채워짐).
               child: Container(
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.all(2.5),
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surface,
-                  border: Border.all(color: AppColors.bgPrimary, width: 2.5),
+                  color: AppColors.bgPrimary,
                 ),
-                clipBehavior: Clip.antiAlias,
-                alignment: Alignment.center,
-                child: ring == StoryRing.add
-                    ? const Icon(Icons.add,
-                        size: 24, color: AppColors.textTertiary)
-                    : CachedImage(
-                        url: coverUrl,
-                        width: 57,
-                        height: 57,
-                        fallback: const SizedBox(),
-                      ),
+                child: ClipOval(
+                  child: ring == StoryRing.add
+                      ? Container(
+                          width: 52,
+                          height: 52,
+                          color: AppColors.surface,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.add,
+                              size: 24, color: AppColors.textTertiary),
+                        )
+                      : CachedImage(
+                          url: coverUrl,
+                          width: 52,
+                          height: 52,
+                          cacheWidth: 156,
+                          fallback: Container(
+                              width: 52, height: 52, color: AppColors.surface),
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 7),

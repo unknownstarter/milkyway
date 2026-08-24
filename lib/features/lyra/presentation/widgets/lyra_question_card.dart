@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -121,9 +122,11 @@ class LyraQuestionCard extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: (bookCoverUrl != null && bookCoverUrl!.isNotEmpty)
-              ? Image.network(bookCoverUrl!,
+              ? CachedImage(
+                  url: bookCoverUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox())
+                  cacheWidth: 200,
+                  fallback: const SizedBox())
               : const SizedBox(),
         ),
         const SizedBox(width: 12),

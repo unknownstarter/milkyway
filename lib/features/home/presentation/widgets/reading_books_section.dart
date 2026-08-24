@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/models/book.dart';
@@ -184,13 +185,13 @@ class CollapsedReadingBooksSection extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                         child: selectedBook.coverUrl != null &&
                                 selectedBook.coverUrl!.isNotEmpty
-                            ? Image.network(
-                                selectedBook.coverUrl!,
+                            ? CachedImage(
+                                url: selectedBook.coverUrl,
                                 width: 54,
                                 height: 76,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _SmallBookPlaceholder(),
+                                cacheWidth: 162,
+                                fallback: _SmallBookPlaceholder(),
                               )
                             : _SmallBookPlaceholder(),
                       ),
@@ -526,31 +527,13 @@ class _BookCover extends StatelessWidget {
         child: Opacity(
           opacity: opacity,
           child: book.coverUrl != null && book.coverUrl!.isNotEmpty
-              ? Image.network(
-                  book.coverUrl!,
+              ? CachedImage(
+                  url: book.coverUrl,
                   width: width,
                   height: height,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: width,
-                      height: height,
-                      color: Colors.grey.shade900,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          strokeWidth: 2,
-                          color: const Color(0xFFECECEC),
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) =>
-                      _BookPlaceholder(width: width, height: height),
+                  cacheWidth: 700,
+                  fallback: _BookPlaceholder(width: width, height: height),
                 )
               : _BookPlaceholder(width: width, height: height),
         ),

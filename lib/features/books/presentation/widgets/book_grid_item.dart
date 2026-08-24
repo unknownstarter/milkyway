@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../home/domain/models/book.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 
 class BookGridItem extends StatelessWidget {
   final Book book;
@@ -24,10 +25,11 @@ class BookGridItem extends StatelessWidget {
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
-              child: Image.network(
-                book.coverUrl ?? 'https://picsum.photos/200/300',
+              child: CachedImage(
+                url: book.coverUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+                cacheWidth: 300,
+                fallback: Container(
                   color: Colors.grey.shade900,
                   child: const Icon(
                     Icons.book,

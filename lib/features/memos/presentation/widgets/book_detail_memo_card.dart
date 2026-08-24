@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -229,12 +230,13 @@ class BookDetailMemoCard extends ConsumerWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    memo.imageUrl!,
+                  child: CachedImage(
+                    url: memo.imageUrl,
                     width: 80,
                     height: 120,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    cacheWidth: 240,
+                    fallback: Container(
                       width: 80,
                       height: 120,
                       color: Colors.grey.shade900,
@@ -272,11 +274,11 @@ class BookDetailMemoCard extends ConsumerWidget {
           child: ClipOval(
             child: memo.userAvatarUrl != null &&
                     memo.userAvatarUrl!.isNotEmpty
-                ? Image.network(
-                    memo.userAvatarUrl!,
+                ? CachedImage(
+                    url: memo.userAvatarUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.person, color: Colors.grey),
+                    cacheWidth: 120,
+                    fallback: const Icon(Icons.person, color: Colors.grey),
                   )
                 : const Icon(Icons.person, color: Colors.grey),
           ),

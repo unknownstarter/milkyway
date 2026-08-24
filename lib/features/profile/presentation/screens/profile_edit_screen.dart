@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -310,12 +311,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         height: 120,
       );
     } else if (imageUrl != null && imageUrl.isNotEmpty) {
-      return Image.network(
-        imageUrl,
+      return CachedImage(
+        url: imageUrl,
         fit: BoxFit.cover,
         width: 120,
         height: 120,
-        errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+        cacheWidth: 360,
+        fallback: _buildDefaultAvatar(),
       );
     } else {
       return _buildDefaultAvatar();
@@ -517,7 +519,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       );
 
       if (source != null) {
-        final image = await picker.pickImage(source: source);
+        // 원본 대신 리사이즈/압축해 업로드(화질 유지, 용량↓). 프로필은 소형 표시라 1024면 충분.
+        final image = await picker.pickImage(
+          source: source,
+          imageQuality: 85,
+          maxWidth: 1024,
+          maxHeight: 1024,
+        );
         if (image != null && mounted) {
           setState(() {
             _selectedImagePath = image.path;

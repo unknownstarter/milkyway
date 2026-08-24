@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -151,9 +152,11 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                 clipBehavior: Clip.antiAlias,
                 child: (selected?.coverUrl != null &&
                         selected!.coverUrl!.isNotEmpty)
-                    ? Image.network(selected.coverUrl!,
+                    ? CachedImage(
+                        url: selected.coverUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox())
+                        cacheWidth: 200,
+                        fallback: const SizedBox())
                     : const SizedBox(),
               ),
               const SizedBox(width: 7),
@@ -430,10 +433,11 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                             ),
                             clipBehavior: Clip.antiAlias,
                             child: (b.coverUrl != null && b.coverUrl!.isNotEmpty)
-                                ? Image.network(b.coverUrl!,
+                                ? CachedImage(
+                                    url: b.coverUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        const SizedBox())
+                                    cacheWidth: 200,
+                                    fallback: const SizedBox())
                                 : const SizedBox(),
                           ),
                           const SizedBox(width: 12),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../domain/models/memo.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:developer';
 import '../../../../core/router/app_routes.dart';
 
 class MemoCard extends StatelessWidget {
@@ -42,11 +42,11 @@ class MemoCard extends StatelessWidget {
                     child: SizedBox(
                       width: 40,
                       height: 56,
-                      child: Image.network(
-                        memo.books['cover_url'] ??
-                            'https://via.placeholder.com/40x56',
+                      child: CachedImage(
+                        url: memo.books['cover_url'] as String?,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
+                        cacheWidth: 168,
+                        fallback: Container(
                           color: Colors.grey[300],
                           child: const Icon(Icons.book, color: Colors.grey),
                         ),
@@ -125,13 +125,11 @@ class MemoCard extends StatelessWidget {
                     bottom: BorderSide(color: Colors.grey.shade800),
                   ),
                 ),
-                child: Image.network(
-                  memo.imageUrl!,
+                child: CachedImage(
+                  url: memo.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    log('Image load error: $error');
-                    return const SizedBox();
-                  },
+                  cacheWidth: 700,
+                  fallback: const SizedBox(),
                 ),
               ),
             // 메모 내용 섹션
