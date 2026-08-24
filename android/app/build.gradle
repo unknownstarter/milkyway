@@ -61,14 +61,9 @@ android {
             ndk {
                 debugSymbolLevel 'FULL'
             }
-            splits {
-                abi {
-                    enable true
-                    reset()
-                    include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-                    universalApk true
-                }
-            }
+            // ABI 분할은 App Bundle(AAB)이 Play에서 자동 처리한다. 수동 splits.abi +
+            // universalApk 는 flutter build apk 시 per-ABI/universal APK를 같은 versionCode로
+            // 만들어 Play에서 "더 높은 versionCode로 대체됨" 경고를 유발 -> 제거. 배포는 AAB로.
         }
     }
 }
