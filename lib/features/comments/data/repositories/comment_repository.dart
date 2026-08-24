@@ -26,11 +26,12 @@ class CommentRepository {
     final hiddenIds =
         (hidden as List).map((e) => e['comment_id'] as String).toSet();
 
-    final res = await _client
-        .from('comments')
-        .select(_withAuthor)
-        .eq('memo_id', memoId)
-        .order('created_at', ascending: true);
+    // users RLS(본인 행만)로 클라 조인은 남의 작성자 프로필을 못 읽어 현재 유저로
+    // 폴백되던 버그가 있었다. 작성자 공개필드까지 안전히 반환하는 RPC로 조회.
+    final res = await _client.rpc(
+      'get_memo_comments',
+      params: {'p_memo_id': memoId},
+    );
 
     return (res as List)
         .map((j) => Comment.fromJson(j as Map<String, dynamic>))
