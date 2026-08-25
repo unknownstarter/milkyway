@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/memo.dart';
+import '../../domain/models/memo_badge_activity.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../domain/memo_exceptions.dart';
 import 'dart:developer';
@@ -39,11 +40,20 @@ class MemoRepository {
   }
 
   /// 전역 공개 메모 피드(메모 탭 '공개'/홈). RLS상 타 유저 조인 불가라 Edge Function 경유.
-  Future<List<Memo>> getPublicFeed({int limit = 20, int offset = 0}) async {
+  /// [excludeSelf]=true 면 본인 공개 메모를 뺀다(홈 '다른 별들이 남긴 생각들' 전용).
+  /// 메모탭 '공개'는 전체 공개라 false.
+  Future<List<Memo>> getPublicFeed(
+      {int limit = 20, int offset = 0, bool excludeSelf = false}) async {
     try {
+      final excludeUserId =
+          excludeSelf ? _client.auth.currentUser?.id : null;
       final response = await _client.functions.invoke(
         'get-public-memo-feed',
-        body: {'limit': limit, 'offset': offset},
+        body: {
+          'limit': limit,
+          'offset': offset,
+          if (excludeUserId != null) 'exclude_user_id': excludeUserId,
+        },
       );
       if (response.status != 200) {
         log('공개 피드 조회 실패: ${response.data ?? '알 수 없는 오류'}');
@@ -451,6 +461,32 @@ class MemoRepository {
         .range(offset, offset + limit - 1);
 
     return response.map((json) => Memo.fromJson(json)).toList();
+  }
+
+  /// Memos 탭 하단 네비 빨간 점용 활동 시각을 가져온다.
+  ///
+  /// RPC `get_memos_badge_activity`: 남의 마지막 공개 메모 / 내 메모에 달린
+  /// 남의 마지막 댓글 시각. 실패 시 빈 값(null/null)으로 폴백(점 안 뜸).
+  Future<MemoBadgeActivity> getMemosBadgeActivity() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return const MemoBadgeActivity();
+
+      final response = await _client.rpc(
+        'get_memos_badge_activity',
+        params: {'p_user_id': userId},
+      );
+
+      // RPC는 단일 행 반환(SETOF 아님이면 Map, TABLE이면 List).
+      final row = response is List
+          ? (response.isEmpty ? null : response.first)
+          : response;
+      if (row is! Map) return const MemoBadgeActivity();
+      return MemoBadgeActivity.fromJson(Map<String, dynamic>.from(row));
+    } catch (e) {
+      log('Error getting memos badge activity: $e');
+      return const MemoBadgeActivity();
+    }
   }
 }
 

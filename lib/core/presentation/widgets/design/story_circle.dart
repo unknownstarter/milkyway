@@ -4,8 +4,13 @@ import '../../../theme/app_typography.dart';
 import 'cached_image.dart';
 
 /// 조합: 홈 상단 "좋아하는 책" 스토리 원(인스타 문법).
-/// ring - active(초록 conic = 새 활동) / seen(회색) / add(+).
-enum StoryRing { active, seen, add }
+/// ring - active(초록 conic = 안 본 남의 새 공개 메모) / mine(파랑 = 내 메모 있음)
+///        / seen(회색) / add(+).
+enum StoryRing { active, seen, add, mine }
+
+/// mine 링 색 (내 메모 있는 책). nebula(0xFF3A4AA0)보다 밝은 파랑으로
+/// active(초록)와 명확히 구분.
+const Color _mineRingColor = Color(0xFF6E8BE0);
 
 class StoryCircle extends StatelessWidget {
   final String label;
@@ -46,29 +51,40 @@ class StoryCircle extends StatelessWidget {
                         transform: GradientRotation(2.35),
                       )
                     : null,
-                color: ring == StoryRing.active
-                    ? null
-                    : (ring == StoryRing.add
-                        ? AppColors.surfaceMuted
-                        : AppColors.surfaceElevated),
+                color: switch (ring) {
+                  StoryRing.active => null,
+                  StoryRing.mine => _mineRingColor,
+                  StoryRing.add => AppColors.surfaceMuted,
+                  StoryRing.seen => AppColors.surfaceElevated,
+                },
               ),
+              // 링과 사진 사이 얇은 다크 갭. 갭 안쪽은 ClipOval로 사진을 원에 꽉 채움
+              // (사진 크기 = 클립 영역과 정확히 일치해야 가로/세로 여백 없이 채워짐).
               child: Container(
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.all(2.5),
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surface,
-                  border: Border.all(color: AppColors.bgPrimary, width: 2.5),
+                  color: AppColors.bgPrimary,
                 ),
-                clipBehavior: Clip.antiAlias,
-                alignment: Alignment.center,
-                child: ring == StoryRing.add
-                    ? const Icon(Icons.add,
-                        size: 24, color: AppColors.textTertiary)
-                    : CachedImage(
-                        url: coverUrl,
-                        width: 57,
-                        height: 57,
-                        fallback: const SizedBox(),
-                      ),
+                child: ClipOval(
+                  child: ring == StoryRing.add
+                      ? Container(
+                          width: 52,
+                          height: 52,
+                          color: AppColors.surface,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.add,
+                              size: 24, color: AppColors.textTertiary),
+                        )
+                      : CachedImage(
+                          url: coverUrl,
+                          width: 52,
+                          height: 52,
+                          cacheWidth: 156,
+                          fallback: Container(
+                              width: 52, height: 52, color: AppColors.surface),
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 7),

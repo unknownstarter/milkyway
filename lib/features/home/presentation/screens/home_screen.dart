@@ -6,12 +6,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../domain/models/book.dart';
-import '../../domain/models/book_status.dart';
 import '../providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
@@ -65,7 +65,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (_) {}
     if (!mounted) return;
     if (owned) {
-      context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
+      await context.pushNamed(AppRoutes.bookDetailName,
+          pathParameters: {'id': bookId});
+      // 상세를 보고 돌아오면 lastViewed가 갱신됐으므로 스토리 링 재계산.
+      ref.invalidate(homeStoriesProvider);
       return;
     }
     final save = await showAppConfirm(
@@ -125,7 +128,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 최근 공개 메모를 카드로(Threads식). 탭 -> 메모 상세. 긴 본문은 4줄로 자름.
   Widget _recentMemos() {
     final memos =
-        ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+        ref.watch(homePublicMemoFeedProvider).asData?.value ?? const <Memo>[];
     final items = memos.take(5).toList();
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -166,7 +169,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// 최근 공개 메모가 올라온 책(피드에서 책 단위로 중복 제거).
   Widget _recentMemoBooks() {
-    final memos = ref.watch(publicMemoFeedProvider).asData?.value ?? const <Memo>[];
+    final memos = ref.watch(homePublicMemoFeedProvider).asData?.value ?? const <Memo>[];
     final seen = <String>{};
     final books = <Memo>[];
     for (final m in memos) {
@@ -341,23 +344,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // bottom:false 로 콘텐츠가 네비 뒤로 확장(책탭과 동일) -> 유리 뒤로 비침.
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: AppColors.accentGreen,
-          backgroundColor: AppColors.surface,
-          onRefresh: () async {
-            ref.invalidate(homeBooksProvider);
-            ref.invalidate(booksSavedByOthersProvider);
-          },
-          child: ListView(
-            // 네비 + FAB(우하단) 위로 마지막 섹션(내 기록)이 완전히 나오도록 넉넉히.
-            padding: const EdgeInsets.only(bottom: 210),
-            children: [
+      // 타이틀 없는 화면(CASE C): 상태바 영역만 순수 블러(StatusBarBlur). 콘텐츠는 상태바
+      // 아래에서 시작하고, 상태바 뒤로 스크롤될 때만 노치 영역에서 흐려진다.
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            color: AppColors.accentGreen,
+            backgroundColor: AppColors.surface,
+            onRefresh: () async {
+              ref.invalidate(homeBooksProvider);
+              ref.invalidate(booksSavedByOthersProvider);
+            },
+            child: ListView(
+              padding: EdgeInsets.only(top: statusBarTop(context), bottom: 210),
+              children: [
               _header(),
               const SizedBox(height: 6),
-              _stories(books),
+              _stories(),
               if (books.isEmpty) _emptyWelcome(),
               _lyraHighlight(books),
               const SizedBox(height: 34),
@@ -374,6 +377,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+          const Positioned(
+              top: 0, left: 0, right: 0, child: StatusBarBlur()),
+        ],
       ),
     );
   }
@@ -427,7 +433,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _stories(List<Book> books) {
+  Widget _stories() {
+    final stories =
+        ref.watch(homeStoriesProvider).asData?.value ?? const <HomeStory>[];
     return SizedBox(
       height: 92,
       child: ListView(
@@ -439,15 +447,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ring: StoryRing.add,
             onTap: _openSearch,
           ),
-          for (final b in books) ...[
+          for (final s in stories) ...[
             const SizedBox(width: 14),
             StoryCircle(
-              label: b.title,
-              coverUrl: b.coverUrl,
-              ring: b.status == BookStatus.reading
-                  ? StoryRing.active
-                  : StoryRing.seen,
-              onTap: () => _openBook(b.id),
+              label: s.book.title,
+              coverUrl: s.book.coverUrl,
+              ring: s.ring,
+              onTap: () => _openBook(s.book.id),
             ),
           ],
         ],

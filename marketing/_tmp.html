@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset='utf-8'><style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{font-family:'Apple SD Gothic Neo','Pretendard',sans-serif;background:#141416;overflow:hidden}
+.frame{position:relative;width:100vw;height:100vh;overflow:hidden;
+  background:
+    radial-gradient(120% 60% at 78% 8%, rgba(70,90,180,.30), rgba(20,20,25,0) 55%),
+    radial-gradient(90% 45% at 18% 30%, rgba(60,150,120,.16), rgba(20,20,25,0) 60%),
+    linear-gradient(180deg,#0d0d12 0%,#141416 46%,#141416 100%);}
+.st{position:absolute;background:#fff;border-radius:50%}
+.wordmark{position:absolute;top:6.2%;left:0;right:0;text-align:center;color:#ECECEC;
+  font-size:2.2vh;font-weight:700;letter-spacing:.28em}
+.copy{position:absolute;top:10.5%;left:0;right:0;text-align:center;padding:0 7%}
+.head{color:#fff;font-weight:800;line-height:1.22;letter-spacing:-.02em}
+.sub{color:#9AA0A6;font-weight:500;margin-top:2.1vh;line-height:1.4}
+.accent{color:#7DE7A0}
+.phone-wrap{position:absolute;left:50%;transform:translateX(-50%);}
+.phone{position:relative;background:#000;border-radius:11%/5.3%;
+  box-shadow:0 4vh 12vh rgba(0,0,0,.55),0 0 0 .35vh #232326;overflow:hidden}
+.screen{position:absolute;inset:1.5%;border-radius:9.4%/4.6%;background:#141416;overflow:hidden}
+/* ── 앱 화면 공통 ── */
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:3.2% 6% 0;color:#ECECEC;font-size:2.7vh;font-weight:600}
+.appbar{text-align:center;color:#fff;font-size:2.5vh;font-weight:700;padding:2.4% 0 1.4%}
+.pad{padding:0 6%}
+.card{background:#1c1c1f;border:1px solid #262629;border-radius:5.5%;padding:6% 6%;}
+.lyra-dot{width:1.3vh;height:1.3vh;border-radius:50%;background:#7DE7A0;display:inline-block;margin-right:1.6vh;box-shadow:0 0 1.6vh #7DE7A0}
+.lyra-label{color:#7DE7A0;font-weight:700;font-size:2.4vh}
+.lyra-q{color:#ECECEC;font-size:2.85vh;line-height:1.5;margin-top:2.4vh;font-weight:500}
+.lyra-cta{color:#7DE7A0;font-weight:700;font-size:2.4vh;margin-top:3vh;display:flex;align-items:center;gap:1.4vh}
+.avatar{width:5vh;height:5vh;border-radius:50%;background:linear-gradient(135deg,#2f6f57,#8fd0a8)}
+.mrow{display:flex;align-items:center;gap:2vh}
+.mname{color:#ECECEC;font-weight:600;font-size:2.4vh}
+.mdate{color:#646464;font-size:2vh;margin-top:.4vh}
+.mtag{color:#7DE7A0;font-weight:700;font-size:2.3vh;margin-top:3vh}
+.mtext{color:#DcDcDc;font-size:2.5vh;line-height:1.55;margin-top:1.2vh}
+.mmeta{color:#646464;font-size:2vh;margin-top:2.6vh}
+.chip{display:inline-block;background:#1f1f22;border:1px solid #2c2c30;color:#c9c9cf;
+  font-size:2.1vh;font-weight:600;padding:1.3vh 3vh;border-radius:99px;margin-right:1.4vh}
+.chip.on{background:#ECECEC;color:#111;border-color:#ECECEC}
+.relchip{display:inline-block;background:rgba(125,231,160,.14);color:#7DE7A0;
+  font-size:2.1vh;font-weight:700;padding:1vh 2.6vh;border-radius:99px}
+.mini{background:#1a1a1d;border:1px solid #242427;border-radius:4%;padding:4% 5%;margin-top:2.4vh}
+.mini .l{color:#7a7a80;font-size:1.9vh;font-weight:600}
+.mini .t{color:#cfcfd4;font-size:2.15vh;line-height:1.45;margin-top:1vh}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3.5%;}
+.bk{aspect-ratio:.7;border-radius:6%;display:flex;align-items:flex-end;padding:8%;
+  font-size:1.9vh;font-weight:700;color:#fff;line-height:1.2}
+.navbar{position:absolute;left:8%;right:8%;bottom:3.5%;height:8.5vh;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.09);border-radius:6vh;display:flex;justify-content:space-around;align-items:center;
+  color:#8a8a90;font-size:1.9vh}
+.navbar .a{color:#fff}
+.sicons{display:flex;align-items:center;gap:1.5vh}
+.sig{display:flex;align-items:flex-end;gap:.5vh;height:2.1vh}
+.sig i{width:.75vh;background:#ECECEC;border-radius:1px}
+.bat{width:4.4vh;height:2.1vh;border:.35vh solid #ECECEC;border-radius:.7vh;position:relative}
+.bat::after{content:'';position:absolute;left:.4vh;top:.4vh;bottom:.4vh;right:1.2vh;background:#ECECEC;border-radius:.2vh}
+.bat::before{content:'';position:absolute;right:-.85vh;top:.6vh;bottom:.6vh;width:.5vh;background:#ECECEC;border-radius:1px}
+
+    .frame{display:flex;align-items:center}
+    .fg-left{position:absolute;left:7%;top:0;bottom:0;width:52%;display:flex;flex-direction:column;justify-content:center}
+    .fg-mark{color:#ECECEC;font-size:25.0px;font-weight:700;letter-spacing:.28em}
+    .fg-head{color:#fff;font-size:57.5px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margin-top:25.0px}
+    .fg-sub{color:#9AA0A6;font-size:22.5px;margin-top:22.5px}
+    .phone{position:absolute;right:5%;top:80.0px;width:460.0px;height:938.4px;transform:rotate(-6deg)}
+    </style></head><body><div class='frame'>
+      <div class='st' style='left:813px;top:46px;width:2px;height:2px;opacity:0.55'></div><div class='st' style='left:812px;top:171px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:480px;top:103px;width:3px;height:3px;opacity:0.25'></div><div class='st' style='left:77px;top:69px;width:2px;height:2px;opacity:0.9'></div><div class='st' style='left:474px;top:294px;width:2px;height:2px;opacity:0.25'></div><div class='st' style='left:40px;top:24px;width:1px;height:1px;opacity:0.25'></div><div class='st' style='left:225px;top:61px;width:2px;height:2px;opacity:0.4'></div><div class='st' style='left:877px;top:1px;width:1px;height:1px;opacity:0.4'></div><div class='st' style='left:302px;top:279px;width:2px;height:2px;opacity:0.25'></div><div class='st' style='left:724px;top:254px;width:1px;height:1px;opacity:0.55'></div><div class='st' style='left:440px;top:114px;width:3px;height:3px;opacity:0.25'></div><div class='st' style='left:559px;top:90px;width:1px;height:1px;opacity:0.55'></div><div class='st' style='left:550px;top:35px;width:1px;height:1px;opacity:0.4'></div><div class='st' style='left:98px;top:208px;width:2px;height:2px;opacity:0.55'></div><div class='st' style='left:547px;top:5px;width:1px;height:1px;opacity:0.25'></div><div class='st' style='left:929px;top:278px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:677px;top:210px;width:3px;height:3px;opacity:0.55'></div><div class='st' style='left:817px;top:216px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:858px;top:196px;width:1px;height:1px;opacity:0.7'></div><div class='st' style='left:789px;top:209px;width:1px;height:1px;opacity:0.25'></div><div class='st' style='left:489px;top:256px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:772px;top:123px;width:1px;height:1px;opacity:0.25'></div><div class='st' style='left:177px;top:17px;width:3px;height:3px;opacity:0.25'></div><div class='st' style='left:831px;top:285px;width:1px;height:1px;opacity:0.7'></div><div class='st' style='left:646px;top:233px;width:2px;height:2px;opacity:0.25'></div><div class='st' style='left:969px;top:240px;width:2px;height:2px;opacity:0.55'></div><div class='st' style='left:778px;top:120px;width:3px;height:3px;opacity:0.7'></div><div class='st' style='left:727px;top:32px;width:2px;height:2px;opacity:0.9'></div><div class='st' style='left:545px;top:164px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:457px;top:135px;width:1px;height:1px;opacity:0.7'></div><div class='st' style='left:712px;top:267px;width:2px;height:2px;opacity:0.7'></div><div class='st' style='left:453px;top:72px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:745px;top:268px;width:1px;height:1px;opacity:0.9'></div><div class='st' style='left:346px;top:187px;width:1px;height:1px;opacity:0.4'></div><div class='st' style='left:312px;top:235px;width:1px;height:1px;opacity:0.25'></div><div class='st' style='left:659px;top:195px;width:1px;height:1px;opacity:0.7'></div><div class='st' style='left:251px;top:209px;width:1px;height:1px;opacity:0.55'></div><div class='st' style='left:768px;top:52px;width:1px;height:1px;opacity:0.55'></div><div class='st' style='left:619px;top:231px;width:3px;height:3px;opacity:0.25'></div><div class='st' style='left:563px;top:202px;width:1px;height:1px;opacity:0.7'></div>
+      <div class='fg-left'>
+        <div class='fg-mark'>M I L K Y W A Y</div>
+        <div class='fg-head'>책 읽다 멈춘<br>순간을 담다</div>
+        <div class='fg-sub'>메모 / Lyra의 물음 / 함께 읽기</div>
+      </div>
+      <div class='phone'><div class='screen'>
+    <div class='sbar'><span>9:41</span><div class='sicons'><div class='sig'><i style='height:35%'></i><i style='height:55%'></i><i style='height:78%'></i><i style='height:100%'></i></div><div class='bat'></div></div></div>
+    <div class='appbar'>홈</div>
+    <div class='pad' style='margin-top:2vh'>
+      <div style='color:#838383;font-size:2.2vh;margin:1vh 0 3vh'>오늘은 어떤 문장에 멈췄어?</div>
+      <div class='card' style='border-color:rgba(125,231,160,.35)'>
+        <div class='mrow'><span class='lyra-dot'></span><span class='lyra-label'>Lyra의 물음</span></div>
+        <div class='lyra-q'>돈을 쓸 때 없어서 불안한 마음과 지금 가지고 있어서 좋은 마음, 최근에 뭔가를 살 때 어느 쪽이 더 컸어?</div>
+        <div class='lyra-cta'>✎ 이 물음에 메모 남기기</div>
+      </div>
+    </div></div></div>
+    </div></body></html>

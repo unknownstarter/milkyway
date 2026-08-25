@@ -38,6 +38,7 @@ void invalidateMemoProviders(
   // publicMemoFeedProvider: 홈 '다른 별들이 남긴 생각들' + 메모탭 공개 세그먼트.
   // 공개->비공개 전환·삭제도 피드에 반영돼야 하므로 항상 무효화.
   ref.invalidate(publicMemoFeedProvider);
+  ref.invalidate(homePublicMemoFeedProvider);
   ref.invalidate(paginatedPublicFeedProvider);
   ref.invalidate(bookMemosProvider(bookId));
   ref.invalidate(recentMemosProvider);
@@ -194,10 +195,16 @@ final recentMemosProvider = FutureProvider<List<Memo>>((ref) async {
   return repository.getRecentMemos();
 });
 
-/// 전역 공개 메모 피드(메모 탭 '공개' 세그먼트).
+/// 전역 공개 메모 피드(메모 탭 '공개' 세그먼트) - 본인 포함 전체 공개.
 final publicMemoFeedProvider = FutureProvider<List<Memo>>((ref) async {
   final repository = ref.watch(memoRepositoryProvider);
   return repository.getPublicFeed();
+});
+
+/// 홈 '다른 별들이 남긴 생각들' 전용 - 본인 메모 제외.
+final homePublicMemoFeedProvider = FutureProvider<List<Memo>>((ref) async {
+  final repository = ref.watch(memoRepositoryProvider);
+  return repository.getPublicFeed(excludeSelf: true);
 });
 
 final createMemoProvider =

@@ -10,9 +10,17 @@ import 'core/config/env_config.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/router/app_routes.dart';
+import 'package:inspire_blur/inspire_blur.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 인메모리 이미지 캐시 상한을 낮춰 백그라운드 메모리 압박(jetsam) 완화.
+  // 기본 100MB/1000장 -> 45MB/300장. 디스크 캐시(cached_network_image)는 그대로라
+  // 재다운로드 없음. 표시측은 이미 memCacheWidth로 표시폭 기준 축소 디코드함.
+  PaintingBinding.instance.imageCache
+    ..maximumSizeBytes = 45 << 20
+    ..maximumSize = 300;
 
   // 오버플로우 에러를 상세 로그로 추적 (화면에는 표시됨)
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -244,6 +252,9 @@ void main() async {
   }
 
   await FirebaseService.initialize();
+
+  // 글래스 앱바 progressive blur 셰이더 프리로드(첫 렌더 깜빡임 방지)
+  await Inspire.warmUp();
 
   runApp(
     const ProviderScope(

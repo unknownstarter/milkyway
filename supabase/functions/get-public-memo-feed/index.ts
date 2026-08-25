@@ -23,8 +23,12 @@ Deno.serve(async (req) => {
     const limit = Math.min(body.limit || 20, 50);
     const offset = Math.max(body.offset || 0, 0);
     const includeCount = body.include_count !== false;
+    // 본인 메모 제외(홈 '다른 별들이 남긴 생각들' 전용). 메모탭 '공개'는 미전달 -> 전체.
+    const excludeUserId = typeof body.exclude_user_id === 'string'
+      ? body.exclude_user_id
+      : null;
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('memos')
       .select(
         `
@@ -39,12 +43,19 @@ Deno.serve(async (req) => {
         ),
         users!user_id (
           nickname,
-          picture_url
+          picture_url,
+          deleted_at
         )
       `,
         includeCount && offset === 0 ? { count: 'exact' } : undefined,
       )
-      .eq('visibility', 'public')
+      .eq('visibility', 'public');
+
+    if (excludeUserId) {
+      query = query.neq('user_id', excludeUserId);
+    }
+
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -53,11 +64,18 @@ Deno.serve(async (req) => {
       return json({ error: error.message }, 500);
     }
 
+    // 소프트삭제(탈퇴 유예) 작성자의 메모는 숨김. deleted_at 은 응답에서 제거.
+    const memos = (data || []).filter((m: any) => !m.users?.deleted_at)
+      .map((m: any) => {
+        if (m.users) delete m.users.deleted_at;
+        return m;
+      });
+
     const hasMore = count !== null
       ? offset + limit < count
-      : (data?.length ?? 0) === limit;
+      : memos.length === limit;
 
-    return json({ memos: data || [], hasMore, total: count || 0 });
+    return json({ memos, hasMore, total: count || 0 });
   } catch (e) {
     console.error('에러 발생:', e);
     return json({ error: (e as Error).message }, 500);

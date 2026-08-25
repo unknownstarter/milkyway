@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
+import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -310,12 +312,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         height: 120,
       );
     } else if (imageUrl != null && imageUrl.isNotEmpty) {
-      return Image.network(
-        imageUrl,
+      return CachedImage(
+        url: imageUrl,
         fit: BoxFit.cover,
         width: 120,
         height: 120,
-        errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+        cacheWidth: 360,
+        fallback: _buildDefaultAvatar(),
       );
     } else {
       return _buildDefaultAvatar();
@@ -517,7 +520,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       );
 
       if (source != null) {
-        final image = await picker.pickImage(source: source);
+        // 원본 대신 리사이즈/압축해 업로드(화질 유지, 용량↓). 프로필은 소형 표시라 1024면 충분.
+        final image = await picker.pickImage(
+          source: source,
+          imageQuality: 85,
+          maxWidth: 1024,
+          maxHeight: 1024,
+        );
         if (image != null && mounted) {
           setState(() {
             _selectedImagePath = image.path;
@@ -645,39 +654,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   Future<void> _deleteAccount() async {
-    // 계정 삭제 확인 다이얼로그
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          '계정 삭제',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
-        ),
-        content: const Text(
-          '계정을 삭제하면 모든 책과 메모들이 영구적으로 삭제되며 복구할 수 없습니다.\n\n정말 계정을 삭제하시겠습니까?',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: Colors.grey, fontFamily: 'Pretendard'),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '확인',
-              style: TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
-            ),
-          ),
-        ],
-      ),
+    // 30일 소프트딜리트 안내(기존 컨펌 모달 디자인 재사용).
+    final shouldDelete = await showAppConfirm(
+      context,
+      title: '계정 삭제',
+      message:
+          '지금 삭제하면 30일 뒤에 책과 메모가 완전히 지워져. 그 전에 다시 로그인하면 그대로 복구돼. 계속할까',
+      confirmText: '삭제',
+      tone: ConfirmTone.danger,
     );
 
-    if (shouldDelete != true) return;
+    if (!shouldDelete) return;
 
     setState(() {
       _isLoading = true;

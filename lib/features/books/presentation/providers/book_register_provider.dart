@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../home/data/repositories/book_repository.dart';
 import '../../domain/models/naver_book.dart';
+import '../../utils/book_cover_uploader.dart';
 import '../providers/user_books_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../home/presentation/providers/book_provider.dart'
@@ -47,11 +48,17 @@ class BookRegisterNotifier extends StateNotifier<AsyncValue<void>> {
         book = existingBook;
       } else {
         // 3. 새 책 생성 후 user_books 연결
+        // 표지를 우리 스토리지로 재호스팅(실패 시 원본 네이버 URL 폴백 - 저장 안 깨짐).
+        // 재호스팅되면 표시 때 표시폭 WebP 변환이 적용돼 홈/책탭 과부하 방지.
+        final hostedCover = await BookCoverUploader.rehostFromNaver(
+          naverUrl: naverBook.coverUrl,
+          isbn: naverBook.isbn,
+        );
         book = await _repository.createBook(
           title: naverBook.title,
           author: naverBook.author,
           isbn: naverBook.isbn,
-          coverUrl: naverBook.coverUrl,
+          coverUrl: hostedCover ?? naverBook.coverUrl,
           description: naverBook.description,
           publisher: naverBook.publisher,
           pubdate: naverBook.pubdate,

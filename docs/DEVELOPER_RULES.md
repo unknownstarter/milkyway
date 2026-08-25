@@ -16,12 +16,19 @@
 - 정말 안 되면 그때서야 "X 를 시도했고 Y 때문에 안 됨, 대안은 Z" 형태로 보고
 - 사용자가 같은 지시를 두 번 하게 만들지 말 것
 
-### 0-1. iOS 빌드 절대 금지 (2026-07-01 레슨런)
-**Xcode 26+ 의 scene-based architecture 자동 마이그레이션 절대 수락 금지.** 라이브 OAuth(Google/Apple) / 딥링크 / 푸시 탭 라우팅 전면 마비됨.
-- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 키 추가 금지
-- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택하거나 `didInitializeImplicitFlutterEngine` 안에서 플러그인 등록 금지. 플러그인 등록은 `didFinishLaunchingWithOptions` 에서 `GeneratedPluginRegistrant.register(with: self)` 유지
-- 새 머신/새 Xcode 에서 첫 빌드 후 반드시 `git diff ios/Runner/Info.plist ios/Runner/AppDelegate.swift` 로 자동 변경 여부 확인 + 실제 Google/Apple 로그인 수동 테스트
-- 자세한 원인: `docs/LESSONS_LEARNED.md` 의 "2026-07-01: Xcode 26 자동 마이그레이션 함정"
+### 0-1. iOS scene 라이프사이클 (2026-08-20 전략 전환 - momo 방식 채택)
+> ⚠️ 이전 룰("scene 마이그레이션 절대 금지 / 되돌려라")은 **폐기**. 되돌리는 방식은 `flutter build ipa`가 매 빌드마다 재마이그레이션해 CLI/Transporter 배포가 불가능했음. momo-app이 scene을 채택하고 그 위에서 OAuth를 작동시켜 정상 배포하는 걸 확인 → **scene을 되돌리지 않고 정식 채택**한다.
+
+**정상 상태(되돌리지 말 것):**
+- `ios/Runner/Info.plist` 에 `UIApplicationSceneManifest` 존재(`UISceneDelegateClassName = FlutterSceneDelegate`)
+- `ios/Runner/AppDelegate.swift` 가 `FlutterImplicitEngineDelegate` 채택 + `didInitializeImplicitFlutterEngine` 에서 `GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)` + OAuth 이중방어용 `application(open:)` override
+
+**작동 원리:** OAuth 콜백 URL은 scene 환경에서 `FlutterSceneDelegate.scene(openURLContexts:)` 가 Flutter 플러그인 체인(google_sign_in)으로 전달 → Google 로그인 정상. Apple 로그인은 네이티브(ASAuthorizationController)라 URL 콜백 없이 작동.
+
+**⚠️ 배포 전 필수 확인(OAuth가 깨지는 영역):**
+- 파일이 이미 scene 상태라 `flutter build ipa` 가 재마이그레이션 안 함 → 빌드 후 `git diff ios/Runner/AppDelegate.swift ios/Runner/Info.plist` **깨끗해야 정상**(diff 생기면 오히려 문제)
+- 실기기에서 Google/Apple 로그인 · 푸시 탭 라우팅 · 딥링크 실제로 눌러서 확인
+- 자세한 배경: `docs/LESSONS_LEARNED.md`, `CLAUDE.md` 의 "iOS scene 라이프사이클" 절
 
 ### 1. 코드 품질 우선
 - **단순명료한 코드** 작성
@@ -132,6 +139,50 @@ const double moreButtonToMemoTitle = 40.0;   // 더보기 버튼과 책 메모 �
 const double memoTitleToFilter = 20.0;      // 책 메모 타이틀과 필터 버튼 사이
 const double filterToFirstMemo = 32.0;       // 필터 버튼과 첫 번째 메모 카드 사이
 ```
+
+## 🖼️ 이미지 업로드/표시 프로토콜 (2026-08-24 추가 - 필수 준수)
+
+> **모든 이미지(책 표지·메모 사진·프로필)는 이 규격을 따른다. 새 화면에서 이미지를 올리거나 불러올 때 반드시 이 절을 먼저 본다.** 안 지키면 홈/책탭에서 풀해상도 로드로 과부하 걸린다. 모듈(디자인 시스템)로 강제하니 직접 `Image.network` 쓰지 말 것.
+
+### 원칙 3줄 요약
+1. **표시(불러오기)는 무조건 `CachedImage`** 를 쓴다. `Image.network` 직접 사용 **금지**.
+2. **업로드는 원본 금지** - image_picker 단계에서 리사이즈/압축(표지 재호스팅 포함).
+3. **전송은 Supabase on-the-fly 변환**(표시폭 WebP)으로 자동 축소. `CachedImage`가 알아서 처리.
+
+### 모듈 (직접 만들지 말고 이걸 써라)
+| 목적 | 모듈 | 위치 |
+|---|---|---|
+| 이미지 표시(캐시+변환+WebP) | `CachedImage` | `lib/core/presentation/widgets/design/cached_image.dart` |
+| URL 변환 순수함수 | `supabaseRenderUrl`, `bookCoverStoragePath` | `lib/core/utils/supabase_image.dart` |
+| 메모 사진 업로드 | `MemoImageUploader` | `lib/features/memos/utils/memo_image_uploader.dart` |
+| 네이버 표지 재호스팅 | `BookCoverUploader` | `lib/features/books/utils/book_cover_uploader.dart` |
+
+### 표시 규격 (반드시 `CachedImage` + 표시폭 `cacheWidth` 지정)
+```dart
+// 금지 ❌
+Image.network(url, fit: BoxFit.cover)
+// 필수 ✅ (cacheWidth = 표시폭 x 대략 2~3배(레티나), 그 값으로 서버 변환폭도 자동 결정)
+CachedImage(url: url, fit: BoxFit.cover, cacheWidth: 300, fallback: <플레이스홀더>)
+```
+- 표준 `cacheWidth`(surface별): 스토리 원 156 / 아바타 120~150 / 그리드·검색 표지 240~300 / 카드 대형 700 / 메모 상세 1000. 풀스크린 확대 뷰어만 `cacheWidth` 없이(원본).
+- `CachedImage`는 Supabase 공개 URL이면 자동으로 `/render/image/public/...?width=&quality=80` + `Accept: image/webp`로 요청한다. **네이버 등 외부 URL은 그대로 통과**(변환 안 됨)라, 표지는 아래처럼 우리 스토리지로 재호스팅해야 변환 대상이 된다.
+
+### 업로드 규격
+- **image_picker**: 항상 `imageQuality`(80~85) + `maxWidth/maxHeight`(메모 1280, 프로필 1024) 지정. 원본 그대로 올리지 말 것.
+- **책 표지(네이버)**: 저장 시 `BookCoverUploader.rehostFromNaver(naverUrl, isbn)`로 `book_covers` 버킷(공개)에 ISBN 결정적 경로로 복사. 실패 시 **네이버 URL 폴백**(저장 절대 안 깨지게).
+- **버킷은 모두 public + `getPublicUrl`**(서명 URL 만료로 이미지 죽던 문제 재발 방지, 레슨런).
+
+### 테스트 규격
+- URL 변환·경로 계산은 순수함수라 반드시 유닛테스트: `test/core/supabase_image_test.dart`(업로드->저장->다시 불러오기 라운드트립 포함), `test/features/memos/memo_image_uploader_test.dart`.
+
+## 🚨 에러 표시 규칙 (2026-08-24 추가 - 필수)
+
+> **raw 에러/예외 메시지를 유저 화면에 절대 노출 금지.** `Text('Error: $err')`, `SelectableText('에러: $e')` 같은 코드 금지. 원본 에러는 repository/provider의 `log()`/GA4로만 적재(모니터링용), 유저에겐 **친화 문구 + 재시도(또는 폴백)**.
+
+- 비동기 화면/섹션은 `AsyncView`(`core/presentation/widgets/design/async_view.dart`)를 쓴다. 에러 시 친화 문구(`errorText`) + `onRetry`(재시도 버튼) 제공. `.when(error: ...)`에 raw `$err`를 그리지 말 것.
+- `onRetry`는 보통 `ref.invalidate(<해당 provider>)`.
+- 카피는 카피 부호 룰 준수(느낌표 금지 등). 예: "불러오지 못했어" + "다시 시도".
+- provider가 세션/타이밍으로 에러 캐시되면 재로그인 시 남을 수 있음 → 로그인 완료 후 데이터 provider 재invalidate(`_clearAllDataProviders`)로 새로고침(이미 반영).
 
 ## 🔧 코딩 규칙
 

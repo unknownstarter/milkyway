@@ -8,6 +8,8 @@ import '../../domain/models/naver_book.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 
 class BookSearchScreen extends ConsumerStatefulWidget {
   final bool isFromOnboarding;
@@ -72,8 +74,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF181818),
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
           child: const Text(
@@ -92,6 +94,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       ),
       body: Column(
         children: [
+          SizedBox(height: glassTopPadding(context)),
           // 검색 입력
           _buildSearchInput(),
           
@@ -238,10 +241,11 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: book.coverUrl.isNotEmpty
-            ? Image.network(
-                book.coverUrl,
+            ? CachedImage(
+                url: book.coverUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildBookPlaceholder(),
+                cacheWidth: 240,
+                fallback: _buildBookPlaceholder(),
               )
             : _buildBookPlaceholder(),
       ),

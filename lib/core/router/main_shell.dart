@@ -1,15 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
 import '../presentation/widgets/add_floating_action_button.dart';
+import '../providers/seen_tracker_provider.dart';
+import '../services/seen_tracker.dart';
 import '../../features/constellation/presentation/widgets/connection_reveal.dart';
+import '../../features/books/presentation/providers/books_tab_badge_provider.dart';
+import '../../features/memos/presentation/providers/memos_tab_badge_provider.dart';
 
 /// 메인 앱 Shell
 ///
 /// BottomNavigationBar와 FAB를 포함한 메인 레이아웃
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   final Widget child;
   final String location;
 
@@ -20,7 +25,7 @@ class MainShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final index = _getCurrentIndex(location);
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
@@ -33,12 +38,18 @@ class MainShell extends StatelessWidget {
       floatingActionButton: (index == 0 || index == 1 || index == 2)
           ? const AddFloatingActionButton()
           : null,
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: _buildBottomNavigationBar(context, ref),
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
+  Widget _buildBottomNavigationBar(BuildContext context, WidgetRef ref) {
     final currentIndex = _getCurrentIndex(location);
+    // 점 계산: 저장책에 안 본 남의 새 공개 메모 / 메모탭 새 활동.
+    // autoDispose provider라 탭 이동/재빌드 때 자연스럽게 재계산(폴링 없음).
+    final booksHasNew =
+        ref.watch(booksTabHasNewProvider).asData?.value ?? false;
+    final memosHasNew =
+        ref.watch(memosTabHasNewProvider).asData?.value ?? false;
 
     // 배경 불투명 채움 없음(투명) — 콘텐츠가 네비 뒤로 비쳐 블러됨.
     return SafeArea(
@@ -61,7 +72,7 @@ class MainShell extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
-              // Layer 1: Backdrop Blur
+              // Layer 1: Backdrop Blur (원복 - momo 방식 화이트 프로스트)
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                 child: Container(
@@ -93,7 +104,7 @@ class MainShell extends StatelessWidget {
                         activeIcon: Icons.home,
                         label: 'Home',
                         isActive: currentIndex == 0,
-                        onTap: () => _onTabTapped(context, 0),
+                        onTap: () => _onTabTapped(context, ref, 0),
                       ),
                       _buildNavButton(
                         context: context,
@@ -101,7 +112,8 @@ class MainShell extends StatelessWidget {
                         activeIcon: Icons.book,
                         label: 'Books',
                         isActive: currentIndex == 1,
-                        onTap: () => _onTabTapped(context, 1),
+                        showDot: booksHasNew,
+                        onTap: () => _onTabTapped(context, ref, 1),
                       ),
                       _buildNavButton(
                         context: context,
@@ -109,7 +121,8 @@ class MainShell extends StatelessWidget {
                         activeIcon: Icons.note,
                         label: 'Memos',
                         isActive: currentIndex == 2,
-                        onTap: () => _onTabTapped(context, 2),
+                        showDot: memosHasNew,
+                        onTap: () => _onTabTapped(context, ref, 2),
                       ),
                       _buildNavButton(
                         context: context,
@@ -117,7 +130,7 @@ class MainShell extends StatelessWidget {
                         activeIcon: Icons.person,
                         label: 'Profile',
                         isActive: currentIndex == 3,
-                        onTap: () => _onTabTapped(context, 3),
+                        onTap: () => _onTabTapped(context, ref, 3),
                       ),
                     ],
                   ),
@@ -136,6 +149,7 @@ class MainShell extends StatelessWidget {
     required String label,
     required bool isActive,
     required VoidCallback onTap,
+    bool showDot = false,
   }) {
     return Expanded(
       // InkWell 물결/하이라이트 사각형이 유리 바 밖으로 튀어나가서 GestureDetector로 교체.
@@ -155,16 +169,38 @@ class MainShell extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-                Icon(
-                  isActive ? activeIcon : icon,
-                  size: 20, // 원래 크기로 복원
-                  color: isActive
-                      ? const Color(0xFFF3F3F3)
-                      : const Color(0xFF757575),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isActive ? activeIcon : icon,
+                      size: 20, // 원래 크기로 복원
+                      color: isActive
+                          ? const Color(0xFFF3F3F3)
+                          : const Color(0xFF757575),
+                    ),
+                    if (showDot)
+                      Positioned(
+                        top: -2,
+                        right: -3,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF3B30),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF181818),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 MediaQuery(
-                  data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+                  data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
                   child: Text(
                     label,
                     style: TextStyle(
@@ -195,20 +231,35 @@ class MainShell extends StatelessWidget {
     return 0;
   }
 
-  void _onTabTapped(BuildContext context, int index) {
+  void _onTabTapped(BuildContext context, WidgetRef ref, int index) {
     switch (index) {
       case 0:
         context.goNamed(AppRoutes.homeName);
         break;
       case 1:
+        // 탭 진입 = 이 탭의 새 것들을 '봤음'으로 처리 → 점 제거.
+        _markTabSeen(ref, SeenTracker.tabBooks, booksTabHasNewProvider);
         context.goNamed(AppRoutes.bookShelfName);
         break;
       case 2:
+        _markTabSeen(ref, SeenTracker.tabMemos, memosTabHasNewProvider);
         context.goNamed(AppRoutes.memosName);
         break;
       case 3:
         context.goNamed(AppRoutes.profileName);
         break;
     }
+  }
+
+  /// 탭 진입 시 해당 탭 last-seen을 갱신하고 점 provider를 무효화한다.
+  void _markTabSeen(
+    WidgetRef ref,
+    String tabKey,
+    ProviderOrFamily badgeProvider,
+  ) {
+    ref
+        .read(seenTrackerProvider)
+        .markTabSeen(tabKey)
+        .then((_) => ref.invalidate(badgeProvider));
   }
 }

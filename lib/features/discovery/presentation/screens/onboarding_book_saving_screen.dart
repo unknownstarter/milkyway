@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -207,9 +208,11 @@ class _OnboardingBookSavingScreenState
                       borderRadius: BorderRadius.circular(AppRadius.cardLarge),
                       child: (book.coverUrl != null &&
                               book.coverUrl!.isNotEmpty)
-                          ? Image.network(book.coverUrl!,
+                          ? CachedImage(
+                              url: book.coverUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const SizedBox())
+                              cacheWidth: 300,
+                              fallback: const SizedBox())
                           : const SizedBox(),
                     ),
                   ),

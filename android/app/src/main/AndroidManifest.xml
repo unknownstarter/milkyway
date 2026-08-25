@@ -1,9 +1,13 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- READ_MEDIA_IMAGES 권한 제거: Android Photo Picker 사용으로 권한 불필요 -->
+    <!-- Google Play 정책: 단일 이미지 선택은 시스템 Photo Picker로 충분 -> 광범위 미디어 권한 제거.
+         image_picker_android가 병합으로 넣는 READ_MEDIA_IMAGES/VIDEO 를 최종 매니페스트에서 삭제. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
     <!-- FCM 알림 권한 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE" />

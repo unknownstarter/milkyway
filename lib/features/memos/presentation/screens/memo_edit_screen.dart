@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -184,9 +185,11 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
               ),
               clipBehavior: Clip.antiAlias,
               child: (book?.coverUrl != null && book!.coverUrl!.isNotEmpty)
-                  ? Image.network(book.coverUrl!,
+                  ? CachedImage(
+                      url: book.coverUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox())
+                      cacheWidth: 200,
+                      fallback: const SizedBox())
                   : const SizedBox(),
             ),
             const SizedBox(width: 7),
@@ -242,9 +245,11 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
                 ? Image.file(File(path),
                     width: 84, height: 84, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _imgFallback())
-                : Image.network(path,
+                : CachedImage(
+                    url: path,
                     width: 84, height: 84, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _imgFallback()),
+                    cacheWidth: 252,
+                    fallback: _imgFallback()),
           ),
           Positioned(
             top: 4,

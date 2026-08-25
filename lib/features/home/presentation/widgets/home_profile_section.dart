@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -96,13 +97,13 @@ class _ProfileAvatar extends StatelessWidget {
       child: pictureUrl != null
           ? ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                pictureUrl!,
+              child: CachedImage(
+                url: pictureUrl,
                 width: 40,
                 height: 40,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const _ProfileAvatarPlaceholder(),
+                cacheWidth: 120,
+                fallback: const _ProfileAvatarPlaceholder(),
               ),
             )
           : const _ProfileAvatarPlaceholder(),

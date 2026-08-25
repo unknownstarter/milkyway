@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/models/book.dart';
@@ -243,12 +244,13 @@ class _MemoCardWithImage extends StatelessWidget {
                 height: 120,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    memo.imageUrl!,
+                  child: CachedImage(
+                    url: memo.imageUrl,
                     width: 80,
                     height: 120,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    cacheWidth: 240,
+                    fallback: Container(
                       width: 80,
                       height: 120,
                       color: Colors.grey.shade900,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'home_profile_section.dart';
@@ -170,14 +171,13 @@ class HomeEmptyState extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(8),
                                   child: book.coverUrl != null &&
                                           book.coverUrl!.isNotEmpty
-                                      ? Image.network(
-                                          book.coverUrl!,
+                                      ? CachedImage(
+                                          url: book.coverUrl,
                                           width: 90,
                                           height: 127,
                                           fit: BoxFit.contain, // cover -> contain으로 변경하여 이미지가 안 짤리게
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  _buildBookPlaceholder(),
+                                          cacheWidth: 270,
+                                          fallback: _buildBookPlaceholder(),
                                         )
                                       : _buildBookPlaceholder(),
                                 ),

@@ -6,6 +6,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/splash_layout.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:developer';
@@ -21,11 +22,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // 스플래시 화면 최소 표시 시간 보장 (1.5초)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        _validateSession();
-      }
+    // 인위적 지연 없음 — 콜드 스타트 시 스플래시 체감을 최소화하려 세션 검증을 즉시 시작.
+    // 첫 프레임 페인트 뒤에 시작해 라우팅 컨텍스트를 안전하게 확보.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _validateSession();
     });
   }
 
@@ -56,13 +56,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         return;
       }
 
-      // 앱 버전 체크 추가
-      await ref.read(authProvider.notifier).checkAppVersion();
+      // 앱 버전 체크는 라우팅을 막지 않게 백그라운드로(현재 no-op, 강제업데이트 도입 대비).
+      unawaited(ref.read(authProvider.notifier).checkAppVersion());
 
       // 세션 갱신 시도 (refresh token을 사용하여 최대 1개월까지 유지)
       final supabase = Supabase.instance.client;
       final session = supabase.auth.currentSession;
-      
+
       if (session != null && !session.isExpired) {
         // 세션이 유효하면 사용자 정보 가져오기
         final user = await ref.read(authProvider.notifier).getCurrentUser();

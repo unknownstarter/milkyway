@@ -3,25 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../widgets/book_grid_item.dart';
-import '../../../books/presentation/providers/user_books_provider.dart';
-import '../../../../core/presentation/widgets/pill_filter_button.dart';
+import '../providers/book_shelf_provider.dart';
+import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../home/domain/models/book.dart';
 import '../../../home/domain/models/book_status.dart';
-import '../../../home/domain/models/book_status_extension.dart';
 
 /// 필터 옵션 데이터 클래스
 class _FilterOption {
   final String label;
   final BookStatus? status;
-  final double width;
 
   const _FilterOption({
     required this.label,
     required this.status,
-    required this.width,
   });
 }
 
@@ -34,111 +31,60 @@ class BookShelfScreen extends ConsumerStatefulWidget {
 
 class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
   BookStatus? _selectedFilter;
-  
-  // 메모이제이션: 필터링 결과 캐싱
-  List<Book>? _cachedFilteredBooks;
-  BookStatus? _cachedFilter;
-  List<Book>? _cachedAllBooks;
 
   // 필터 옵션 리스트 (코드 중복 제거)
   static final List<_FilterOption> _filterOptions = [
-    const _FilterOption(label: '모든 책', status: null, width: 67),
+    const _FilterOption(label: '모든 책', status: null),
     _FilterOption(
-      label: BookStatus.wantToRead.value,
-      status: BookStatus.wantToRead,
-      width: 77,
-    ),
+        label: BookStatus.wantToRead.value, status: BookStatus.wantToRead),
+    _FilterOption(label: BookStatus.reading.value, status: BookStatus.reading),
     _FilterOption(
-      label: BookStatus.reading.value,
-      status: BookStatus.reading,
-      width: 67,
-    ),
-    _FilterOption(
-      label: BookStatus.completed.value,
-      status: BookStatus.completed,
-      width: 53,
-    ),
+        label: BookStatus.completed.value, status: BookStatus.completed),
   ];
 
-  // 필터링된 책 목록 (extension 메서드 사용 + 메모이제이션)
-  // GoRouter가 페이지를 캐싱하므로 뒤로가기 후에도 상태가 유지됨
-  List<Book> _getFilteredBooks(List<Book> books) {
-    // 캐시가 유효한지 확인 (리스트 길이와 필터로 비교하여 참조 비교 문제 해결)
-    if (_cachedFilteredBooks != null &&
-        _cachedFilter == _selectedFilter &&
-        _cachedAllBooks != null &&
-        _cachedAllBooks!.length == books.length) {
-      // 리스트 내용이 실제로 변경되었는지 확인 (ID 기반)
-      final cachedIds = _cachedAllBooks!.map((b) => b.id).toSet();
-      final currentIds = books.map((b) => b.id).toSet();
-      if (cachedIds == currentIds) {
-      return _cachedFilteredBooks!;
-      }
-    }
-
-    // extension 메서드를 사용하여 필터링
-    final filtered = _selectedFilter.filterBooks(books);
-    
-    // 캐시 업데이트
-    _cachedFilteredBooks = filtered;
-    _cachedFilter = _selectedFilter;
-    _cachedAllBooks = List.from(books); // 새 리스트로 복사하여 참조 비교 문제 해결
-    
-    return filtered;
+  /// 랭킹 정렬은 provider가 처리. 여기선 상태 필터만 그 순서 위에 적용.
+  List<ShelfBook> _applyStatusFilter(List<ShelfBook> books) {
+    if (_selectedFilter == null) return books;
+    return books.where((s) => s.book.status == _selectedFilter).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final booksAsync = ref.watch(userBooksProvider);
+    final booksAsync = ref.watch(bookShelfProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       extendBodyBehindAppBar: true,
       appBar: glassAppBar(
         title: const Text('Books', style: AppTypography.title),
-        bottom: filterBar(_pillRow()),
+        bottom: filterBar(_statusFilter()),
       ),
-      body: booksAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFFECECEC)),
-        ),
-        error: (err, stack) => Center(
-          child: SelectableText.rich(
-            TextSpan(text: '에러: $err', style: const TextStyle(color: Colors.red)),
-          ),
-        ),
-        data: (books) {
-          final filteredBooks = _getFilteredBooks(books);
+      body: AsyncView<List<ShelfBook>>(
+        value: booksAsync,
+        loadingHeight: MediaQuery.of(context).size.height * 0.6,
+        errorText: '책을 불러오지 못했어',
+        onRetry: () => ref.invalidate(bookShelfProvider),
+        isEmpty: (books) => _applyStatusFilter(books).isEmpty,
+        emptyBuilder: () => _emptyState(),
+        builder: (books) {
+          final filteredBooks = _applyStatusFilter(books);
           final topPad = glassTopPadding(context, bottomHeight: kFilterBarHeight);
-          if (filteredBooks.isEmpty) return _emptyState();
           return _BookGrid(books: filteredBooks, topPadding: topPad);
         },
       ),
     );
   }
 
-  /// 표준 필터바에 들어갈 상태 필터(전체/읽는중/완독 등).
-  Widget _pillRow() {
-    return Row(
-      children: _filterOptions
-          .map((option) => [
-                PillFilterButton(
-                  label: option.label,
-                  isActive: _selectedFilter == option.status,
-                  onTap: () {
-                    setState(() {
-                      _selectedFilter = option.status;
-                      _cachedFilteredBooks = null;
-                      _cachedFilter = null;
-                      _cachedAllBooks = null;
-                    });
-                  },
-                  width: option.width,
-                ),
-                if (option != _filterOptions.last) const SizedBox(width: 13),
-              ])
-          .expand((widgets) => widgets)
-          .toList(),
+  /// 표준 필터바에 들어갈 상태 필터(전체/읽는중/완독 등). 메모탭과 동일한 SegmentFilter.
+  Widget _statusFilter() {
+    final selected =
+        _filterOptions.indexWhere((o) => o.status == _selectedFilter);
+    return SegmentFilter(
+      segments: _filterOptions.map((o) => o.label).toList(),
+      selectedIndex: selected < 0 ? 0 : selected,
+      onChanged: (i) => setState(() {
+        _selectedFilter = _filterOptions[i].status;
+      }),
     );
   }
 
@@ -161,7 +107,7 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
 }
 
 class _BookGrid extends StatelessWidget {
-  final List<Book> books;
+  final List<ShelfBook> books;
   final double topPadding;
   const _BookGrid({required this.books, this.topPadding = 0});
 
@@ -177,9 +123,11 @@ class _BookGrid extends StatelessWidget {
       ),
       itemCount: books.length,
       itemBuilder: (context, index) {
-        final book = books[index];
+        final item = books[index];
+        final book = item.book;
         return BookGridItem(
           book: book,
+          showNewDot: item.showNewDot,
           onTap: () => context.pushNamed(
                 AppRoutes.bookDetailName,
                 pathParameters: {'id': book.id},

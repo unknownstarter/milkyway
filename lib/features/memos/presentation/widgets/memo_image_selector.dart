@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'dart:io';
 
 /// 메모 이미지 선택 위젯
@@ -70,12 +71,13 @@ class MemoImageSelector extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: imagePath!.startsWith('http')
-                            ? Image.network(
-                                imagePath!,
+                            ? CachedImage(
+                                url: imagePath,
                                 width: double.infinity,
                                 height: 208,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
+                                cacheWidth: 700,
+                                fallback: Container(
                                   width: double.infinity,
                                   height: 208,
                                   color: Colors.grey.shade900,

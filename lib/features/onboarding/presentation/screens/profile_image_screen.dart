@@ -281,7 +281,13 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     
     try {
       final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery);
+      // 원본 대신 리사이즈/압축해 업로드(화질 유지, 용량↓). 프로필은 소형 표시라 1024면 충분.
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
       if (image != null && mounted) {
         setState(() {
           _selectedImagePath = image.path;

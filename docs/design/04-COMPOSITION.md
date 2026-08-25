@@ -21,8 +21,11 @@
 | 폭 | 390 기준(최대 430, 초과 시 중앙) |
 | 좌우 패딩 | **20** (예외 없음) |
 | 배경 | `#181818` 단일. 표면 +2~4%만(원칙 1) |
-| 헤더 | **glassAppBar**(반투명 20% + 블러 18, 콘텐츠가 뒤로 비침). `extendBodyBehindAppBar: true` + 본문 `glassTopPadding` 필수. **불투명 AppBar 직접 쓰기 금지** |
-| 필터/세그먼트 | **filterBar**(표준 높이 44, 좌 20 정렬, 하단 여백 8)로 앱바 하단 스티키. **탭마다 높이/여백 다르게 두지 말 것**(메모/책 동일) |
+| 헤더 유리(공통) | 모든 상단 유리 = **`GlassBackground`** 하나로 통일 = **GPU 셰이더 progressive blur**(`inspire_blur`, 위=진하게→아래=0, 상태바까지 자연스럽게, **단일 셰이더라 밴딩 없음**) + **배경색(#181818) 옅은 그라데이션 틴트**(0.4→0, 정지 땐 안 보임). `main()`에서 `Inspire.warmUp()` 1회. **불투명/다크단색/흰색 틴트/sliced-blur 금지**(막·색·층·밴딩). 상세·레슨런: `handoff/glass-appbar.md` |
+| 헤더 CASE A (타이틀+필터칩: 책·메모탭) | `glassAppBar(title:, bottom: filterBar(칩))` + `extendBodyBehindAppBar:true` + 본문 top `glassTopPadding(context, bottomHeight: kFilterBarHeight)`. **칩 뒤 배경 넣지 말 것**(투명, 블러 위에 뜸) |
+| 헤더 CASE B (타이틀만/상세: 책상세·메모상세·캘린더·검색) | `glassAppBar(title:, leading: BackButton)` + 본문 top `glassTopPadding(context)` (bottomHeight 없음) |
+| 헤더 CASE C (타이틀 없음: 홈·프로필) | body를 `Stack`으로: 스크롤(`glassStatusTop(context)`, **SafeArea top 금지**) + `Positioned(top:0, child: GlassStatusBar())` |
+| 필터/세그먼트 | **filterBar**(높이 44, 좌 20, 하단 여백 6)로 앱바 하단 스티키. 배경 투명. **탭마다 다르게 두지 말 것** |
 | 하단 | BottomNav(홈/책/메모/나) + 상단 border 1px. FAB는 홈만 |
 | safe-area | 상단 헤더·하단 탭에 가산 |
 

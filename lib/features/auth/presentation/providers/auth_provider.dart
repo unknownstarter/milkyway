@@ -49,6 +49,10 @@ class Auth extends _$Auth {
           final currentUser = await getCurrentUser();
           if (currentUser != null) {
             state = AsyncValue.data(currentUser);
+            // 로그인 완료 후 데이터 provider 강제 새로고침. 로그아웃 순간 currentUser=null로
+            // 에러/빈 상태가 캐시된 provider(책탭·프로필 등)가 재로그인해도 그대로 남아
+            // 데이터가 안 보이던 문제 해결(메모는 타이밍상 보였음). 데이터 유실 아님.
+            _clearAllDataProviders();
           } else {
             state = const AsyncValue.data(null);
           }
@@ -73,6 +77,10 @@ class Auth extends _$Auth {
           final currentUser = await getCurrentUser();
           if (currentUser != null) {
             state = AsyncValue.data(currentUser);
+            // 로그인 완료 후 데이터 provider 강제 새로고침. 로그아웃 순간 currentUser=null로
+            // 에러/빈 상태가 캐시된 provider(책탭·프로필 등)가 재로그인해도 그대로 남아
+            // 데이터가 안 보이던 문제 해결(메모는 타이밍상 보였음). 데이터 유실 아님.
+            _clearAllDataProviders();
           } else {
             state = const AsyncValue.data(null);
           }
@@ -196,6 +204,14 @@ class Auth extends _$Auth {
           // referral_code는 NULL로 두면 trigger가 자동 생성
         });
       } else {
+        // 탈퇴 유예(소프트삭제) 중 재로그인 -> 삭제 취소(복구). 인스타/디스코드식.
+        if (existingUser['deleted_at'] != null) {
+          try {
+            await _supabase.rpc('restore_account');
+          } catch (e) {
+            developer.log('계정 복구 실패: $e');
+          }
+        }
         // 기존 사용자 정보 업데이트
         // 중요: nickname과 picture_url은 사용자가 온보딩/프로필 편집에서 설정한 값이 있으면 덮어쓰지 않음
         final updates = <String, dynamic>{
@@ -298,35 +314,22 @@ class Auth extends _$Auth {
     }
   }
 
+  /// 탈퇴 = 소프트 삭제(30일 유예). 즉시 하드삭제하지 않고 deleted_at 만 찍어
+  /// 콘텐츠를 전면 숨김. 유예 내 재로그인하면 복구됨([restore_account]).
+  /// 30일 지나면 스케줄러(purge_expired_deleted_accounts)가 완전 삭제.
   Future<void> deleteAccount() async {
     try {
       final currentUser = await getCurrentUser();
       if (currentUser == null) return;
 
-      final userId = currentUser.id;
+      await _supabase.rpc('soft_delete_account');
 
-      // Edge Function을 통해 완전한 계정 삭제 수행
-      // (auth.users에서도 삭제되어야 재로그인 시 온보딩부터 시작)
-      final response = await _supabase.functions.invoke(
-        'delete-user',
-        body: {'user_id': userId},
-      );
-
-      if (response.status != 200) {
-        final errorData = response.data;
-        throw Exception('계정 삭제 실패: ${errorData ?? '알 수 없는 오류'}');
-      }
-
-      // 로그아웃 (세션 종료)
+      // 로그아웃 + 데이터 캐시 초기화
       await _supabase.auth.signOut();
-
-      // 모든 데이터 provider 캐시 초기화
       _clearAllDataProviders();
-
-      // authProvider 자체도 invalidate하여 완전히 초기화
       ref.invalidateSelf();
     } catch (e, st) {
-      developer.log('계정 삭제 실패: $e');
+      developer.log('계정 삭제(소프트) 실패: $e');
       state = AsyncValue.error(e, st);
       rethrow;
     }

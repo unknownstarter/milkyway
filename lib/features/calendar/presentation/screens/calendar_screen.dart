@@ -5,6 +5,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../../core/providers/analytics_provider.dart';
@@ -56,11 +57,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgPrimary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: AppColors.textPrimary),
@@ -70,6 +68,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       body: Column(
         children: [
+          SizedBox(height: glassTopPadding(context)),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Center(
