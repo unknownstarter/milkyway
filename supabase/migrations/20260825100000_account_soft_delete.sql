@@ -37,8 +37,10 @@ begin
     delete from public.memos where user_id = uid;
     delete from public.user_books where user_id = uid;
     begin
+      -- 프로필 이미지 경로는 항상 uid 로 시작(<uid>/... 또는 <uid>_...). 접두 매칭으로
+      -- 오삭제 방지 + 인덱스 친화(양쪽 와일드카드 %uid% 금지).
       delete from storage.objects where bucket_id = 'profile_images'
-        and name like '%' || uid::text || '%';
+        and name like uid::text || '%';
     exception when others then null; -- 스토리지 정리는 best-effort
     end;
     delete from public.users where id = uid;   -- comments/embeddings 등 CASCADE
@@ -48,7 +50,34 @@ begin
   return n;
 end; $$;
 
+-- 4-1) 콘텐츠 숨김의 단일 지점: 소프트삭제 유저의 공개 메모를 memos RLS에서 제외.
+--     edge function(service_role)은 RLS 우회라 JS 필터로 별도 처리(belt-and-suspenders),
+--     여기선 클라이언트 직접 읽기(getBookMemos·discovery 카운트 등) 전부를 한 번에 막는다.
+create or replace function public.is_user_active(uid uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select not exists (select 1 from public.users where id = uid and deleted_at is not null);
+$$;
+grant execute on function public.is_user_active(uuid) to authenticated, anon;
+
+-- 기존 정책의 USING 만 교체(DROP 없이 원자적). 본인 메모는 그대로, 공개 메모는 활성 작성자만.
+alter policy "사용자는 자신의 메모와 공개 메모를 볼 수 있" on public.memos
+  using (
+    (auth.uid() = user_id)
+    or (visibility = 'public'::visibility_type and public.is_user_active(user_id))
+  );
+
+-- 4-2) 카드 댓글수: 숨김 + 소프트삭제 작성자 제외(목록 기준과 일치). service/client 무관하게
+--      동일 결과가 나오도록 security definer.
+create or replace function public.comment_count(m memos)
+returns bigint language sql stable security definer set search_path = public as $$
+  select count(*)::bigint
+  from public.comments c
+  join public.users u on u.id = c.user_id
+  where c.memo_id = m.id and c.is_hidden = false and u.deleted_at is null;
+$$;
+
 -- 5) 댓글 조회 RPC: 숨김 + 소프트삭제 작성자 제외(유예 중 콘텐츠 숨김)
+--    ⚠️ 이 파일이 get_memo_comments 최종 정의(is_hidden + deleted_at). 090000의 정의를 대체.
 create or replace function public.get_memo_comments(p_memo_id uuid)
 returns setof jsonb
 language sql
