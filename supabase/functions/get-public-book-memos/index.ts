@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
         ),
         users!user_id (
           nickname,
-          picture_url
+          picture_url,
+          deleted_at
         )
       `,
         includeCount && offset === 0 ? { count: 'exact' } : undefined
@@ -69,14 +70,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 소프트삭제(탈퇴 유예) 작성자의 메모는 숨김. deleted_at 은 응답에서 제거.
+    const memos = (data || []).filter((m: any) => !m.users?.deleted_at)
+      .map((m: any) => {
+        if (m.users) delete m.users.deleted_at;
+        return m;
+      });
+
     // count가 없으면 (첫 페이지가 아니면) 결과 길이로 hasMore 판단
     const hasMore = count !== null
       ? (offset + limit) < count
-      : data.length === limit; // 정확하지 않지만 근사치로 사용
+      : memos.length === limit; // 정확하지 않지만 근사치로 사용
 
     return new Response(
       JSON.stringify({
-        memos: data || [],
+        memos: memos,
         hasMore: hasMore,
         total: count || 0,
       }),

@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
         ),
         users!user_id (
           nickname,
-          picture_url
+          picture_url,
+          deleted_at
         )
       `,
         includeCount && offset === 0 ? { count: 'exact' } : undefined,
@@ -63,11 +64,18 @@ Deno.serve(async (req) => {
       return json({ error: error.message }, 500);
     }
 
+    // 소프트삭제(탈퇴 유예) 작성자의 메모는 숨김. deleted_at 은 응답에서 제거.
+    const memos = (data || []).filter((m: any) => !m.users?.deleted_at)
+      .map((m: any) => {
+        if (m.users) delete m.users.deleted_at;
+        return m;
+      });
+
     const hasMore = count !== null
       ? offset + limit < count
-      : (data?.length ?? 0) === limit;
+      : memos.length === limit;
 
-    return json({ memos: data || [], hasMore, total: count || 0 });
+    return json({ memos, hasMore, total: count || 0 });
   } catch (e) {
     console.error('에러 발생:', e);
     return json({ error: (e as Error).message }, 500);
