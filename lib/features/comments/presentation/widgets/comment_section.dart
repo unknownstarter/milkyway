@@ -5,6 +5,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/utils/response_cache.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
@@ -50,10 +51,12 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   void _refresh() {
     if (!mounted) return; // async 이후 언마운트 시 ref 사용 방지
     ref.invalidate(commentsProvider(widget.memoId));
-    // 카드 댓글 수(comment_count computed column)도 갱신. invalidateMemoProviders는
-    // Ref 전용이라 WidgetRef에선 직접 호출하되, '동일 세트'를 유지해 카운트 누락을 막는다.
+    // 카드 댓글 수(comment_count computed column) 갱신 - 홈/메모탭/책상세 전부.
+    // invalidateMemoProviders(Ref 전용)와 '동일 세트'를 유지해야 카운트 누락이 없다.
     ref.invalidate(memoProvider(widget.memoId));
-    ref.invalidate(publicMemoFeedProvider);
+    ref.invalidate(publicMemoFeedProvider); // 메모탭 공개(구)
+    ref.invalidate(homePublicMemoFeedProvider); // 홈 '다른 별들이' (누락됐던 것)
+    ref.invalidate(paginatedPublicFeedProvider); // 메모탭 공개 세그먼트 (누락됐던 것)
     ref.invalidate(allMemosProvider);
     ref.invalidate(recentMemosProvider);
     ref.invalidate(homeRecentMemosProvider);
@@ -62,6 +65,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     ref.invalidate(paginatedMemosProvider(widget.bookId));
     ref.invalidate(paginatedMemosProvider(null));
     ref.invalidate(paginatedPublicBookMemosProvider(widget.bookId));
+    // 책상세 공개 메모는 edge function 응답 캐시 경유 - 캐시도 무효화해야 갱신됨.
+    ResponseCache().invalidate('get-public-book-memos', bookId: widget.bookId);
   }
 
   Future<void> _send(String text) async {
