@@ -105,3 +105,25 @@ $$;
 -- create extension if not exists pg_cron;
 -- select cron.schedule('purge-expired-accounts', '0 18 * * *',
 --   $$select public.purge_expired_deleted_accounts()$$);
+
+-- ─────────────────────────────────────────────────────────────
+-- ROLLBACK (수동 적용용. Supabase는 forward-only라 자동 down 없음)
+-- ─────────────────────────────────────────────────────────────
+-- alter policy "사용자는 자신의 메모와 공개 메모를 볼 수 있" on public.memos
+--   using ((auth.uid() = user_id) or (visibility = 'public'::visibility_type));
+-- create or replace function public.comment_count(m memos) returns bigint
+--   language sql stable set search_path to '' as $$
+--   select count(*)::bigint from public.comments c where c.memo_id = m.id and c.is_hidden = false; $$;
+-- create or replace function public.get_memo_comments(p_memo_id uuid) returns setof jsonb
+--   language sql stable security definer set search_path = public as $$
+--   select jsonb_build_object('id',c.id,'memo_id',c.memo_id,'user_id',c.user_id,'content',c.content,
+--     'created_at',c.created_at,'updated_at',c.updated_at,
+--     'users',jsonb_build_object('nickname',u.nickname,'picture_url',u.picture_url))
+--   from public.comments c join public.users u on u.id=c.user_id
+--   where c.memo_id=p_memo_id and c.is_hidden=false order by c.created_at asc; $$;
+-- drop function if exists public.is_user_active(uuid);
+-- drop function if exists public.soft_delete_account();
+-- drop function if exists public.restore_account();
+-- drop function if exists public.purge_expired_deleted_accounts();
+-- drop index if exists public.idx_users_deleted_at;
+-- alter table public.users drop column if exists deleted_at;
