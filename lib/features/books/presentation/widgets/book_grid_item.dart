@@ -52,19 +52,18 @@ class BookGridItem extends StatelessWidget {
   }
 }
 
-/// 표지 위 빨간 점. 배경과 대비되도록 얇은 테두리를 둔다.
+/// 표지 위 빨간 점(테두리 없이 순수 점).
 class _NewDot extends StatelessWidget {
   const _NewDot();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
+      width: 9,
+      height: 9,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFF3B30),
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFF181818), width: 1.5),
       ),
     );
   }
