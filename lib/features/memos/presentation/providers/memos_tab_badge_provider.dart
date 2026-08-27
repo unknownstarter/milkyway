@@ -16,8 +16,10 @@ final memosTabHasNewProvider = FutureProvider.autoDispose<bool>((ref) async {
   final latest = badge.latestAt;
   if (latest == null) return false;
 
-  final tracker = ref.watch(seenTrackerProvider);
-  final lastSeen = await tracker.tabLastSeen(SeenTracker.tabMemos);
+  ref.watch(seenControllerProvider.select((s) => s.tabMemos)); // Memos탭 봤음 리비전만
+  final lastSeen = await ref
+      .read(seenControllerProvider.notifier)
+      .tabLastSeen(SeenTracker.tabMemos);
   if (lastSeen == null) return true;
   return latest.isAfter(lastSeen);
 });

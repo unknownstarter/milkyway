@@ -233,12 +233,12 @@ class MainShell extends ConsumerWidget {
         context.goNamed(AppRoutes.homeName);
         break;
       case 1:
-        // 탭 진입 = 이 탭의 새 것들을 '봤음'으로 처리 → 점 제거.
-        _markTabSeen(ref, SeenTracker.tabBooks, booksTabHasNewProvider);
+        // 탭 진입 = 이 탭의 새 것들을 '봤음'으로 처리 → 점 자동 제거(리비전 증가).
+        _markTabSeen(ref, SeenTracker.tabBooks);
         context.goNamed(AppRoutes.bookShelfName);
         break;
       case 2:
-        _markTabSeen(ref, SeenTracker.tabMemos, memosTabHasNewProvider);
+        _markTabSeen(ref, SeenTracker.tabMemos);
         context.goNamed(AppRoutes.memosName);
         break;
       case 3:
@@ -247,15 +247,9 @@ class MainShell extends ConsumerWidget {
     }
   }
 
-  /// 탭 진입 시 해당 탭 last-seen을 갱신하고 점 provider를 무효화한다.
-  void _markTabSeen(
-    WidgetRef ref,
-    String tabKey,
-    ProviderOrFamily badgeProvider,
-  ) {
-    ref
-        .read(seenTrackerProvider)
-        .markTabSeen(tabKey)
-        .then((_) => ref.invalidate(badgeProvider));
+  /// 탭 진입 시 해당 탭 last-seen을 갱신한다. seenControllerProvider 리비전이 올라
+  /// 이를 watch 하는 배지 provider들이 자동 재계산되므로 별도 invalidate 불필요.
+  void _markTabSeen(WidgetRef ref, String tabKey) {
+    ref.read(seenControllerProvider.notifier).markTabSeen(tabKey);
   }
 }

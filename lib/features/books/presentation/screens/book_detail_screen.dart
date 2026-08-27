@@ -14,8 +14,6 @@ import '../../../home/presentation/providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../home/presentation/providers/selected_book_provider.dart';
-import '../providers/book_shelf_provider.dart';
-import '../providers/books_tab_badge_provider.dart';
 import '../../../../core/utils/response_cache.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
@@ -59,15 +57,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     _markViewed();
   }
 
-  /// 이 책을 '봤음'으로 기록한 뒤, 새 표시(링/점) provider들을 무효화한다.
-  /// 이게 없으면 shell에 살아있는 책탭/홈이 재계산을 안 해 상세를 다녀와도
-  /// 홈 스토리 링·책탭 썸네일 점·하단 네비 점이 그대로 남는다(#1).
+  /// 이 책을 '봤음'으로 기록. seenControllerProvider 리비전이 오르면서 이를 watch 하는
+  /// 홈 스토리 링·책탭 썸네일 점·하단 네비 점이 의존성 그래프로 **자동 재계산**된다
+  /// (수동 invalidate 불필요 - 반응형 상태로 승격, #1 근본 해결).
   Future<void> _markViewed() async {
-    await ref.read(seenTrackerProvider).markBookViewed(widget.bookId);
-    if (!mounted) return;
-    ref.invalidate(homeStoriesProvider);
-    ref.invalidate(bookShelfProvider);
-    ref.invalidate(booksTabHasNewProvider);
+    await ref.read(seenControllerProvider.notifier).markBookViewed(widget.bookId);
   }
 
   @override
@@ -753,10 +747,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       ref.invalidate(homePublicMemoFeedProvider);
       ref.invalidate(paginatedPublicFeedProvider);
       ResponseCache().invalidate('get-public-book-memos', bookId: book.id);
-      // 새 표시(링/점)도 갱신
-      ref.invalidate(bookShelfProvider);
-      ref.invalidate(booksTabHasNewProvider);
-      ref.invalidate(homeStoriesProvider);
+      // 홈 스토리 링/책탭 점/네비 점은 homeBooksProvider(위에서 invalidate)를 watch 하므로
+      // 의존성 그래프로 자동 재계산된다(별도 invalidate 불필요).
 
       // 삭제된 책이 선택되어 있으면 선택 해제 또는 첫 번째 책으로 변경
       final selectedBookId = ref.read(selectedBookIdProvider);

@@ -48,8 +48,10 @@ final homeStoriesProvider = FutureProvider.autoDispose<List<HomeStory>>((ref) as
   final books = await ref.watch(homeBooksProvider.future);
   if (books.isEmpty) return const <HomeStory>[];
 
-  final tracker = ref.watch(seenTrackerProvider);
-  final viewed = await tracker.allBookViewed(books.map((b) => b.id).toList());
+  ref.watch(seenControllerProvider.select((s) => s.bookViewed)); // 책봤음 리비전만 구독
+  final viewed = await ref
+      .read(seenControllerProvider.notifier)
+      .allBookViewed(books.map((b) => b.id).toList());
 
   final sorted = sortByActivity(books, viewed);
 

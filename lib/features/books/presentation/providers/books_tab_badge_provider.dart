@@ -15,8 +15,10 @@ final booksTabHasNewProvider = FutureProvider.autoDispose<bool>((ref) async {
   final books = await ref.watch(homeBooksProvider.future);
   if (books.isEmpty) return false;
 
-  final tracker = ref.watch(seenTrackerProvider);
-  final lastSeen = await tracker.tabLastSeen(SeenTracker.tabBooks);
+  ref.watch(seenControllerProvider.select((s) => s.tabBooks)); // Books탭 봤음 리비전만
+  final lastSeen = await ref
+      .read(seenControllerProvider.notifier)
+      .tabLastSeen(SeenTracker.tabBooks);
 
   for (final b in books) {
     if (hasNewOthers(b.othersLastPublicMemoAt, lastSeen)) return true;
