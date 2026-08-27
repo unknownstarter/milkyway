@@ -27,12 +27,12 @@ void invalidateMemoProviders(
   String? memoId,
   bool isPublic = false,
 }) {
-  // 공개 메모인 경우에만 책별 공개 메모 provider 무효화
-  if (isPublic) {
-    ResponseCache().invalidate('get-public-book-memos', bookId: bookId);
-    ref.invalidate(paginatedPublicBookMemosProvider(bookId));
-    ref.invalidate(publicBookMemosProvider(bookId));
-  }
+  // 책별 공개 메모 캐시/프로바이더 — 공개->비공개 토글이나 삭제도 반영돼야 하므로
+  // isPublic 여부와 무관하게 항상 무효화한다(새 visibility 기준으로만 지우면 반대편
+  // 캐시가 잔존). [isPublic] 파라미터는 호출부 호환 위해 유지(현재 미사용).
+  ResponseCache().invalidate('get-public-book-memos', bookId: bookId);
+  ref.invalidate(paginatedPublicBookMemosProvider(bookId));
+  ref.invalidate(publicBookMemosProvider(bookId));
 
   // 항상 무효화해야 하는 provider들
   // publicMemoFeedProvider: 홈 '다른 별들이 남긴 생각들' + 메모탭 공개 세그먼트.

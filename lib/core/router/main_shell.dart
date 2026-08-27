@@ -184,15 +184,11 @@ class MainShell extends ConsumerWidget {
                         top: -2,
                         right: -3,
                         child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF3B30),
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF3B30),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color(0xFF181818),
-                              width: 1.5,
-                            ),
                           ),
                         ),
                       ),

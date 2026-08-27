@@ -11,6 +11,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../memos/presentation/providers/memo_provider.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
@@ -764,6 +765,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         nickname: nickname,
         pictureUrl: uploadedImageUrl,
       );
+
+      // 내 메모/댓글 카드에 박힌 닉네임·아바타가 바뀐 값으로 갱신되게 목록/피드 무효화.
+      // (메모/댓글 상세는 재진입 시 재조회되므로 목록·피드만 갱신하면 충분)
+      ref.invalidate(allMemosProvider);
+      ref.invalidate(paginatedMemosProvider(null));
+      ref.invalidate(recentMemosProvider);
+      ref.invalidate(homeRecentMemosProvider);
+      ref.invalidate(publicMemoFeedProvider);
+      ref.invalidate(homePublicMemoFeedProvider);
+      ref.invalidate(paginatedPublicFeedProvider);
 
       if (mounted) {
         ErrorHandler.showSuccess(

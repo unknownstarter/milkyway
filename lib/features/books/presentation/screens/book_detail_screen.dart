@@ -14,6 +14,9 @@ import '../../../home/presentation/providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../home/presentation/providers/selected_book_provider.dart';
+import '../providers/book_shelf_provider.dart';
+import '../providers/books_tab_badge_provider.dart';
+import '../../../../core/utils/response_cache.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -53,8 +56,18 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   void initState() {
     super.initState();
     ref.read(analyticsProvider).logScreenView('book_detail_screen');
-    // 어떤 경로로 들어오든 이 책을 '봤음'으로 로컬 기록 → 홈/책탭 새 표시 해제.
-    ref.read(seenTrackerProvider).markBookViewed(widget.bookId);
+    _markViewed();
+  }
+
+  /// 이 책을 '봤음'으로 기록한 뒤, 새 표시(링/점) provider들을 무효화한다.
+  /// 이게 없으면 shell에 살아있는 책탭/홈이 재계산을 안 해 상세를 다녀와도
+  /// 홈 스토리 링·책탭 썸네일 점·하단 네비 점이 그대로 남는다(#1).
+  Future<void> _markViewed() async {
+    await ref.read(seenTrackerProvider).markBookViewed(widget.bookId);
+    if (!mounted) return;
+    ref.invalidate(homeStoriesProvider);
+    ref.invalidate(bookShelfProvider);
+    ref.invalidate(booksTabHasNewProvider);
   }
 
   @override
@@ -735,6 +748,15 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       ref.invalidate(recentMemosProvider);
       ref.invalidate(homeRecentMemosProvider);
       ref.invalidate(allMemosProvider);
+      // 삭제된 책의 공개 메모가 홈 '다른 별들이'·메모탭 '공개'에서도 사라지게(#3 갭).
+      ref.invalidate(publicMemoFeedProvider);
+      ref.invalidate(homePublicMemoFeedProvider);
+      ref.invalidate(paginatedPublicFeedProvider);
+      ResponseCache().invalidate('get-public-book-memos', bookId: book.id);
+      // 새 표시(링/점)도 갱신
+      ref.invalidate(bookShelfProvider);
+      ref.invalidate(booksTabHasNewProvider);
+      ref.invalidate(homeStoriesProvider);
 
       // 삭제된 책이 선택되어 있으면 선택 해제 또는 첫 번째 책으로 변경
       final selectedBookId = ref.read(selectedBookIdProvider);
