@@ -67,8 +67,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (owned) {
       await context.pushNamed(AppRoutes.bookDetailName,
           pathParameters: {'id': bookId});
-      // 상세를 보고 돌아오면 lastViewed가 갱신됐으므로 스토리 링 재계산.
-      ref.invalidate(homeStoriesProvider);
+      // 상세를 보면 book_detail이 markBookViewed로 bookViewed 리비전을 올리므로
+      // 스토리 링은 반응형으로 자동 재계산된다(수동 invalidate 불필요).
       return;
     }
     final save = await showAppConfirm(
