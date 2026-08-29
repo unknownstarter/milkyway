@@ -82,9 +82,9 @@ class _OrbViewState extends State<OrbView>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: accent.withValues(alpha: 0.16 + 0.14 * pulse),
-                      blurRadius: widget.size * (0.24 + 0.05 * pulse),
-                      spreadRadius: widget.size * 0.01,
+                      color: accent.withValues(alpha: 0.07 + 0.07 * pulse),
+                      blurRadius: widget.size * (0.16 + 0.04 * pulse),
+                      spreadRadius: 0,
                     ),
                   ],
                 ),
