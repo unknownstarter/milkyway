@@ -15,10 +15,13 @@ create index if not exists share_cards_user_id_idx on public.share_cards(user_id
 alter table public.share_cards enable row level security;
 
 -- 본인만 생성/수정/조회. 공개 링크 조회는 Edge Function(service_role)이 RLS 우회.
+drop policy if exists "share_cards own insert" on public.share_cards;
 create policy "share_cards own insert" on public.share_cards
   for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "share_cards own update" on public.share_cards;
 create policy "share_cards own update" on public.share_cards
   for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "share_cards own select" on public.share_cards;
 create policy "share_cards own select" on public.share_cards
   for select to authenticated using (auth.uid() = user_id);
 
@@ -36,11 +39,14 @@ values ('share_cards', 'share_cards', true)
 on conflict (id) do nothing;
 
 -- 공개 읽기 + 본인 폴더({uid}/...)만 쓰기
+drop policy if exists "share_cards storage public read" on storage.objects;
 create policy "share_cards storage public read" on storage.objects
   for select using (bucket_id = 'share_cards');
+drop policy if exists "share_cards storage owner insert" on storage.objects;
 create policy "share_cards storage owner insert" on storage.objects
   for insert to authenticated
   with check (bucket_id = 'share_cards' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "share_cards storage owner update" on storage.objects;
 create policy "share_cards storage owner update" on storage.objects
   for update to authenticated
   using (bucket_id = 'share_cards' and (storage.foldername(name))[1] = auth.uid()::text);

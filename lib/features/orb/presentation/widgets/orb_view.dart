@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../domain/orb_tier.dart';
-import '../providers/orb_palette.dart';
+import 'orb_palette.dart';
 
 /// 진화 은하 오브. 뒤 글로우가 호흡(펄스)하고 오브가 제자리에서 천천히 자전한다.
 /// MVP: 단일 WebP 자산 통짜 저속 회전(1회전 24s). M2에서 galaxy/glass 레이어 분리 예정.

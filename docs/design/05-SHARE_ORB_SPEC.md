@@ -154,7 +154,7 @@ const orbGateMemos = 7; // 오브 생성 최소 메모 수
 ```
 1. share_card 위젯 캡처: RepaintBoundary.toImage(pixelRatio = 1080 / logicalWidth) → 정확히 1080px 폭 (과대 캡처 금지)
 2. 인코딩: JPG q85 (~150~250KB). OG/피드 호환 위해 JPG(WebP는 일부 OG 크롤러 미지원)
-3. Storage public 버킷 `share_cards/{code}.jpg` 업로드 (upsert)
+3. Storage public 버킷 `share_cards`, 경로 `{uid}/{code}.jpg` 업로드 (upsert). 경로 앞단 uid = RLS 본인 폴더 정책과 일치
 4. share_cards row upsert: {code(6자 base62), user_id, tier, image_path, payload}
 5. 링크: https://<project-ref>.supabase.co/functions/v1/s/{code}  (내부 숏튼, 아래 10절)
 6. share_plus 로 시트(이미지 파일 + 링크). 링크복사 지원.
