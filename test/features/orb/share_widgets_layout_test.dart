@@ -28,11 +28,14 @@ void main() {
   });
 
   testWidgets('OrbGateBanner 오버플로 없음', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: Padding(
-          padding: EdgeInsets.all(20),
-          child: Align(alignment: Alignment.topCenter, child: OrbGateBanner(memos: 3)),
+          padding: const EdgeInsets.all(20),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: OrbGateBanner(memos: 3, onTap: () {}),
+          ),
         ),
       ),
     ));
