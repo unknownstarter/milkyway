@@ -254,7 +254,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         icon: Icons.auto_awesome,
         accent: true,
         title: '내 우주가 자라고 있어요',
-        subtitle: '지금 모양을 보고 공유해요',
+        subtitle: '내 은하수를 확인하고 공유해요',
         onTap: () {
           ref.read(analyticsProvider).logEvent('orb_entry_tap');
           context.pushNamed(AppRoutes.myOrbName);

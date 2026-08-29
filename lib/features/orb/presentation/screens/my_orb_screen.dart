@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -42,7 +43,9 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
       final repo = ref.read(shareRepositoryProvider);
       final jpg = await repo.encodeJpg(image);
       final link = await repo.publish(tier: data.tier, jpg: jpg);
+      await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('share_completed', {'tier': data.tier.name});
+      if (mounted) showAppSnackBar(context, '공유하기 링크가 복사되었어요');
       await SharePlus.instance.share(ShareParams(
         files: [
           XFile.fromData(jpg, mimeType: 'image/jpeg', name: 'milkyway_${data.tier.name}.jpg'),
@@ -74,11 +77,11 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentGreen)),
           error: (_, __) => _error(),
-          data: (data) => Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
-            child: Column(
-              children: [
-                Expanded(
+          data: (data) => Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 108),
                   child: Center(
                     child: FittedBox(
                       fit: BoxFit.contain,
@@ -93,14 +96,35 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.base),
-                PrimaryButton(
-                  label: '공유하기',
-                  loading: _sharing,
-                  onPressed: () => _share(data),
+              ),
+              // 하단 플로팅 공유 버튼(카드 위 가독성 위해 스크림 그라데이션)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 28, AppSpacing.lg, AppSpacing.base),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.bgPrimary.withValues(alpha: 0),
+                        AppColors.bgPrimary,
+                      ],
+                    ),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: PrimaryButton(
+                      label: '공유하기',
+                      loading: _sharing,
+                      onPressed: () => _share(data),
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
