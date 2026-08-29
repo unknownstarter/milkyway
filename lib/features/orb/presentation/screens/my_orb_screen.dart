@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -5,16 +7,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/presentation/widgets/design/app_snackbar.dart';
-import '../../../../core/presentation/widgets/design/buttons.dart';
+import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../home/presentation/widgets/star_background_painter.dart';
+import '../../domain/orb_tier.dart';
 import '../../domain/share_payload.dart';
 import '../providers/orb_providers.dart';
+import '../widgets/orb_palette.dart';
+import '../widgets/orb_view.dart';
 import '../widgets/share_card.dart';
 
-/// 내 우주: 성장 카드 프리뷰 + 공유. 카드를 1080x1350로 캡처 -> JPG -> 발행 -> 공유 시트.
+/// 내 우주: 진짜 앱 스크린(글래스 앱바 + 스타 배경 + 네이티브 애니메이션 오브 + 스탯).
+/// 공유 카드 포스터(ShareCard)는 화면에 안 띄우고, 공유할 때만 오프스크린으로 캡처한다.
 class MyOrbScreen extends ConsumerStatefulWidget {
   const MyOrbScreen({super.key});
 
@@ -23,7 +30,6 @@ class MyOrbScreen extends ConsumerStatefulWidget {
 }
 
 class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
-  final GlobalKey _cardKey = GlobalKey();
   bool _sharing = false;
 
   @override
@@ -32,14 +38,21 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
     ref.read(analyticsProvider).logEvent('share_card_open');
   }
 
+  TextStyle _num(double size, Color color) => TextStyle(
+        fontFamily: AppTypography.fontFamily,
+        fontSize: size,
+        fontWeight: FontWeight.w800,
+        letterSpacing: size * -0.03,
+        height: 1.05,
+        color: color,
+      );
+
   Future<void> _share(OrbShareData data) async {
     if (_sharing) return;
     setState(() => _sharing = true);
     final analytics = ref.read(analyticsProvider);
     try {
-      final boundary =
-          _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final image = await boundary.toImage(pixelRatio: 1.0);
+      final image = await _renderCardOffscreen(data);
       final repo = ref.read(shareRepositoryProvider);
       final jpg = await repo.encodeJpg(image);
       final link = await repo.publish(tier: data.tier, jpg: jpg);
@@ -62,69 +75,224 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
     }
   }
 
+  /// 공유 카드 포스터를 화면 밖에 1080x1350으로 렌더 -> 캡처. 오브 이미지는 화면에서 이미 캐시됨.
+  Future<ui.Image> _renderCardOffscreen(OrbShareData data) async {
+    final key = GlobalKey();
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (_) => Positioned.fill(
+        child: IgnorePointer(
+          child: OverflowBox(
+            alignment: Alignment.topLeft,
+            minWidth: 0,
+            maxWidth: double.infinity,
+            minHeight: 0,
+            maxHeight: double.infinity,
+            child: Transform.translate(
+              offset: Offset(0, MediaQuery.of(context).size.height + 200),
+              child: RepaintBoundary(
+                key: key,
+                child: SizedBox(
+                  width: ShareCard.w,
+                  height: ShareCard.h,
+                  child: ShareCard(data: data),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    try {
+      await Future.delayed(const Duration(milliseconds: 260));
+      final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      return await boundary.toImage(pixelRatio: 1.0);
+    } finally {
+      entry.remove();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(orbShareDataProvider);
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      backgroundColor: const Color(0xFF181818),
+      extendBodyBehindAppBar: true,
+      appBar: glassAppBar(
         title: const Text('내 우주', style: AppTypography.title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
       ),
-      body: SafeArea(
-        top: false,
-        child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentGreen)),
-          error: (_, __) => _error(),
-          data: (data) => Stack(
-            children: [
-              Positioned.fill(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(painter: StarBackgroundPainter(numberOfStars: 150)),
+          ),
+          async.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator(color: AppColors.accentGreen)),
+            error: (_, __) => _error(),
+            data: _content,
+          ),
+          async.maybeWhen(
+            data: (data) => Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                top: false,
+                bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 108),
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: RepaintBoundary(
-                        key: _cardKey,
-                        child: SizedBox(
-                          width: ShareCard.w,
-                          height: ShareCard.h,
-                          child: ShareCard(data: data),
-                        ),
-                      ),
-                    ),
-                  ),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg,
+                      AppSpacing.md + MediaQuery.of(context).padding.bottom),
+                  child: _shareButton(data),
                 ),
               ),
-              // 하단 플로팅 공유 버튼(카드 위 가독성 위해 스크림 그라데이션)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 28, AppSpacing.lg, AppSpacing.base),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.bgPrimary.withValues(alpha: 0),
-                        AppColors.bgPrimary,
-                      ],
-                    ),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: PrimaryButton(
-                      label: '공유하기',
-                      loading: _sharing,
-                      onPressed: () => _share(data),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _content(OrbShareData data) {
+    final accent = orbAccentOf(data.tier);
+    final name = orbTierInfo(data.tier).name;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg, glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 128),
+      child: Column(
+        children: [
+          OrbView(tier: data.tier, size: 300, animate: true),
+          const SizedBox(height: 28),
+          _badge(name, accent),
+          const SizedBox(height: 14),
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(text: '지금은 ', style: _num(32, AppColors.textPrimary)),
+              TextSpan(text: name, style: _num(32, accent)),
+            ]),
+          ),
+          const SizedBox(height: 28),
+          _statsPanel(data, accent),
+          const SizedBox(height: 18),
+          _progress(data, accent),
+        ],
+      ),
+    );
+  }
+
+  Widget _badge(String name, Color accent) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.13),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: accent.withValues(alpha: 0.5)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 7, height: 7, decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Text('$name 단계', style: AppTypography.label.copyWith(color: accent, fontWeight: FontWeight.w700)),
+        ]),
+      );
+
+  Widget _statsPanel(OrbShareData d, Color accent) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(AppRadius.cardLarge),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(children: [
+          _stat('${d.books}', '권', '읽은 책', AppColors.textPrimary),
+          _statDiv(),
+          _stat('${d.memos}', '개', '남긴 메모', AppColors.textPrimary),
+          _statDiv(),
+          _stat('${d.topPercent ?? '-'}', '%', '상위', accent),
+          _statDiv(),
+          _stat('${d.streakDays}', '일', '연속', AppColors.textPrimary),
+        ]),
+      );
+
+  Widget _stat(String value, String unit, String label, Color color) => Expanded(
+        child: Column(children: [
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(text: value, style: _num(26, color)),
+              TextSpan(
+                  text: unit,
+                  style: AppTypography.caption.copyWith(
+                      color: AppColors.textBright, fontWeight: FontWeight.w700, fontSize: 14)),
+            ]),
+          ),
+          const SizedBox(height: 7),
+          Text(label, style: AppTypography.caption),
+        ]),
+      );
+
+  Widget _statDiv() =>
+      Container(width: 1, height: 34, color: Colors.white.withValues(alpha: 0.08));
+
+  Widget _progress(OrbShareData d, Color accent) {
+    final pts = orbPoints(d.books, d.memos);
+    final idx = OrbTier.values.indexOf(d.tier);
+    final curLo = orbTierInfo(d.tier).lo;
+    final nextLo = idx < orbTiers.length - 1 ? orbTiers[idx + 1].lo : null;
+    final nextName = idx < orbTiers.length - 1 ? orbTiers[idx + 1].name : null;
+    final band = nextLo != null ? ((pts - curLo) / (nextLo - curLo)).clamp(0.04, 1.0) : 1.0;
+    return Column(children: [
+      ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: LinearProgressIndicator(
+          value: band.toDouble(),
+          minHeight: 8,
+          backgroundColor: Colors.white.withValues(alpha: 0.08),
+          valueColor: AlwaysStoppedAnimation(accent),
+        ),
+      ),
+      const SizedBox(height: 12),
+      nextName != null
+          ? RichText(
+              text: TextSpan(style: AppTypography.bodySmall, children: [
+                TextSpan(text: '다음 단계 $nextName까지 '),
+                TextSpan(
+                    text: '${d.pointsToNext}',
+                    style: TextStyle(color: accent, fontWeight: FontWeight.w800)),
+              ]),
+            )
+          : const Text('가장 깊은 우주에 도달', style: AppTypography.bodySmall),
+    ]);
+  }
+
+  Widget _shareButton(OrbShareData data) {
+    return GestureDetector(
+      onTap: _sharing ? null : () => _share(data),
+      behavior: HitTestBehavior.opaque,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.accentGreen.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.45)),
+            ),
+            child: _sharing
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentGreen),
+                  )
+                : Text('공유하기',
+                    style: AppTypography.bodyBold
+                        .copyWith(color: AppColors.accentGreen, fontWeight: FontWeight.w800)),
           ),
         ),
       ),
@@ -143,9 +311,10 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
               const Text('잠시 후 다시 시도해요',
                   style: AppTypography.bodySmall, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.lg),
-              GhostButton(
-                label: '다시 시도',
+              TextButton(
                 onPressed: () => ref.invalidate(orbShareDataProvider),
+                child: Text('다시 시도',
+                    style: AppTypography.bodyBold.copyWith(color: AppColors.accentGreen)),
               ),
             ],
           ),
