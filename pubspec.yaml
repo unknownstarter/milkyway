@@ -136,6 +136,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/orb/
     # - assets/icons/
     - assets/fonts/PaytoneOne-Regular.ttf
     - assets/images/logo.png
