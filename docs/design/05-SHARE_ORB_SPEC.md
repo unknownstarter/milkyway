@@ -260,7 +260,7 @@ create index on public.share_cards(user_id);
 
 - **M1 (MVP, 코어 루프)**: orb_tier + OrbView(단일 PNG 회전) + ShareCard 위젯 + 캡처/업로드 + share_cards 테이블 + Edge Function(OG+OS리다이렉트) + 홈 배너. → 공유 코어 루프 end-to-end.
 - **M2 (진화/연결)**: 연결 카드(그때→지금) + 다음단계 게이지 + 레이어링 자전(galaxy/glass 분리) + 값서사 카피 옵션.
-- **M3 (딥링크/최적화)**: Universal/App Links(앱 열기) + 커스텀 도메인 + 계측 대시보드 + (신호 확인 시) 유료 테마.
+- **M3 (딥링크/최적화)**: **딥링크(설치 유저 → 카드 랜딩) + 디퍼드 + 광고 어트리뷰션은 Branch(MMP) 통합으로 일괄 해결** (2026-08-30 결정). 커스텀 스킴은 카톡 인앱브라우저 차단 + iOS OAuth/scene 리스크 + 설치자한정이라 배제. Branch가 유니버설링크/디퍼드/도메인/AASA 다 처리. 인앱 뷰어(SharedCardScreen) + `get_share_card` 공개 RPC + 라우터 게이트(온보딩완료→카드 / 미완료→온보딩 / 미로그인→로그인, 뒤로가기→홈)는 Branch 붙일 때 함께 구현. + 계측 대시보드 + (신호 확인 시) 유료 테마.
 
 **리스크**
 - 공유율이 낮으면(<3%) 모델 A 재설계 → C(소유권) 축 이동. 계측이 판단 근거.
