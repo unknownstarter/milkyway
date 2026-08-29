@@ -1,11 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../constellation/presentation/providers/constellation_providers.dart';
 import '../../../profile/presentation/providers/profile_stats_provider.dart';
 import '../../../ranking/presentation/providers/ranking_providers.dart';
 import '../../data/orb_share_mapper.dart';
+import '../../data/share_repository.dart';
 import '../../domain/orb_tier.dart';
 import '../../domain/share_payload.dart';
+
+/// 공유 카드 발행 리포지토리.
+final shareRepositoryProvider =
+    Provider<ShareRepository>((ref) => ShareRepository(Supabase.instance.client));
 
 /// 오브 해금 여부(메모 7개 게이트). 홈 배너 노출 판단.
 final orbUnlockedProvider = FutureProvider.autoDispose<bool>((ref) async {
