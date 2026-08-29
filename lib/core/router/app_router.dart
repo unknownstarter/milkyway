@@ -16,6 +16,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
+import '../../features/orb/presentation/screens/my_orb_screen.dart';
 import '../../features/memos/domain/models/memo.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
@@ -247,6 +248,13 @@ final router = GoRouter(
       path: AppRoutes.constellation,
       name: AppRoutes.constellationName,
       builder: (context, state) => const ConstellationScreen(),
+    ),
+
+    // 내 우주(성장 카드) — 홈/프로필에서 진입
+    GoRoute(
+      path: AppRoutes.myOrb,
+      name: AppRoutes.myOrbName,
+      builder: (context, state) => const MyOrbScreen(),
     ),
 
     // 메모 상세 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)

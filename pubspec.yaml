@@ -75,6 +75,8 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   connectivity_plus: ^5.0.2
   inspire_blur: ^0.4.0
+  share_plus: ^12.0.2
+  image: ^4.9.2
 
 dev_dependencies:
   flutter_test:
@@ -136,6 +138,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/orb/
     # - assets/icons/
     - assets/fonts/PaytoneOne-Regular.ttf
     - assets/images/logo.png

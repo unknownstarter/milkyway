@@ -9,6 +9,9 @@ import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/discovery_cover.dart';
 import '../../../../core/presentation/widgets/design/banner_bar.dart';
+import '../../../orb/domain/orb_tier.dart';
+import '../../../orb/presentation/widgets/orb_gate_banner.dart';
+import '../../../profile/presentation/providers/profile_stats_provider.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../../../core/presentation/widgets/design/app_dialog.dart';
 import '../../domain/models/book.dart';
@@ -224,6 +227,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// 오브 섹션: 메모 7개 미만이면 생성 유도 배너, 이상이면 내 우주 진입.
+  /// 로딩/실패 시 조용히 숨김(에러는 모니터링됨).
+  Widget _orbSection() {
+    final memos = ref.watch(profileStatsProvider).asData?.value.memos;
+    if (memos == null) return const SizedBox.shrink();
+    if (memos < orbGateMemos) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: OrbGateBanner(
+          memos: memos,
+          onTap: () {
+            ref.read(analyticsProvider).logEvent('orb_banner_tap', {'memos': memos});
+            showOrbGateSheet(
+              context,
+              memos: memos,
+              onWrite: () => context.pushNamed(AppRoutes.memoCreateName),
+            );
+          },
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BannerBar(
+        icon: Icons.auto_awesome,
+        accent: true,
+        title: '내 우주가 자라고 있어요',
+        subtitle: '지금 모양을 보고 공유해요',
+        onTap: () {
+          ref.read(analyticsProvider).logEvent('orb_entry_tap');
+          context.pushNamed(AppRoutes.myOrbName);
+        },
+      ),
+    );
+  }
+
   /// 홈 하단 기록 = 이번 주 스트립. 메모 있는 날에 점, 탭하면 캘린더로.
   /// 이번 주 나의 기록(익명 백분위 + 성장). 로딩/실패 시 조용히 숨김(에러는 모니터링됨).
   Widget _rankingCard() {
@@ -371,6 +410,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _recentMemoBooks(),
               const SizedBox(height: 28),
               _readPrompt(),
+              const SizedBox(height: 14),
+              _orbSection(),
               const SizedBox(height: 34),
               _rankingCard(),
               _recordStrip(),
