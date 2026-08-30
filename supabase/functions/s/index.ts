@@ -35,16 +35,18 @@ Deno.serve(async (req) => {
 
   let tierName = '나만의';
   let img = '';
+  let payload: Record<string, unknown> | null = null;
   const hasCode = !!code && code !== 's';
   if (hasCode) {
     const { data } = await supabase
       .from('share_cards')
-      .select('tier, image_path')
+      .select('tier, image_path, payload')
       .eq('code', code)
       .maybeSingle();
     if (data) {
       tierName = TIER_KO[data.tier as string] ?? '나만의';
       img = supabase.storage.from('share_cards').getPublicUrl(data.image_path as string).data.publicUrl;
+      payload = (data.payload as Record<string, unknown> | null) ?? null;
     }
   }
 
@@ -61,8 +63,19 @@ Deno.serve(async (req) => {
   const playUrl = PLAY_BASE + '&referrer=' + encodeURIComponent('orb_code=' + (hasCode ? code : ''));
   const scheme = hasCode ? `milkyway://card/${code}` : 'milkyway://';
 
-  const title = `${tierName} 단계의 우주를 가지고 있어요`;
-  const desc = '지금 책 메모하고 우주 만들기';
+  // 공유 종류별 OG. 회고(wrapped)면 회고 문구, 아니면 오브 티어 문구.
+  const isWrapped = !!payload && payload.kind === 'wrapped';
+  const period = isWrapped ? String(payload!.period ?? '') : '';
+  const title = isWrapped
+    ? (period ? `${period} 은하 회고` : '나의 은하 회고')
+    : `${tierName} 단계의 우주를 가지고 있어요`;
+  const desc = isWrapped
+    ? '한 달 동안 멈춘 순간들'
+    : '지금 책 메모하고 우주 만들기';
+  // 회고면 OG 썸네일 = 책 표지(payload.cover_url). 없으면 위에서 잡은 정적 오브 이미지 폴백.
+  if (isWrapped && payload && payload.cover_url) {
+    img = String(payload.cover_url);
+  }
   const html = `<!doctype html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>milkyway</title>

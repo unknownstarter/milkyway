@@ -1,7 +1,6 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,10 +17,9 @@ import '../../domain/share_payload.dart';
 import '../providers/orb_providers.dart';
 import '../widgets/orb_palette.dart';
 import '../widgets/shader_orb.dart';
-import '../widgets/share_card.dart';
 
 /// 내 우주: 진짜 앱 스크린(글래스 앱바 + 스타 배경 + 네이티브 애니메이션 오브 + 스탯).
-/// 공유 카드 포스터(ShareCard)는 화면에 안 띄우고, 공유할 때만 오프스크린으로 캡처한다.
+/// 공유는 이미지 생성 없이 링크만 발행(OG 썸네일=정적 오브 이미지).
 class MyOrbScreen extends ConsumerStatefulWidget {
   const MyOrbScreen({super.key});
 
@@ -52,19 +50,13 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
     setState(() => _sharing = true);
     final analytics = ref.read(analyticsProvider);
     try {
-      final image = await _renderCardOffscreen(data);
+      // 이미지 생성/업로드 없음. 링크만 발행 -> OG 썸네일은 정적 오브 이미지가 동적 반영.
       final repo = ref.read(shareRepositoryProvider);
-      final jpg = await repo.encodeJpg(image);
-      final link = await repo.publish(tier: data.tier, jpg: jpg);
+      final link = await repo.publish(tier: data.tier);
       await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('share_completed', {'tier': data.tier.name});
       if (mounted) showAppSnackBar(context, '공유하기 링크가 복사되었어요');
-      await SharePlus.instance.share(ShareParams(
-        files: [
-          XFile.fromData(jpg, mimeType: 'image/jpeg', name: 'milkyway_${data.tier.name}.jpg'),
-        ],
-        text: link,
-      ));
+      await SharePlus.instance.share(ShareParams(text: link));
     } catch (_) {
       if (mounted) {
         showAppSnackBar(context, '공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요');
@@ -72,47 +64,6 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
       analytics.logError('ERR_SHARE', operation: 'publish');
     } finally {
       if (mounted) setState(() => _sharing = false);
-    }
-  }
-
-  /// 공유 카드 포스터를 화면 밖에 1080x1350으로 렌더 -> 캡처. 오브 이미지는 화면에서 이미 캐시됨.
-  Future<ui.Image> _renderCardOffscreen(OrbShareData data) async {
-    final key = GlobalKey();
-    final overlay = Overlay.of(context);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned.fill(
-        child: IgnorePointer(
-          child: OverflowBox(
-            alignment: Alignment.topLeft,
-            minWidth: 0,
-            maxWidth: double.infinity,
-            minHeight: 0,
-            maxHeight: double.infinity,
-            child: Transform.translate(
-              offset: Offset(0, MediaQuery.of(context).size.height + 200),
-              child: RepaintBoundary(
-                key: key,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: SizedBox(
-                    width: ShareCard.w,
-                    height: ShareCard.h,
-                    child: ShareCard(data: data),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    overlay.insert(entry);
-    try {
-      await Future.delayed(const Duration(milliseconds: 260));
-      final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      return await boundary.toImage(pixelRatio: 1.0);
-    } finally {
-      entry.remove();
     }
   }
 
