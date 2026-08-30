@@ -4,7 +4,8 @@
 // 동작:
 //   - 크롤러(카톡/페북/X): JS 미실행 -> OG 메타만 읽어 미리보기.
 //   - 실유저 모바일: 앱 열기 시도(milkyway://card/{code}) -> 앱 뜨면 그 카드로,
-//     미설치면 스토어로 폴백. iOS 디퍼드용 지문도 기록.
+//     미설치면 스토어로 폴백.
+// 디퍼드 딥링크(미설치->설치후 카드)는 미채택 -> 지문(IP/UA) 수집 안 함.
 // 상세: docs/design/07-DEEP_LINK.md
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -23,10 +24,6 @@ const PLAY_BASE = 'https://play.google.com/store/apps/details?id=com.whatif.milk
 
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
-
-// 크롤러/봇 UA는 지문 기록 제외(실유저만).
-const isBot = (ua: string) =>
-  /bot|crawler|spider|facebookexternalhit|slackbot|twitterbot|scrap|preview|whatsapp|line\//i.test(ua);
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -50,17 +47,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  // iOS 디퍼드용 지문 기록(실유저 모바일만, 실패해도 페이지엔 영향 없음).
-  const ua = req.headers.get('user-agent') ?? '';
-  if (hasCode && img && !isBot(ua)) {
-    const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim();
-    const lang = (req.headers.get('accept-language') ?? '').split(',')[0].trim();
-    try {
-      await supabase.from('deferred_clicks').insert({ code, ip, ua, lang });
-    } catch (_) { /* noop */ }
-  }
-
-  const playUrl = PLAY_BASE + '&referrer=' + encodeURIComponent('orb_code=' + (hasCode ? code : ''));
+  const playUrl = PLAY_BASE;
   const scheme = hasCode ? `milkyway://card/${code}` : 'milkyway://';
 
   // 공유 종류별 OG. 회고(wrapped)면 회고 문구, 아니면 오브 티어 문구.
