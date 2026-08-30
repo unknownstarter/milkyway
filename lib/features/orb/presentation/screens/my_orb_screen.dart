@@ -17,7 +17,7 @@ import '../../domain/orb_tier.dart';
 import '../../domain/share_payload.dart';
 import '../providers/orb_providers.dart';
 import '../widgets/orb_palette.dart';
-import '../widgets/orb_view.dart';
+import '../widgets/shader_orb.dart';
 import '../widgets/share_card.dart';
 
 /// 내 우주: 진짜 앱 스크린(글래스 앱바 + 스타 배경 + 네이티브 애니메이션 오브 + 스탯).
@@ -172,7 +172,7 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
           AppSpacing.lg, glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 128),
       child: Column(
         children: [
-          OrbView(tier: data.tier, size: 300, animate: true),
+          ShaderOrb(tier: data.tier, size: 300, animate: true),
           const SizedBox(height: 28),
           _badge(name, accent),
           const SizedBox(height: 14),
