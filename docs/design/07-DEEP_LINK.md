@@ -3,6 +3,26 @@
 > 상태: 세밀 설계 (2026-08-30) · Branch/AppsFlyer 안 쓰고 **무료로 자체 구축**. 다른 프로젝트 이식 가능.
 > 목표: 공유 링크를 (1) 예쁜 브랜드 링크로, (2) 설치 유저 → 앱 내 그 카드로 랜딩(유니버설/앱링크), (3) 미설치 → 설치 후 그 카드로(디퍼드), (4) OG 미리보기, (5) 온보딩/로그인 상태별 분기.
 
+## 결정 (2026-08-30 개정) — Vercel/유니버설링크 폐기, Supabase-only + 커스텀 스킴 채택
+운영자 결정: **Vercel 안 씀. 도메인 안 삼(긴 링크 유지).** 새 인프라 0으로, 기존 Supabase 엣지펑션만으로 구현.
+- **유니버설/앱링크 포기** — `.well-known`을 우리가 못 서빙(supabase.co 도메인 소유 아님). 대신 **커스텀 스킴 `milkyway://card/{code}`** 로 앱 오픈.
+- **링크** = 기존 `https://<ref>.supabase.co/functions/v1/s/{code}` 그대로(숏트너/도메인 없음).
+- **설치 유저 랜딩** = 링크 탭 → 엣지펑션 `s` 랜딩페이지가 `milkyway://card/{code}` 자동 시도(+ "앱에서 열기" 버튼) → 앱이 그 카드로. 미설치면 스토어 폴백. (진짜 유니버설링크보다 한 홉/버튼 필요, 카톡 인앱브라우저는 약함 - 실기기 확인.)
+- **디퍼드**: Android=Install Referrer(결정론적), iOS=지문 매칭(`deferred_clicks`+`match_deferred_click`, 확률적).
+- **게이트**: `SplashScreen`의 `user.onboardingCompleted` 분기 재사용. 미로그인/온보딩중이면 pending code 저장 후 로그인/온보딩 완료 콜백에서 소비.
+
+### 구현 매핑 (실제 파일)
+| 요소 | 위치 | 상태 |
+|---|---|---|
+| DB: `get_share_card` / `deferred_clicks` / `match_deferred_click` | `supabase/migrations/20260830130000_deep_link.sql` | 1단계(배포 대기) |
+| 엣지펑션: 스킴 오픈 + "앱에서 열기" + 지문기록 + Android referrer | `supabase/functions/s/index.ts` | 1단계(배포 대기) |
+| 카드 뷰어 화면 | `lib/features/share_landing/.../shared_card_screen.dart` (+ provider) | 1단계 완료 |
+| 라우트 `/card/:code` | `lib/core/router/app_router.dart` | 1단계 완료 |
+| app_links 수신 + 게이트 배선 + pending code | (2단계) | ⚠️ 실기기 검증 필요 |
+| 네이티브 스킴 등록 (iOS Info.plist / Android manifest) | (2단계) | ⚠️ **OAuth 영역** 실기기 검증 필수 |
+
+> 아래 §0~§10은 **원래 무료-자체구축(Vercel+유니버설링크) 설계**로, 도메인이 생기면 승급 경로로 보존. 현재 채택본은 위 결정 섹션.
+
 ## 0. 구성 요소 (전부 무료)
 | 요소 | 무엇 | 비용 |
 |---|---|---|

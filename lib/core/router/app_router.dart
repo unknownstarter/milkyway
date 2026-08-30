@@ -18,6 +18,7 @@ import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
 import '../../features/orb/presentation/screens/my_orb_screen.dart';
 import '../../features/wrapped/presentation/screens/wrapped_screen.dart';
+import '../../features/share_landing/presentation/screens/shared_card_screen.dart';
 import '../../features/memos/domain/models/memo.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
@@ -263,6 +264,14 @@ final router = GoRouter(
       path: AppRoutes.wrapped,
       name: AppRoutes.wrappedName,
       builder: (context, state) => const WrappedScreen(),
+    ),
+
+    // 공유 카드 랜딩(딥링크 도착지) — /card/:code
+    GoRoute(
+      path: '${AppRoutes.sharedCard}/:code',
+      name: AppRoutes.sharedCardName,
+      builder: (context, state) =>
+          SharedCardScreen(code: state.pathParameters['code'] ?? ''),
     ),
 
     // 메모 상세 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)
