@@ -92,10 +92,13 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
               offset: Offset(0, MediaQuery.of(context).size.height + 200),
               child: RepaintBoundary(
                 key: key,
-                child: SizedBox(
-                  width: ShareCard.w,
-                  height: ShareCard.h,
-                  child: ShareCard(data: data),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: SizedBox(
+                    width: ShareCard.w,
+                    height: ShareCard.h,
+                    child: ShareCard(data: data),
+                  ),
                 ),
               ),
             ),
@@ -129,7 +132,9 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: CustomPaint(painter: StarBackgroundPainter(numberOfStars: 150)),
+            child: RepaintBoundary(
+              child: CustomPaint(painter: StarBackgroundPainter(numberOfStars: 150)),
+            ),
           ),
           async.when(
             loading: () =>

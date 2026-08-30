@@ -1,12 +1,13 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../domain/orb_tier.dart';
 import 'orb_palette.dart';
 
-/// 진화 은하 오브. 뒤 글로우가 호흡(펄스)하고 오브가 제자리에서 천천히 자전한다.
-/// MVP: 단일 WebP 자산 통짜 저속 회전(1회전 24s). M2에서 galaxy/glass 레이어 분리 예정.
-/// 성능: 컨트롤러 1개. animate=false면 정적(리스트/썸네일). 화면 이탈 시 상위에서 dispose.
+/// 진화 은하 오브. 레이어 합성:
+///   - 뒤 글로우: 네이티브 BoxShadow가 밝아졌다 어두워졌다 호흡(breathe)
+///   - 회전 은하(core): 제자리에서 천천히 자전
+///   - 고정 유리(glass): 스펙큘러/림 하이라이트는 광원 고정(안 돎)
+/// RepaintBoundary로 감싸 애니메이션이 형제(별 배경 등)를 재페인트시키지 않게 격리.
 class OrbView extends StatefulWidget {
   final OrbTier tier;
   final double size;
@@ -23,80 +24,84 @@ class OrbView extends StatefulWidget {
   State<OrbView> createState() => _OrbViewState();
 }
 
-class _OrbViewState extends State<OrbView>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c;
+class _OrbViewState extends State<OrbView> with TickerProviderStateMixin {
+  late final AnimationController _rot;
+  late final AnimationController _glow;
 
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 24),
-    );
-    if (widget.animate) _c.repeat();
+    _rot = AnimationController(vsync: this, duration: const Duration(seconds: 24));
+    _glow = AnimationController(vsync: this, duration: const Duration(milliseconds: 2800));
+    if (widget.animate) {
+      _rot.repeat();
+      _glow.repeat(reverse: true);
+    }
   }
 
   @override
   void didUpdateWidget(OrbView old) {
     super.didUpdateWidget(old);
-    if (widget.animate && !_c.isAnimating) _c.repeat();
-    if (!widget.animate && _c.isAnimating) _c.stop();
+    if (widget.animate) {
+      if (!_rot.isAnimating) _rot.repeat();
+      if (!_glow.isAnimating) _glow.repeat(reverse: true);
+    } else {
+      _rot.stop();
+      _glow.stop();
+    }
   }
 
   @override
   void dispose() {
-    _c.dispose();
+    _rot.dispose();
+    _glow.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final accent = orbAccentOf(widget.tier);
-    final asset = orbAssetPath(widget.tier);
+    final core = orbCoreAsset(widget.tier);
+    final glass = orbGlassAsset(widget.tier);
+    final s = widget.size;
 
-    if (!widget.animate) {
-      return SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: Image.asset(asset, fit: BoxFit.contain),
-      );
+    Widget coreLayer = Image.asset(core, fit: BoxFit.contain);
+    if (widget.animate) {
+      coreLayer = RotationTransition(turns: _rot, child: coreLayer);
     }
 
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          final t = _c.value; // 0..1
-          final pulse = 0.5 + 0.5 * math.sin(t * 2 * math.pi); // 0..1
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              // 뒤에서 빛나는 글로우(호흡)
-              Container(
-                width: widget.size * 0.82,
-                height: widget.size * 0.82,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.07 + 0.07 * pulse),
-                      blurRadius: widget.size * (0.16 + 0.04 * pulse),
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-              ),
-              // 오브 자전(통짜 저속)
-              Transform.rotate(
-                angle: t * 2 * math.pi,
-                child: Image.asset(asset, fit: BoxFit.contain),
-              ),
-            ],
-          );
-        },
+    return RepaintBoundary(
+      child: SizedBox(
+        width: s,
+        height: s,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // 뒤 글로우(호흡)
+            AnimatedBuilder(
+              animation: _glow,
+              builder: (context, _) {
+                final p = widget.animate ? _glow.value : 0.5; // 0..1
+                return Container(
+                  width: s * 0.56,
+                  height: s * 0.56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.18 + 0.30 * p),
+                        blurRadius: s * (0.18 + 0.12 * p),
+                        spreadRadius: s * 0.03,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            coreLayer,
+            Image.asset(glass, fit: BoxFit.contain),
+          ],
+        ),
       ),
     );
   }

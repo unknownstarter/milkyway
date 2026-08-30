@@ -43,4 +43,8 @@ int? pointsToNextTier(int books, int memos) {
 /// 오브 생성 게이트 통과 여부.
 bool isOrbUnlocked(int memos) => memos >= orbGateMemos;
 
-String orbAssetPath(OrbTier tier) => 'assets/images/orb/orb_${tier.name}.webp';
+/// 회전하는 은하 레이어.
+String orbCoreAsset(OrbTier tier) => 'assets/images/orb/orb_${tier.name}_core.webp';
+
+/// 고정 유리 하이라이트 레이어.
+String orbGlassAsset(OrbTier tier) => 'assets/images/orb/orb_${tier.name}_glass.webp';

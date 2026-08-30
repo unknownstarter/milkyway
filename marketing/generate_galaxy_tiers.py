@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-# 밀키웨이 진화 은하 오브 - 글래시 3D. 티어별 크기/나선팔/유리 하이라이트 차등 + 자전/글로우 파라미터.
-# 6단계: 작은성운 -> 별무리 -> 별자리 -> 성단 -> 은하 -> 대은하. 앱 내장 자산.
+# 밀키웨이 진화 은하 오브 - 레이어 분리 출력.
+#   core = 회전하는 은하(구 베이스 + 성운 + 코어 + 별 + 나선먼지). 방사형이라 회전해도 형태 유지.
+#   glass = 고정 유리(방향성 하이라이트 spec/rim/sheen/edge + 방향 음영). 광원 고정.
+#   aura(뒤 글로우)는 앱에서 네이티브로 호흡 -> 자산에 안 구움.
+# OrbView가 Stack(aura펄스 + RotationTransition(core) + glass고정)로 합성.
 import os, subprocess, random, math
 
 OUT = os.path.dirname(os.path.abspath(__file__))
@@ -12,8 +15,6 @@ if not os.path.exists(CHROME):
 
 STAGE = 820
 
-# orb=지름, spread=나선팔 조임(작을수록 또렷), dust=팔 성운색, spec_a=유리 하이라이트 세기,
-# rim_a=림라이트, spark=보조 하이라이트(고티어).
 TIERS = [
   dict(key="t1", name="작은 성운", seed=11, orb=430, stars=28,  arms=0, spiral=0.0, spread=0.0, dust=None,
        core="#CFE0FF", core_a=.55, aura="120,150,255", spec_a=.72, rim_a=.26, spark=False,
@@ -58,8 +59,7 @@ def stars_html(t, c, R):
         o.append(f"<i style='left:{x:.0f}px;top:{y:.0f}px;width:{sz}px;height:{sz}px;opacity:{op:.2f};background:{col}{glow}'></i>")
     return "".join(o)
 
-def dust_html(t, c, R, f):
-    # 나선팔 성운 먼지(팔 구조 가독성). 각 팔을 따라 반경별 블롭 배치.
+def dust_html(t, c, R):
     if t["arms"] == 0 or not t["dust"]:
         return ""
     o = []
@@ -83,34 +83,42 @@ def neb_html(t, orb, f):
                  f"background:radial-gradient(circle,rgba({rgb},{a}),rgba(0,0,0,0) 68%)'></b>")
     return "".join(o)
 
-def build_orb_html(t, angle=0.0, glow=1.0):
+def build_layer_html(t, layer):
+    """layer = 'core' (회전 은하) | 'glass' (고정 유리)"""
     orb = t["orb"]; off = (STAGE - orb) / 2; c = orb / 2; R = c - 14; f = orb / 520.0
     core_s = 250 * f
-    aura_s = orb * 1.72; aura_off = (STAGE - aura_s) / 2
-    spark = ("<div class='spec2'></div><div class='flare'></div>") if t["spark"] else ""
+    if layer == "core":
+        inner = f"""
+   {neb_html(t, orb, f)}
+   {dust_html(t, c, R)}
+   <div class='core'></div>
+   {stars_html(t, c, R)}"""
+        orb_css = f"""background:
+  radial-gradient(circle at 50% 44%, rgba(255,255,255,.05), rgba(0,0,0,0) 60%),
+  radial-gradient(circle at 50% 50%, #14101f 0%, #0c0a16 66%, #08060f 100%);
+ box-shadow: inset 0 0 {70*f:.0f}px {14*f:.0f}px rgba(0,0,0,.55);"""
+    else:  # glass
+        spark = ("<div class='spec2'></div><div class='flare'></div>") if t["spark"] else ""
+        inner = f"""
+   <div class='rim'></div>
+   <div class='sheen'></div>
+   <div class='spec'></div>
+   {spark}
+   <div class='edge'></div>"""
+        orb_css = f"""background:transparent;
+ box-shadow:
+  inset {20*f:.0f}px {24*f:.0f}px {70*f:.0f}px rgba(255,255,255,.10),
+  inset {-34*f:.0f}px {-34*f:.0f}px {80*f:.0f}px rgba(0,0,0,.6);"""
     return f"""<!doctype html><html><head><meta charset='utf-8'><style>
 *{{margin:0;padding:0;box-sizing:border-box}}
 html,body{{width:{STAGE}px;height:{STAGE}px;background:transparent;overflow:hidden}}
 .stage{{position:relative;width:{STAGE}px;height:{STAGE}px}}
-.aura{{position:absolute;left:{aura_off:.0f}px;top:{aura_off:.0f}px;width:{aura_s:.0f}px;height:{aura_s:.0f}px;
- border-radius:50%;opacity:{0.55*glow:.3f};filter:blur(30px);
- background:radial-gradient(circle,rgba({t['aura']},.55) 0%,rgba({t['aura']},.16) 42%,rgba(0,0,0,0) 70%)}}
-.orb{{position:absolute;left:{off:.0f}px;top:{off:.0f}px;width:{orb}px;height:{orb}px;border-radius:50%;overflow:hidden;
- background:
-  radial-gradient(circle at 50% 44%, rgba(255,255,255,.05), rgba(0,0,0,0) 60%),
-  radial-gradient(circle at 50% 50%, #14101f 0%, #0c0a16 66%, #08060f 100%);
- box-shadow:
-  inset 0 0 {70*f:.0f}px {14*f:.0f}px rgba(0,0,0,.55),
-  inset {20*f:.0f}px {24*f:.0f}px {70*f:.0f}px rgba(255,255,255,.10),
-  inset {-34*f:.0f}px {-34*f:.0f}px {80*f:.0f}px rgba(0,0,0,.6),
-  0 {46*f:.0f}px {100*f:.0f}px rgba({t['aura']},.42);}}
-.galaxy{{position:absolute;left:0;top:0;width:100%;height:100%;transform:rotate({angle:.2f}deg)}}
-.galaxy b{{position:absolute;border-radius:50%;filter:blur({26*f:.0f}px);mix-blend-mode:screen}}
-.galaxy i{{position:absolute;border-radius:50%}}
+.orb{{position:absolute;left:{off:.0f}px;top:{off:.0f}px;width:{orb}px;height:{orb}px;border-radius:50%;overflow:hidden;{orb_css}}}
+.orb b{{position:absolute;border-radius:50%;filter:blur({26*f:.0f}px);mix-blend-mode:screen}}
+.orb i{{position:absolute;border-radius:50%}}
 .core{{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:{core_s:.0f}px;height:{core_s:.0f}px;
  border-radius:50%;mix-blend-mode:screen;opacity:{t['core_a']};
  background:radial-gradient(circle,{t['core']} 0%,rgba({t['aura']},{t['core_a']*0.5}) 26%,rgba(0,0,0,0) 64%)}}
-/* 유리 하이라이트(광원 고정) */
 .spec{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;
  background:radial-gradient(ellipse 42% 28% at 33% 22%, rgba(255,255,255,{t['spec_a']}), rgba(255,255,255,0) 60%)}}
 .spec2{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;
@@ -124,36 +132,23 @@ html,body{{width:{STAGE}px;height:{STAGE}px;background:transparent;overflow:hidd
 .sheen{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;opacity:.10;mix-blend-mode:screen;
  background:conic-gradient(from 210deg, #7a5cff, #ff6bd0, #ffd06b, #6bf0ff, #7a5cff)}}
 </style></head><body>
-<div class='stage'>
- <div class='aura'></div>
- <div class='orb'>
-  <div class='galaxy'>
-   {neb_html(t, orb, f)}
-   {dust_html(t, c, R, f)}
-   <div class='core'></div>
-   {stars_html(t, c, R)}
-  </div>
-  <div class='rim'></div>
-  <div class='sheen'></div>
-  <div class='spec'></div>
-  {spark}
-  <div class='edge'></div>
- </div>
-</div>
+<div class='stage'><div class='orb'>{inner}
+</div></div>
 </body></html>"""
 
-def render(html, out, w=STAGE, h=STAGE):
+def render(html, out):
     tmp = out.replace(".png", ".html")
     with open(tmp, "w") as f:
         f.write(html)
     subprocess.run([CHROME, "--headless", "--disable-gpu", "--hide-scrollbars",
                     "--default-background-color=00000000", "--force-device-scale-factor=1",
-                    f"--window-size={w},{h}", f"--screenshot={out}", f"file://{tmp}"],
+                    f"--window-size={STAGE},{STAGE}", f"--screenshot={out}", f"file://{tmp}"],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(tmp)
 
 if __name__ == "__main__":
     for t in TIERS:
-        out = os.path.join(OUT, f"galaxy_{t['key']}.png")
-        render(build_orb_html(t), out)
-        print("wrote", out, "-", t["name"], f"(orb {t['orb']})")
+        for layer in ("core", "glass"):
+            out = os.path.join(OUT, f"galaxy_{t['key']}_{layer}.png")
+            render(build_layer_html(t, layer), out)
+            print("wrote", out)
