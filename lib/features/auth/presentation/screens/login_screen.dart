@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../providers/auth_provider.dart';
@@ -108,7 +109,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             .checkOnboardingStatus();
         if (context.mounted) {
           if (onboardingCompleted) {
-            context.goNamed(AppRoutes.homeName);
+            if (await DeepLinkService.consumePending()) return;
+            if (context.mounted) context.goNamed(AppRoutes.homeName);
           } else {
             context.goNamed(AppRoutes.onboardingNicknameName);
           }

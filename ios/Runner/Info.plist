@@ -32,6 +32,16 @@
 				<string>com.googleusercontent.apps.394691029555-cbbjdf7io2tec9004t3b31ons9r0a2g3</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.whatif.milkyway.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>milkyway</string>
+			</array>
+		</dict>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

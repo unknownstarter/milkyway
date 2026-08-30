@@ -58,6 +58,13 @@
                     android:scheme="com.whatif.milkyway.android"
                     android:host="oauth2redirect"/>
             </intent-filter>
+            <!-- 딥링크 커스텀 스킴: milkyway://card/{code} (OAuth 필터와 별개, 로그인 무영향) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="milkyway" android:host="card"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
