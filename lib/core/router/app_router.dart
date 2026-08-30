@@ -17,6 +17,7 @@ import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
 import '../../features/orb/presentation/screens/my_orb_screen.dart';
+import '../../features/wrapped/presentation/screens/wrapped_screen.dart';
 import '../../features/memos/domain/models/memo.dart';
 import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
@@ -255,6 +256,13 @@ final router = GoRouter(
       path: AppRoutes.myOrb,
       name: AppRoutes.myOrbName,
       builder: (context, state) => const MyOrbScreen(),
+    ),
+
+    // 은하 회고(월간) — 홈에서 진입
+    GoRoute(
+      path: AppRoutes.wrapped,
+      name: AppRoutes.wrappedName,
+      builder: (context, state) => const WrappedScreen(),
     ),
 
     // 메모 상세 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)

@@ -23,6 +23,7 @@ import '../../../lyra/presentation/widgets/lyra_question_card.dart';
 import '../../../lyra/data/models/lyra_prompt.dart';
 import '../../../ranking/presentation/providers/ranking_providers.dart';
 import '../../../ranking/presentation/widgets/ranking_card.dart';
+import '../../../wrapped/presentation/providers/wrapped_providers.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../calendar/domain/calendar_logic.dart';
@@ -263,6 +264,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// 은하 회고 진입: 이번 달(또는 최근 활동 달) 메모가 있으면 노출. 없으면 조용히 숨김.
+  Widget _wrappedSection() {
+    final w = ref.watch(wrappedProvider).asData?.value;
+    if (w == null || !w.hasEnough) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BannerBar(
+        icon: Icons.calendar_month_outlined,
+        title: '${w.monthLabel} 은하 회고',
+        subtitle: '그 자리에 남은 ${w.memoCount}개의 별을 모았어요',
+        onTap: () {
+          ref.read(analyticsProvider).logEvent('wrapped_entry_tap', {'period': w.periodLabel});
+          context.pushNamed(AppRoutes.wrappedName);
+        },
+      ),
+    );
+  }
+
   /// 홈 하단 기록 = 이번 주 스트립. 메모 있는 날에 점, 탭하면 캘린더로.
   /// 이번 주 나의 기록(익명 백분위 + 성장). 로딩/실패 시 조용히 숨김(에러는 모니터링됨).
   Widget _rankingCard() {
@@ -412,6 +431,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _readPrompt(),
               const SizedBox(height: 14),
               _orbSection(),
+              const SizedBox(height: 14),
+              _wrappedSection(),
               const SizedBox(height: 34),
               _rankingCard(),
               _recordStrip(),
