@@ -22,6 +22,7 @@ WrappedData _data({
       topPercent: topPercent,
       bookTitle: book,
       bookAuthor: author,
+      bookCoverUrl: null,
       bookMemoCount: 9,
       quote: quote,
       quoteBook: quote == null ? null : '미움받을 용기에서',

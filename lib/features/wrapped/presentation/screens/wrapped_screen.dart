@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/presentation/widgets/design/app_snackbar.dart';
+import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -80,6 +81,16 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
 
   /// 회고 카드를 화면 밖 1080x1350으로 렌더 -> 캡처.
   Future<ui.Image> _renderCardOffscreen(WrappedData data) async {
+    // 표지 이미지 사전 로드. 오프스크린 캡처는 네트워크 이미지 로드를 기다려주지
+    // 않으므로 미리 캐시해야 카드에 표지가 찍힌다. 실패해도 플레이스홀더로 진행.
+    final coverUrl = data.bookCoverUrl;
+    if (coverUrl != null && coverUrl.isNotEmpty && mounted) {
+      try {
+        await precacheImage(NetworkImage(coverUrl), context)
+            .timeout(const Duration(seconds: 3));
+      } catch (_) {/* noop */}
+    }
+    if (!mounted) throw StateError('unmounted');
     final key = GlobalKey();
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
@@ -265,21 +276,35 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
         child: child,
       );
 
+  Widget _coverPlaceholder() => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF3A4A86), Color(0xFF20264A)],
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(Icons.auto_stories_outlined, color: Colors.white.withValues(alpha: 0.35), size: 22),
+      );
+
   Widget _bookCard(WrappedData d) => _panel(
         child: Row(children: [
-          Container(
-            width: 56,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.cover),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3A4A86), Color(0xFF20264A)],
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.cover),
+            child: SizedBox(
+              width: 56,
+              height: 80,
+              child: (d.bookCoverUrl != null && d.bookCoverUrl!.isNotEmpty)
+                  ? CachedImage(
+                      url: d.bookCoverUrl!,
+                      width: 56,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      fallback: _coverPlaceholder(),
+                    )
+                  : _coverPlaceholder(),
             ),
-            alignment: Alignment.center,
-            child: Icon(Icons.auto_stories_outlined, color: Colors.white.withValues(alpha: 0.35), size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(

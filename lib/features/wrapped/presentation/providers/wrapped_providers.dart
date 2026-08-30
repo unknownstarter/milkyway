@@ -49,6 +49,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
   }
   String? bookTitle;
   String? bookAuthor;
+  String? bookCoverUrl;
   var bookMemoCount = 0;
   List<Memo> topBookMemos = const [];
   if (byBook.isNotEmpty) {
@@ -58,6 +59,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
     final rep = topBookMemos.first;
     bookTitle = rep.bookTitle;
     bookAuthor = (rep.books['author'] as String?)?.trim();
+    bookCoverUrl = (rep.books['cover_url'] as String?)?.trim();
     bookMemoCount = topBookMemos.length;
   }
 
@@ -93,6 +95,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
     topPercent: ranking.topPercent,
     bookTitle: bookTitle,
     bookAuthor: bookAuthor,
+    bookCoverUrl: bookCoverUrl,
     bookMemoCount: bookMemoCount,
     quote: quote,
     quoteBook: quoteBook,
