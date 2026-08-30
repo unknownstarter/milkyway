@@ -219,6 +219,18 @@ class WrappedCard extends StatelessWidget {
 
   Widget _statDiv() => Container(width: 1, height: 74, color: Colors.white.withValues(alpha: 0.09));
 
+  Widget _coverPlaceholder() => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF3A4A86), Color(0xFF20264A)],
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(Icons.auto_stories_outlined, color: Colors.white.withValues(alpha: 0.35), size: 44),
+      );
+
   Widget _bookCard() => Container(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 30),
         decoration: BoxDecoration(
@@ -233,15 +245,20 @@ class WrappedCard extends StatelessWidget {
               height: 174,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF3A4A86), Color(0xFF20264A)],
-                ),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 30, offset: const Offset(0, 14))],
               ),
-              alignment: Alignment.center,
-              child: Icon(Icons.auto_stories_outlined, color: Colors.white.withValues(alpha: 0.35), size: 44),
+              // 오프스크린 캡처 전용 포스터라 Image.network(사전 precache됨) 사용.
+              // 표지 없거나 로드 실패 시 그라데이션 플레이스홀더.
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: (data.bookCoverUrl != null && data.bookCoverUrl!.isNotEmpty)
+                    ? Image.network(data.bookCoverUrl!,
+                        width: 120,
+                        height: 174,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _coverPlaceholder())
+                    : _coverPlaceholder(),
+              ),
             ),
             const SizedBox(width: 26),
             Expanded(

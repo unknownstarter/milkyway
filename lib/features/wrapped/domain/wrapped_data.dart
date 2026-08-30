@@ -17,6 +17,7 @@ class WrappedData {
 
   final String? bookTitle; // 가장 오래 머문 책
   final String? bookAuthor;
+  final String? bookCoverUrl;
   final int bookMemoCount; // 그 책에 남긴 메모 수
 
   final String? quote; // 그 달의 문장(대표 메모)
@@ -34,6 +35,7 @@ class WrappedData {
     required this.topPercent,
     required this.bookTitle,
     required this.bookAuthor,
+    required this.bookCoverUrl,
     required this.bookMemoCount,
     required this.quote,
     required this.quoteBook,
