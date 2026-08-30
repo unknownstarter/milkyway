@@ -6,8 +6,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SharedCard {
   final String tier;
   final String imageUrl;
+  final bool isWrapped;
   final Map<String, dynamic>? payload;
-  const SharedCard({required this.tier, required this.imageUrl, this.payload});
+  const SharedCard({
+    required this.tier,
+    required this.imageUrl,
+    required this.isWrapped,
+    this.payload,
+  });
 }
 
 final sharedCardProvider =
@@ -19,11 +25,17 @@ final sharedCardProvider =
     throw StateError('카드를 찾을 수 없어요');
   }
   final row = rows.first as Map<String, dynamic>;
-  final path = row['image_path'] as String;
-  final imageUrl = client.storage.from('share_cards').getPublicUrl(path);
+  final payload = row['payload'] as Map<String, dynamic>?;
+  final coverUrl = payload?['cover_url'] as String?;
+  final isWrapped = payload?['kind'] == 'wrapped';
+  // 회고면 책 표지, 아니면 정적 오브 이미지(image_path='orb/{tier}.jpg').
+  final imageUrl = (isWrapped && coverUrl != null && coverUrl.isNotEmpty)
+      ? coverUrl
+      : client.storage.from('share_cards').getPublicUrl(row['image_path'] as String);
   return SharedCard(
     tier: row['tier'] as String,
     imageUrl: imageUrl,
-    payload: row['payload'] as Map<String, dynamic>?,
+    isWrapped: isWrapped,
+    payload: payload,
   );
 });
