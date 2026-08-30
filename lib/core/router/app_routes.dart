@@ -29,6 +29,7 @@ class AppRoutes {
   static const constellation = '/constellation';
   static const myOrb = '/my-orb';
   static const wrapped = '/wrapped';
+  static const sharedCard = '/card';
 
   // 라우트 경로 생성 헬퍼 (deprecated: named routes 사용 권장)
   @Deprecated('Use context.pushNamed(AppRoutes.bookDetailName, pathParameters: {\'id\': bookId}) instead')
@@ -63,4 +64,5 @@ class AppRoutes {
   static const constellationName = 'constellation';
   static const myOrbName = 'myOrb';
   static const wrappedName = 'wrapped';
+  static const sharedCardName = 'sharedCard';
 }
