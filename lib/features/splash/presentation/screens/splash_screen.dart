@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/splash_layout.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,6 +77,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           return;
         }
 
+        // 딥링크 pending code 있으면 홈 대신 그 카드로.
+        if (await DeepLinkService.consumePending()) return;
         if (mounted) context.goNamed(AppRoutes.homeName);
         return;
       }
@@ -94,6 +97,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               if (mounted) context.goNamed(AppRoutes.onboardingNicknameName);
               return;
             }
+            if (await DeepLinkService.consumePending()) return;
             if (mounted) context.goNamed(AppRoutes.homeName);
             return;
           }

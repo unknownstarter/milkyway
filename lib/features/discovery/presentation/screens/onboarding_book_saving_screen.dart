@@ -3,6 +3,7 @@ import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -42,6 +43,7 @@ class _OnboardingBookSavingScreenState
     }
     ref.read(bookSelectionProvider.notifier).clear();
     await ref.read(authProvider.notifier).updateOnboardingStatus(true);
+    if (await DeepLinkService.consumePending()) return;
     if (mounted) context.goNamed(AppRoutes.homeName);
   }
 

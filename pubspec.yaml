@@ -43,6 +43,9 @@ dependencies:
   supabase_flutter: ^2.3.4
   shared_preferences: ^2.2.3
 
+  # Deep link (커스텀 스킴 milkyway://card/{code})
+  app_links: ^6.3.0
+
   # UI Components
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1

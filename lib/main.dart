@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/config/env_config.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/deep_link_service.dart';
 import 'core/router/app_routes.dart';
 import 'package:inspire_blur/inspire_blur.dart';
 
@@ -263,24 +264,41 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // 알림 라우팅 설정 (router가 준비된 후)
-    final notificationService = NotificationService();
-    notificationService.onNotificationTapped = (data) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  DeepLinkService? _deepLink;
+
+  @override
+  void initState() {
+    super.initState();
+    // 알림 탭 라우팅.
+    NotificationService().onNotificationTapped = (data) {
       // memo_id가 있으면 메모 상세 화면으로 이동
       if (data.containsKey('memo_id')) {
-        final memoId = data['memo_id'] as String;
         router.pushNamed(
           AppRoutes.memoDetailName,
-          pathParameters: {'id': memoId},
+          pathParameters: {'id': data['memo_id'] as String},
         );
       }
     };
+    // 딥링크 수신 시작(콜드=pending 저장 후 스플래시가 소비, 웜=즉시 라우팅).
+    _deepLink = DeepLinkService(ref)..init();
+  }
 
+  @override
+  void dispose() {
+    _deepLink?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'milkyway',
       theme: AppTheme.lightTheme,

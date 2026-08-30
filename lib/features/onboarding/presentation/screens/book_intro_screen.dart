@@ -4,6 +4,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/utils/error_handler.dart';
 
 class BookIntroScreen extends ConsumerStatefulWidget {
@@ -237,6 +238,8 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
       // 온보딩 완료 이벤트
       await ref.read(analyticsProvider).logEvent('click_complete_in_onboarding');
 
+      // 딥링크 pending code 있으면 홈 대신 그 카드로.
+      if (await DeepLinkService.consumePending()) return;
       // 홈 화면으로 이동
       if (mounted) {
         context.goNamed(AppRoutes.homeName);
