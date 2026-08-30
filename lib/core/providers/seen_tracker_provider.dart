@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/seen_tracker.dart';
+import '../services/supabase_seen_data_source.dart';
 
-/// SeenTracker 서비스(서버 seen_state). DI/테스트를 위해 provider로 주입.
-final seenTrackerServiceProvider =
-    Provider<SeenTracker>((ref) => ServerSeenTracker(Supabase.instance.client));
+/// SeenTracker 서비스(서버 seen_state). 캐시 로직(ServerSeenTracker) + 전송(SupabaseSeenDataSource) 분리.
+final seenTrackerServiceProvider = Provider<SeenTracker>(
+  (ref) => ServerSeenTracker(SupabaseSeenDataSource(Supabase.instance.client)),
+);
 
 /// '봤음' 리비전 3종. 종류별로 분리해 **관심 있는 파생 provider만** 재계산되게 한다.
 /// (단일 전역 카운터면 책탭을 봤을 때 메모탭 배지의 네트워크까지 재호출되어 비용이 샘)
