@@ -1,7 +1,6 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,10 +16,9 @@ import '../../../home/presentation/widgets/star_background_painter.dart';
 import '../../../orb/presentation/providers/orb_providers.dart';
 import '../../domain/wrapped_data.dart';
 import '../providers/wrapped_providers.dart';
-import '../widgets/wrapped_card.dart';
 
 /// 은하 회고: 전체 스크린(글래스 앱바 + 스타 배경 + 네이티브 회고 + 하단 공유).
-/// 공유 카드(WrappedCard)는 화면에 안 띄우고 공유 시에만 오프스크린 캡처.
+/// 공유는 이미지 생성 없이 링크만 발행(OG 썸네일=책 표지).
 class WrappedScreen extends ConsumerStatefulWidget {
   const WrappedScreen({super.key});
 
@@ -29,7 +27,8 @@ class WrappedScreen extends ConsumerStatefulWidget {
 }
 
 class _WrappedScreenState extends ConsumerState<WrappedScreen> {
-  static const Color _accent = WrappedCard.accent;
+  // 회고 시그니처색(밤하늘 보라).
+  static const Color _accent = Color(0xFF8A7CFF);
   bool _sharing = false;
 
   @override
@@ -52,23 +51,21 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
     setState(() => _sharing = true);
     final analytics = ref.read(analyticsProvider);
     try {
-      final image = await _renderCardOffscreen(data);
+      // 이미지 생성/업로드 없음. 링크만 발행 -> OG 썸네일은 책 표지(cover_url)가 동적 반영.
       final repo = ref.read(shareRepositoryProvider);
-      final jpg = await repo.encodeJpg(image);
       final link = await repo.publish(
         tier: data.tier,
-        jpg: jpg,
-        payload: {'kind': 'wrapped', 'period': data.periodLabel},
+        payload: {
+          'kind': 'wrapped',
+          'period': data.periodLabel,
+          if (data.bookCoverUrl != null && data.bookCoverUrl!.isNotEmpty)
+            'cover_url': data.bookCoverUrl,
+        },
       );
       await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('wrapped_share_completed', {'period': data.periodLabel});
       if (mounted) showAppSnackBar(context, '공유하기 링크가 복사되었어요');
-      await SharePlus.instance.share(ShareParams(
-        files: [
-          XFile.fromData(jpg, mimeType: 'image/jpeg', name: 'milkyway_wrapped_${data.periodLabel}.jpg'),
-        ],
-        text: link,
-      ));
+      await SharePlus.instance.share(ShareParams(text: link));
     } catch (_) {
       if (mounted) {
         showAppSnackBar(context, '공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요');
@@ -76,57 +73,6 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
       analytics.logError('ERR_SHARE', operation: 'wrapped_publish');
     } finally {
       if (mounted) setState(() => _sharing = false);
-    }
-  }
-
-  /// 회고 카드를 화면 밖 1080x1350으로 렌더 -> 캡처.
-  Future<ui.Image> _renderCardOffscreen(WrappedData data) async {
-    // 표지 이미지 사전 로드. 오프스크린 캡처는 네트워크 이미지 로드를 기다려주지
-    // 않으므로 미리 캐시해야 카드에 표지가 찍힌다. 실패해도 플레이스홀더로 진행.
-    final coverUrl = data.bookCoverUrl;
-    if (coverUrl != null && coverUrl.isNotEmpty && mounted) {
-      try {
-        await precacheImage(NetworkImage(coverUrl), context)
-            .timeout(const Duration(seconds: 3));
-      } catch (_) {/* noop */}
-    }
-    if (!mounted) throw StateError('unmounted');
-    final key = GlobalKey();
-    final overlay = Overlay.of(context);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned.fill(
-        child: IgnorePointer(
-          child: OverflowBox(
-            alignment: Alignment.topLeft,
-            minWidth: 0,
-            maxWidth: double.infinity,
-            minHeight: 0,
-            maxHeight: double.infinity,
-            child: Transform.translate(
-              offset: Offset(0, MediaQuery.of(context).size.height + 200),
-              child: RepaintBoundary(
-                key: key,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: SizedBox(
-                    width: WrappedCard.w,
-                    height: WrappedCard.h,
-                    child: WrappedCard(data: data),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    overlay.insert(entry);
-    try {
-      await Future.delayed(const Duration(milliseconds: 260));
-      final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      return await boundary.toImage(pixelRatio: 1.0);
-    } finally {
-      entry.remove();
     }
   }
 

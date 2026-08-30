@@ -61,14 +61,13 @@ class SharedCardScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 36),
+            child: SizedBox(
+              // 회고=책 표지(3:4), 오브=정사각.
+              width: card.isWrapped ? 300 : 320,
+              height: card.isWrapped ? 400 : 320,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadius.modal),
-                child: AspectRatio(
-                  aspectRatio: 1080 / 1350,
-                  child: CachedImage(url: card.imageUrl, fit: BoxFit.cover),
-                ),
+                child: CachedImage(url: card.imageUrl, fit: BoxFit.cover),
               ),
             ),
           ),

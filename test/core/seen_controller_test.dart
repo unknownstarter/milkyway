@@ -1,20 +1,48 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:whatif_milkyway_app/core/providers/seen_tracker_provider.dart';
 import 'package:whatif_milkyway_app/core/services/seen_tracker.dart';
 
-// 반응형 seen 상태 계약 잠금.
+// 반응형 seen 상태 계약 잠금(백엔드는 인메모리 fake로 격리).
 // 핵심 1: mark* 하면 해당 리비전이 올라 이를 구독하는 파생 provider가 수동 invalidate 없이
 //         자동 재계산된다.
 // 핵심 2: 리비전이 종류별로 분리 + .select 구독이라, 관심 없는 mark엔 재계산되지 않는다
 //         (책탭 마크가 메모탭 배지 네트워크를 깨우지 않음).
-void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+class _FakeSeenTracker implements SeenTracker {
+  final _m = <String, DateTime>{};
 
+  @override
+  Future<void> markBookViewed(String bookId) async =>
+      _m['book:$bookId'] = DateTime.now();
+
+  @override
+  Future<DateTime?> bookLastViewed(String bookId) async => _m['book:$bookId'];
+
+  @override
+  Future<Map<String, DateTime>> allBookViewed(List<String> ids) async {
+    final out = <String, DateTime>{};
+    for (final id in ids) {
+      final v = _m['book:$id'];
+      if (v != null) out[id] = v;
+    }
+    return out;
+  }
+
+  @override
+  Future<void> markTabSeen(String tabKey) async =>
+      _m['tab:$tabKey'] = DateTime.now();
+
+  @override
+  Future<DateTime?> tabLastSeen(String tabKey) async => _m['tab:$tabKey'];
+}
+
+ProviderContainer _container() => ProviderContainer(overrides: [
+      seenTrackerServiceProvider.overrideWithValue(_FakeSeenTracker()),
+    ]);
+
+void main() {
   test('mark* 가 종류별 리비전을 증가시킨다', () async {
-    final container = ProviderContainer();
+    final container = _container();
     addTearDown(container.dispose);
     final ctrl = container.read(seenControllerProvider.notifier);
 
@@ -30,7 +58,7 @@ void main() {
   });
 
   test('select 구독: 관심 리비전이 바뀔 때만 재계산(격리)', () async {
-    final container = ProviderContainer();
+    final container = _container();
     addTearDown(container.dispose);
     final ctrl = container.read(seenControllerProvider.notifier);
 
@@ -62,7 +90,7 @@ void main() {
   });
 
   test('mark 후 데이터 읽기(allBookViewed/tabLastSeen)가 반영된다', () async {
-    final container = ProviderContainer();
+    final container = _container();
     addTearDown(container.dispose);
     final ctrl = container.read(seenControllerProvider.notifier);
 
