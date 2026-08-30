@@ -41,6 +41,7 @@ void main() {
   });
 
   test('자산 경로가 티어 키와 일치', () {
-    expect(orbAssetPath(OrbTier.t4), 'assets/images/orb/orb_t4.webp');
+    expect(orbCoreAsset(OrbTier.t4), 'assets/images/orb/orb_t4_core.webp');
+    expect(orbGlassAsset(OrbTier.t4), 'assets/images/orb/orb_t4_glass.webp');
   });
 }
