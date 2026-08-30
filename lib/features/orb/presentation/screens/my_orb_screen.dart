@@ -172,7 +172,7 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
           AppSpacing.lg, glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 128),
       child: Column(
         children: [
-          ShaderOrb(tier: data.tier, size: 300, animate: true),
+          ShaderOrb(tier: data.tier, size: 340, animate: true),
           const SizedBox(height: 28),
           _badge(name, accent),
           const SizedBox(height: 14),

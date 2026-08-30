@@ -51,7 +51,9 @@ mat2 rot(float a) {
 void main() {
   vec2 uv = FlutterFragCoord().xy / uSize;
   // 중심화. WebGL은 y가 위, Flutter는 아래 -> y 뒤집어 프로토타입과 광원 방향 일치.
-  vec2 p = (uv - 0.5) * 2.0;
+  // 0.84로 나눠 오브를 정사각 캔버스보다 작게 -> 안개/글로우가 박스 모서리에
+  // 닿기 전에 사라질 여백 확보(희미한 보라 사각형 seam 방지).
+  vec2 p = (uv - 0.5) * 2.0 / 0.84;
   p.y = -p.y;
   float r = length(p);
 
@@ -121,6 +123,12 @@ void main() {
     col = mix(col, orb, edge);
     alpha = max(alpha, edge);
   }
+
+  // 박스 경계 전에 색/알파를 완전히 0으로 -> 캔버스 사각형 seam 제거.
+  // 오브(r<=1.0)와 그 바깥 얇은 글로우 링만 남기고 나머지는 투명.
+  float vign = 1.0 - smoothstep(1.0, 1.17, r);
+  col *= vign;
+  alpha *= vign;
 
   fragColor = vec4(col, clamp(alpha, 0.0, 1.0));
 }
