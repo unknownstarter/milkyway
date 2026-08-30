@@ -120,7 +120,7 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(orbShareDataProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFF181818),
+      backgroundColor: const Color(0xFF08080E),
       extendBodyBehindAppBar: true,
       appBar: glassAppBar(
         title: const Text('내 우주', style: AppTypography.title),
