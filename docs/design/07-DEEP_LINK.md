@@ -8,7 +8,7 @@
 - **유니버설/앱링크 포기** — `.well-known`을 우리가 못 서빙(supabase.co 도메인 소유 아님). 대신 **커스텀 스킴 `milkyway://card/{code}`** 로 앱 오픈.
 - **링크** = 기존 `https://<ref>.supabase.co/functions/v1/s/{code}` 그대로(숏트너/도메인 없음).
 - **설치 유저 랜딩** = 링크 탭 → 엣지펑션 `s` 랜딩페이지가 `milkyway://card/{code}` 자동 시도(+ "앱에서 열기" 버튼) → 앱이 그 카드로. 미설치면 스토어 폴백. (진짜 유니버설링크보다 한 홉/버튼 필요, 카톡 인앱브라우저는 약함 - 실기기 확인.)
-- **디퍼드**: Android=Install Referrer(결정론적), iOS=지문 매칭(`deferred_clicks`+`match_deferred_click`, 확률적).
+- **디퍼드**: ~~Android=Install Referrer, iOS=지문 매칭~~ → **미채택(2026-08-31)**. 미설치 유저는 설치 후 홈으로(그 카드로 안 감). 안 쓰는 지문(IP/UA)을 쌓는 개인정보 리스크만 있어 `deferred_clicks`/`match_deferred_click` 제거 + 엣지펑션 지문수집 삭제. 재도입 시 개인정보처리방침 고지 필요.
 - **게이트**: `SplashScreen`의 `user.onboardingCompleted` 분기 재사용. 미로그인/온보딩중이면 pending code 저장 후 로그인/온보딩 완료 콜백에서 소비.
 
 ### 구현 매핑 (실제 파일)
