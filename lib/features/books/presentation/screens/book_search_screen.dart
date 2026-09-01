@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:go_router/go_router.dart';
 import '../providers/book_search_provider.dart';
 import '../providers/book_register_provider.dart';
+import '../../../home/presentation/providers/book_provider.dart'
+    show bookRepositoryProvider;
 import '../../domain/models/naver_book.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/router/app_routes.dart';
