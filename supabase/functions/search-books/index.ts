@@ -31,24 +31,45 @@ const clean = (b: Item): Item => ({
   pubdate: String(b.pubdate ?? ''),
 });
 
+function googleNormalize(v: any): Item {
+  const vi = v?.volumeInfo ?? {};
+  const ids: any[] = vi.industryIdentifiers ?? [];
+  const isbn = ids.find((i) => i.type === 'ISBN_13')?.identifier ?? ids.find((i) => i.type === 'ISBN_10')?.identifier ?? '';
+  return clean({
+    title: vi.title, author: Array.isArray(vi.authors) ? vi.authors.join(', ') : '',
+    isbn, image: vi.imageLinks?.thumbnail ?? vi.imageLinks?.smallThumbnail ?? '',
+    description: vi.description ?? '', publisher: vi.publisher ?? '',
+    pubdate: String(vi.publishedDate ?? '').replace(/-/g, ''),
+  });
+}
+
+// 구글 Books는 maxResults=40이어도 실제론 페이지당 ~20건만 준다(totalItems는 수백).
+// startIndex로 여러 페이지를 병렬로 받아 합치고, volume id로 중복 제거해 결과 수를 늘린다.
 async function fromGoogle(query: string): Promise<Item[] | null> {
   const key = Deno.env.get('GOOGLE_BOOKS_API_KEY');
   if (!key) return null;
-  const p = new URLSearchParams({ q: query, maxResults: '40', printType: 'books', country: 'US', orderBy: 'relevance', key });
-  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?${p}`);
-  if (!res.ok) { console.error('google', res.status, (await res.text()).slice(0, 200)); return null; }
-  const data = await res.json();
-  return (data.items ?? []).map((v: any) => {
-    const vi = v?.volumeInfo ?? {};
-    const ids: any[] = vi.industryIdentifiers ?? [];
-    const isbn = ids.find((i) => i.type === 'ISBN_13')?.identifier ?? ids.find((i) => i.type === 'ISBN_10')?.identifier ?? '';
-    return clean({
-      title: vi.title, author: Array.isArray(vi.authors) ? vi.authors.join(', ') : '',
-      isbn, image: vi.imageLinks?.thumbnail ?? vi.imageLinks?.smallThumbnail ?? '',
-      description: vi.description ?? '', publisher: vi.publisher ?? '',
-      pubdate: String(vi.publishedDate ?? '').replace(/-/g, ''),
+  const starts = [0, 20, 40, 60]; // 4페이지 ~= 최대 80건 raw
+  const pages = await Promise.all(starts.map(async (startIndex) => {
+    const p = new URLSearchParams({
+      q: query, maxResults: '40', startIndex: String(startIndex),
+      printType: 'books', country: 'US', orderBy: 'relevance', key,
     });
-  }).filter((b: Item) => b.title && b.isbn);
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?${p}`);
+      if (!res.ok) { console.error('google', res.status, (await res.text()).slice(0, 150)); return []; }
+      return ((await res.json()).items ?? []) as any[];
+    } catch (e) { console.error('google page throw', e); return []; }
+  }));
+  const seen = new Set<string>();
+  const out: Item[] = [];
+  for (const v of pages.flat()) {
+    const id = v?.id;
+    if (id && seen.has(id)) continue;
+    if (id) seen.add(id);
+    const b = googleNormalize(v);
+    if (b.title && b.isbn) out.push(b);
+  }
+  return out;
 }
 
 async function fromNaver(query: string): Promise<Item[] | null> {
