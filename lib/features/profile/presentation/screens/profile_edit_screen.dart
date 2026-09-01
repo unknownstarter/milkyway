@@ -31,6 +31,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   bool _lastCheckResult = true; // 마지막 체크 결과 (true: 사용 가능, false: 중복)
   String? _originalNickname; // 원본 닉네임 저장 (중복 체크 시 제외)
   Timer? _debounceTimer;
+  bool _initialized = false; // 최초 1회만 컨트롤러 초기화(키보드 닫힘 등 재빌드 시 입력 유지)
 
   @override
   void initState() {
@@ -60,18 +61,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   void _loadUserData() {
-    // didChangeDependencies에서 호출되므로 ref 사용 가능
+    // didChangeDependencies는 키보드 표시/숨김(MediaQuery 변화)에도 호출된다.
+    // 매번 컨트롤러를 user.nickname으로 되돌리면 입력 중인 값이 날아가므로(엔터 시 리셋 버그)
+    // 화면 진입 시 최초 1회만 초기화한다. 화면 재진입은 새 State라 다시 1회 로드된다.
+    if (_initialized) return;
     final user = ref.read(authProvider).value;
-    if (user != null) {
-      // 닉네임이 변경된 경우에만 컨트롤러 업데이트 (무한 루프 방지)
-      if (_nicknameController.text != user.nickname) {
-        _nicknameController.text = user.nickname;
-        _originalNickname = user.nickname; // 원본 닉네임 저장
-        _lastCheckedNickname = user.nickname; // 이미 체크된 것으로 표시
-        _lastCheckResult = true; // 원본 닉네임은 항상 사용 가능
-        _nicknameError = null; // 에러 초기화
-      }
-    }
+    if (user == null) return;
+    _nicknameController.text = user.nickname;
+    _originalNickname = user.nickname;
+    _lastCheckedNickname = user.nickname;
+    _lastCheckResult = true;
+    _nicknameError = null;
+    _initialized = true;
   }
 
   void _validateInput() {

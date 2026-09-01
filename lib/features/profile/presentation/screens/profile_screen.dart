@@ -281,8 +281,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _launchTerms() async {
     final url = Uri.parse(
         'https://whatisgoingon.notion.site/1838cdd370538097b80bfa3b9a6fe2b7?pvs=4');
-    if (!await canLaunchUrl(url)) return;
-    await launchUrl(url, mode: LaunchMode.inAppWebView);
+    // canLaunchUrl은 Android 11+ 패키지 가시성 때문에 false를 잘못 반환하는 일이 잦다.
+    // 게이트 없이 바로 외부 브라우저로 열고, 실패 시에만 플랫폼 기본 모드로 폴백.
+    try {
+      final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!ok) await launchUrl(url);
+    } catch (_) {
+      await launchUrl(url);
+    }
   }
 
   Future<String> _appVersion() async {
