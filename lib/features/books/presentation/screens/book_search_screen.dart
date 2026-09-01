@@ -100,12 +100,16 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           // 검색 입력
           _buildSearchInput(),
           
-          // 검색 결과
+          // 검색 결과 (빈 영역 탭 시 키보드 내려가게)
           Expanded(
-            child: searchState.when(
-              data: (books) => _buildSearchResults(books),
-              loading: () => _buildLoadingState(),
-              error: (error, stack) => _buildErrorState(error),
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              behavior: HitTestBehavior.translucent,
+              child: searchState.when(
+                data: (books) => _buildSearchResults(books),
+                loading: () => _buildLoadingState(),
+                error: (error, stack) => _buildErrorState(error),
+              ),
             ),
           ),
         ],
@@ -168,6 +172,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
+      // 결과 스크롤 시 키보드 자동으로 내려가게.
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
