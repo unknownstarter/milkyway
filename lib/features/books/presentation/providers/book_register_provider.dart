@@ -4,15 +4,11 @@ import '../../../home/data/repositories/book_repository.dart';
 import '../../domain/models/naver_book.dart';
 import '../../utils/book_cover_uploader.dart';
 import '../providers/user_books_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// bookRepositoryProvider는 book_provider.dart 한 곳에서만 정의(중복 정의 제거).
 import '../../../home/presentation/providers/book_provider.dart'
-    show recentBooksProvider, homeBooksProvider;
+    show recentBooksProvider, homeBooksProvider, bookRepositoryProvider;
 import '../providers/book_detail_provider.dart';
 import 'dart:developer';
-
-final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  return BookRepository(Supabase.instance.client);
-});
 
 final bookRegisterProvider =
     StateNotifierProvider<BookRegisterNotifier, AsyncValue<void>>((ref) {

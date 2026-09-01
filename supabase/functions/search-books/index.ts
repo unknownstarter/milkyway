@@ -11,6 +11,11 @@ const corsHeaders = {
   'Content-Type': 'application/json',
 };
 
+// 표지가 없는 책(구글에 imageLinks 없음 - 유명해도 종종 발생)에 채울 기본 표지(오브 스타일 1장).
+// 책을 버리지 않고 저장/표시 모두 이 표지로. SUPABASE_URL은 edge 런타임이 주입(하드코딩 X).
+const DEFAULT_COVER =
+  (Deno.env.get('SUPABASE_URL') ?? '') + '/storage/v1/object/public/book_covers/_default.jpg';
+
 type Item = {
   title: string; author: string; isbn: string; image: string;
   description: string; publisher: string; pubdate: string;
@@ -92,7 +97,11 @@ Deno.serve(async (req) => {
     try { items = await fromGoogle(q); } catch (e) { console.error('google throw', e); }
     if (!items || !items.length) { try { items = await fromNaver(q); } catch (e) { console.error('naver throw', e); } }
     if (!items || !items.length) { try { items = await fromOpenLibrary(q); } catch (e) { console.error('ol throw', e); } }
-    return ok(items ?? []);
+    const list = items ?? [];
+    // 관련도 순서(구글 orderBy=relevance) 유지 - 검색한 바로 그 책이 표지 없다고 밀리면 안 됨.
+    // 표지 없으면 기본 표지로 채움(책은 절대 안 버림). 정렬은 하지 않는다.
+    const filled = list.map((b) => (b.image ? b : { ...b, image: DEFAULT_COVER }));
+    return ok(filled);
   } catch (error) {
     console.error('search-books error:', error instanceof Error ? error.message : error);
     return ok([]); // 절대 500 안 던짐
