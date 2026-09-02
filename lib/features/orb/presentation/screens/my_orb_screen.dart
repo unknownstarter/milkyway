@@ -118,27 +118,35 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
   Widget _content(OrbShareData data) {
     final accent = orbAccentOf(data.tier);
     final name = orbTierInfo(data.tier).name;
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-          AppSpacing.lg, glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 128),
-      child: Column(
-        children: [
-          ShaderOrb(tier: data.tier, size: 340, animate: true),
-          const SizedBox(height: 28),
-          _badge(name, accent),
-          const SizedBox(height: 14),
-          RichText(
-            text: TextSpan(children: [
-              TextSpan(text: '지금은 ', style: _num(32, AppColors.textPrimary)),
-              TextSpan(text: name, style: _num(32, accent)),
-            ]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 오브를 화면 높이에 맞춰 반응형: 큰 폰은 340 그대로, 작은 폰만 살짝 축소(최소 290).
+        // -> 스크롤 없이 딱 맞고, 오브가 하단 공유 버튼을 가리지 않는다.
+        final orbSize =
+            (constraints.maxHeight * 0.40).clamp(290.0, 340.0).toDouble();
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg,
+              glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 104),
+          child: Column(
+            children: [
+              ShaderOrb(tier: data.tier, size: orbSize, animate: true),
+              const SizedBox(height: 20),
+              _badge(name, accent),
+              const SizedBox(height: 12),
+              RichText(
+                text: TextSpan(children: [
+                  TextSpan(text: '지금은 ', style: _num(32, AppColors.textPrimary)),
+                  TextSpan(text: name, style: _num(32, accent)),
+                ]),
+              ),
+              const SizedBox(height: 20),
+              _statsPanel(data, accent),
+              const SizedBox(height: 14),
+              _progress(data, accent),
+            ],
           ),
-          const SizedBox(height: 28),
-          _statsPanel(data, accent),
-          const SizedBox(height: 18),
-          _progress(data, accent),
-        ],
-      ),
+        );
+      },
     );
   }
 
