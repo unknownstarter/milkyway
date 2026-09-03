@@ -5,6 +5,7 @@ import '../../../../core/presentation/widgets/design/buttons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/orb_tier.dart';
 import 'orb_view.dart';
 
@@ -54,14 +55,28 @@ class OrbGateBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remain = (orbGateMemos - memos).clamp(1, orbGateMemos);
+    final l10n = AppL10n.of(context);
     return BannerBar(
       accent: true,
       icon: Icons.auto_awesome,
-      title: '첫 오브를 만들어보세요',
-      subtitle: '메모 $remain개만 더 남기면 나만의 은하수가 생겨요',
+      title: l10n.orbGateBannerTitle,
+      subtitle: l10n.orbGateBannerBody(remain),
       onTap: onTap,
     );
   }
+}
+
+/// 로컬라이즈된 문장에서 숫자 부분만 accent로 강조. 언어별 어순이 달라도
+/// 숫자 위치를 찾아 쪼개므로 문장 구조에 의존하지 않는다.
+List<TextSpan> _highlightCount(String text, String count) {
+  final i = text.indexOf(count);
+  if (i < 0) return [TextSpan(text: text)];
+  return [
+    TextSpan(text: text.substring(0, i)),
+    TextSpan(
+        text: count, style: const TextStyle(color: AppColors.accentGreen)),
+    TextSpan(text: text.substring(i + count.length)),
+  ];
 }
 
 /// 배너 탭 시 바텀시트: 큰 자전 오브 + 남은 개수 + 메모 작성 CTA(PrimaryButton).
@@ -88,21 +103,23 @@ Future<void> showOrbGateSheet(
           const SizedBox(height: AppSpacing.xl),
           RichText(
             textAlign: TextAlign.center,
-            text: TextSpan(style: AppTypography.heading, children: [
-              const TextSpan(text: '오브가 '),
-              TextSpan(text: '$remain개', style: const TextStyle(color: AppColors.accentGreen)),
-              const TextSpan(text: ' 남았어요'),
-            ]),
+            text: TextSpan(
+              style: AppTypography.heading,
+              children: _highlightCount(
+                AppL10n.of(context).orbGateSheetTitle(remain),
+                '$remain',
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('메모를 $remain개 더 남기면\n나만의 은하수 오브가 완성돼요',
+          Text(AppL10n.of(context).orbGateSheetBody(remain),
               textAlign: TextAlign.center, style: AppTypography.bodySmall),
           const SizedBox(height: AppSpacing.md),
           Text('$memos / $orbGateMemos',
               style: AppTypography.caption.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppSpacing.xl),
           PrimaryButton(
-            label: '지금 메모 쓰기',
+            label: AppL10n.of(context).orbGateWriteCta,
             onPressed: () {
               Navigator.of(context).pop();
               onWrite?.call();

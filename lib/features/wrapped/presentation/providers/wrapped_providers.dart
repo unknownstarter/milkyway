@@ -65,7 +65,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
 
   // 그 달의 문장: 최애 책 메모 우선, 읽기 좋은 길이 우선.
   String? quote;
-  String? quoteBook;
+  String? quoteBookTitle;
   final quoteSource = topBookMemos.isNotEmpty ? topBookMemos : period;
   final candidates = quoteSource
       .where((m) => m.content.trim().isNotEmpty)
@@ -74,7 +74,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
   if (candidates.isNotEmpty) {
     final q = candidates.first;
     quote = q.content.trim();
-    quoteBook = '${q.bookTitle}에서';
+    quoteBookTitle = q.bookTitle;
   }
 
   // Lyra 물음: 그 달 메모에 붙은 것 중 최근.
@@ -98,7 +98,7 @@ final wrappedProvider = FutureProvider.autoDispose<WrappedData>((ref) async {
     bookCoverUrl: bookCoverUrl,
     bookMemoCount: bookMemoCount,
     quote: quote,
-    quoteBook: quoteBook,
+    quoteBookTitle: quoteBookTitle,
     lyra: lyra,
     tier: resolveOrbTier(stats.savedBooks, stats.memos).tier,
   );

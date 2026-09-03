@@ -6,6 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/constellation.dart';
 import '../providers/constellation_providers.dart';
 
@@ -16,11 +17,12 @@ class ConstellationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(constellationProvider);
+    final l10n = AppL10n.of(context);
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       extendBodyBehindAppBar: true,
       appBar: glassAppBar(
-        title: const Text('별자리', style: AppTypography.subtitle),
+        title: Text(l10n.constellationTitle, style: AppTypography.subtitle),
       ),
       body: async.when(
         loading: () => const Center(
@@ -31,9 +33,9 @@ class ConstellationScreen extends ConsumerWidget {
                 strokeWidth: 2, color: AppColors.textSecondary),
           ),
         ),
-        error: (_, __) => _center('별자리를 불러오지 못했어'),
+        error: (_, __) => _center(l10n.constellationLoadError),
         data: (c) {
-          if (c.edges.isEmpty) return _empty();
+          if (c.edges.isEmpty) return _empty(l10n);
           return _ConnectionList(
               constellation: c, topPadding: glassTopPadding(context));
         },
@@ -47,7 +49,7 @@ class ConstellationScreen extends ConsumerWidget {
                 .copyWith(color: AppColors.textSecondary)),
       );
 
-  Widget _empty() => Center(
+  Widget _empty(AppL10n l10n) => Center(
         child: Padding(
           padding: const EdgeInsets.all(40),
           child: Column(
@@ -56,11 +58,11 @@ class ConstellationScreen extends ConsumerWidget {
               const Icon(Icons.auto_awesome,
                   size: 26, color: AppColors.textTertiary),
               const SizedBox(height: AppSpacing.base),
-              Text('아직 이어진 별이 없어',
+              Text(l10n.constellationEmptyTitle,
                   style:
                       AppTypography.body.copyWith(color: AppColors.textBright)),
               const SizedBox(height: AppSpacing.sm),
-              Text('메모가 쌓이면 서로 이어져 밤하늘이 생겨',
+              Text(l10n.constellationEmptyBody,
                   textAlign: TextAlign.center,
                   style: AppTypography.bodySmall
                       .copyWith(color: AppColors.textSecondary)),
@@ -93,7 +95,7 @@ class _ConnectionList extends StatelessWidget {
         if (i == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text('이어진 순간 ${valid.length}',
+            child: Text(AppL10n.of(context).constellationConnected(valid.length),
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textSecondary)),
           );
@@ -128,7 +130,7 @@ class _ConnectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 관계 칩
-          _relChip(edge.relType),
+          _relChip(context, edge.relType),
           // Lyra 근거
           if (edge.rationale != null && edge.rationale!.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -149,9 +151,9 @@ class _ConnectionCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 14),
-          _memoMini(context, past, '그때'),
+          _memoMini(context, past, AppL10n.of(context).constellationWhenPast),
           const SizedBox(height: 8),
-          _memoMini(context, now, '지금'),
+          _memoMini(context, now, AppL10n.of(context).constellationWhenNow),
         ],
       ),
     );
@@ -192,7 +194,7 @@ class _ConnectionCard extends StatelessWidget {
 }
 
 /// 짧고 쉬운 관계 칩(누가봐도 이해). 색은 은은한 배경 틴트 + 텍스트.
-Widget _relChip(RelType? t) {
+Widget _relChip(BuildContext context, RelType? t) {
   final c = _relColor(t);
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -200,24 +202,24 @@ Widget _relChip(RelType? t) {
       color: c.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(AppRadius.pill),
     ),
-    child: Text(_relLabel(t),
+    child: Text(relLabel(AppL10n.of(context), t),
         style: AppTypography.caption
             .copyWith(color: c, fontWeight: FontWeight.w700)),
   );
 }
 
-String _relLabel(RelType? t) {
+String relLabel(AppL10n l10n, RelType? t) {
   switch (t) {
     case RelType.extends_:
-      return '확장';
+      return l10n.constellationRelExtends;
     case RelType.reverses:
-      return '달라짐';
+      return l10n.constellationRelReverses;
     case RelType.echo:
-      return '다시 떠오름';
+      return l10n.constellationRelEcho;
     case RelType.similar:
-      return '닮음';
+      return l10n.constellationRelSimilar;
     default:
-      return '연결';
+      return l10n.constellationRelDefault;
   }
 }
 

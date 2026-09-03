@@ -1,4 +1,5 @@
 import 'orb_tier.dart';
+import '../../constellation/data/models/constellation.dart' show RelType;
 
 /// 공유 카드 연결 블록(그때 -> 지금 + Lyra 근거). constellation 최강 엣지에서 도출.
 class OrbConnection {
@@ -6,7 +7,7 @@ class OrbConnection {
   final String nowPreview;
   final DateTime pastDate;
   final DateTime nowDate;
-  final String? relLabel; // '달라짐' '확장' '다시 떠오름' '닮음' '연결'
+  final RelType? relType; // 표시 문구는 로케일에 따라 presentation에서 결정
   final String? rationale;
 
   const OrbConnection({
@@ -14,7 +15,7 @@ class OrbConnection {
     required this.nowPreview,
     required this.pastDate,
     required this.nowDate,
-    this.relLabel,
+    this.relType,
     this.rationale,
   });
 }

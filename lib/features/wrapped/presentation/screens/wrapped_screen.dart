@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/presentation/widgets/design/app_snackbar.dart';
@@ -12,6 +13,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../home/presentation/widgets/star_background_painter.dart';
 import '../../../orb/presentation/providers/orb_providers.dart';
 import '../../domain/wrapped_data.dart';
@@ -64,11 +66,11 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
       );
       await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('wrapped_share_completed', {'period': data.periodLabel});
-      if (mounted) showAppSnackBar(context, '공유하기 링크가 복사되었어요');
+      if (mounted) showAppSnackBar(context, AppL10n.of(context).wrappedShareLinkCopied);
       await SharePlus.instance.share(ShareParams(text: link));
     } catch (_) {
       if (mounted) {
-        showAppSnackBar(context, '공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요');
+        showAppSnackBar(context, AppL10n.of(context).wrappedShareError);
       }
       analytics.logError('ERR_SHARE', operation: 'wrapped_publish');
     } finally {
@@ -83,7 +85,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
       backgroundColor: const Color(0xFF08080E),
       extendBodyBehindAppBar: true,
       appBar: glassAppBar(
-        title: const Text('은하 회고', style: AppTypography.title),
+        title: Text(AppL10n.of(context).wrappedTitle, style: AppTypography.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).maybePop(),
@@ -126,7 +128,13 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
     );
   }
 
+  /// 현재 언어의 월 이름("8월" / "August" / "8月" / "八月").
+  String _monthLabel(BuildContext context, WrappedData d) => DateFormat.MMMM(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(DateTime(d.year, d.month));
+
   Widget _content(WrappedData d) {
+    final l10n = AppL10n.of(context);
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
           AppSpacing.lg, glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 128),
@@ -139,15 +147,17 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
             text: TextSpan(
               style: _num(34, AppColors.textPrimary).copyWith(height: 1.18),
               children: [
-                TextSpan(text: '${d.monthLabel}, 네가\n'),
-                const TextSpan(text: '멈춘 순간들', style: TextStyle(color: _accent)),
+                TextSpan(text: '${l10n.wrappedHeroLead(_monthLabel(context, d))}\n'),
+                TextSpan(
+                    text: l10n.wrappedHeroAccent,
+                    style: const TextStyle(color: _accent)),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          Text('그 자리에 남은 ${d.memoCount}개의 별', style: AppTypography.bodySmall),
+          Text(l10n.wrappedStarsLeft(d.memoCount), style: AppTypography.bodySmall),
           const SizedBox(height: 26),
-          _statsPanel(d),
+          _statsPanel(l10n, d),
           if (d.bookTitle != null) ...[
             const SizedBox(height: 16),
             _bookCard(d),
@@ -176,7 +186,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
             style: AppTypography.label.copyWith(color: _accent, fontWeight: FontWeight.w700)),
       );
 
-  Widget _statsPanel(WrappedData d) => Container(
+  Widget _statsPanel(AppL10n l10n, WrappedData d) => Container(
         padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.04),
@@ -184,11 +194,14 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
           border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         child: Row(children: [
-          _stat('${d.memoCount}', '개', '멈춘 문장', AppColors.textPrimary),
+          _stat('${d.memoCount}', l10n.unitCount, l10n.wrappedStatSentences,
+              AppColors.textPrimary),
           _statDiv(),
-          _stat('${d.readDays}', '일', '읽은 날', AppColors.textPrimary),
+          _stat('${d.readDays}', l10n.unitDays, l10n.wrappedStatReadDays,
+              AppColors.textPrimary),
           _statDiv(),
-          _stat(d.topPercent != null ? '${d.topPercent}' : '-', '%', '상위', _accent),
+          _stat(d.topPercent != null ? '${d.topPercent}' : '-', '%',
+              l10n.statTopPercent, _accent),
         ]),
       );
 
@@ -257,7 +270,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('가장 오래 머문 책',
+                Text(AppL10n.of(context).wrappedTopBookLabel,
                     style: AppTypography.caption.copyWith(color: _accent, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Text(d.bookTitle!,
@@ -278,14 +291,15 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('그 달의 문장',
+            Text(AppL10n.of(context).wrappedQuoteLabel,
                 style: AppTypography.caption.copyWith(color: _accent, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Text(d.quote!,
                 style: AppTypography.body.copyWith(color: AppColors.textBright, height: 1.55)),
-            if ((d.quoteBook ?? '').isNotEmpty) ...[
+            if ((d.quoteBookTitle ?? '').isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text(d.quoteBook!, style: AppTypography.caption),
+              Text(AppL10n.of(context).wrappedQuoteSource(d.quoteBookTitle!),
+                  style: AppTypography.caption),
             ],
           ],
         ),
@@ -330,7 +344,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentGreen),
                   )
-                : Text('회고 공유하기',
+                : Text(AppL10n.of(context).wrappedShareCta,
                     style: AppTypography.bodyBold
                         .copyWith(color: AppColors.accentGreen, fontWeight: FontWeight.w800)),
           ),
@@ -339,16 +353,16 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
     );
   }
 
-  Widget _empty() => const Center(
+  Widget _empty() => Center(
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('이번 달 회고는 아직 준비 중이에요',
+              Text(AppL10n.of(context).wrappedEmptyTitle,
                   style: AppTypography.subtitle, textAlign: TextAlign.center),
-              SizedBox(height: AppSpacing.sm),
-              Text('메모를 남기면 그 자리에 별이 쌓여요',
+              const SizedBox(height: AppSpacing.sm),
+              Text(AppL10n.of(context).wrappedEmptyBody,
                   style: AppTypography.bodySmall, textAlign: TextAlign.center),
             ],
           ),
@@ -361,15 +375,15 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('회고를 불러오지 못했어요',
+              Text(AppL10n.of(context).wrappedLoadErrorTitle,
                   style: AppTypography.subtitle, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.sm),
-              const Text('잠시 후 다시 시도해요',
+              Text(AppL10n.of(context).wrappedLoadErrorBody,
                   style: AppTypography.bodySmall, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.lg),
               TextButton(
                 onPressed: () => ref.invalidate(wrappedProvider),
-                child: Text('다시 시도',
+                child: Text(AppL10n.of(context).commonRetry,
                     style: AppTypography.bodyBold.copyWith(color: AppColors.accentGreen)),
               ),
             ],

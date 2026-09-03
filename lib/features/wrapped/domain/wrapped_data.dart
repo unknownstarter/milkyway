@@ -21,7 +21,7 @@ class WrappedData {
   final int bookMemoCount; // 그 책에 남긴 메모 수
 
   final String? quote; // 그 달의 문장(대표 메모)
-  final String? quoteBook; // 인용 출처('제목에서')
+  final String? quoteBookTitle; // 인용 출처 책 제목(원문). 로케일 문구는 표시 위젯에서 조합.
 
   final String? lyra; // Lyra 물음
 
@@ -38,7 +38,7 @@ class WrappedData {
     required this.bookCoverUrl,
     required this.bookMemoCount,
     required this.quote,
-    required this.quoteBook,
+    required this.quoteBookTitle,
     required this.lyra,
     required this.tier,
   });
@@ -46,10 +46,7 @@ class WrappedData {
   /// 회고를 띄울 만큼의 기록이 있는지(빈 달 방지).
   bool get hasEnough => memoCount > 0;
 
-  /// "2026.08"
+  /// "2026.08" (숫자 식별자라 로케일 무관).
   String get periodLabel =>
       '$year.${month.toString().padLeft(2, '0')}';
-
-  /// "8월"
-  String get monthLabel => '$month월';
 }

@@ -12,5 +12,154 @@
   "languageKorean": "한국어",
   "languageEnglish": "English",
   "languageJapanese": "日本語",
-  "languageChinese": "中文"
+  "languageChinese": "中文",
+  "unitBooks": "권",
+  "unitCount": "개",
+  "unitDays": "일",
+  "statBooksRead": "읽은 책",
+  "statMemosLeft": "남긴 메모",
+  "statTopPercent": "상위",
+  "statStreak": "연속",
+  "constellationTitle": "별자리",
+  "constellationLoadError": "별자리를 불러오지 못했어",
+  "constellationEmptyTitle": "아직 이어진 별이 없어",
+  "constellationEmptyBody": "메모가 쌓이면 서로 이어져 밤하늘이 생겨",
+  "constellationConnected": "이어진 순간 {count}",
+  "@constellationConnected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "constellationWhenPast": "그때",
+  "constellationWhenNow": "지금",
+  "constellationRelExtends": "확장",
+  "constellationRelReverses": "달라짐",
+  "constellationRelEcho": "다시 떠오름",
+  "constellationRelSimilar": "닮음",
+  "constellationRelDefault": "연결",
+  "constellationRevealTitle": "선이 하나 그어졌어",
+  "constellationViewInConstellation": "별자리에서 보기",
+  "lyraQuestionLabel": "Lyra의 물음",
+  "lyraAnswerCta": "이 물음에 메모 남기기",
+  "orbTierNebulaSmall": "작은 성운",
+  "orbTierStarCluster": "별무리",
+  "orbTierConstellation": "별자리",
+  "orbTierCluster": "성단",
+  "orbTierGalaxy": "은하",
+  "orbTierSuperGalaxy": "대은하",
+  "orbMyUniverseTitle": "내 우주",
+  "orbNowPrefix": "지금은 ",
+  "orbTierBadge": "{name} 단계",
+  "@orbTierBadge": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "orbToNextTier": "다음 단계 {next}까지 ",
+  "@orbToNextTier": {
+    "placeholders": {
+      "next": {
+        "type": "String"
+      }
+    }
+  },
+  "orbDeepestReached": "가장 깊은 우주에 도달",
+  "orbShareLinkCopied": "공유하기 링크가 복사되었어요",
+  "orbShareError": "공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요",
+  "orbGateBannerTitle": "첫 오브를 만들어보세요",
+  "orbGateBannerBody": "메모 {count}개만 더 남기면 나만의 은하수가 생겨요",
+  "@orbGateBannerBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orbGateSheetTitle": "오브가 {count}개 남았어요",
+  "@orbGateSheetTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orbGateSheetBody": "메모를 {count}개 더 남기면\n나만의 은하수 오브가 완성돼요",
+  "@orbGateSheetBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orbGateWriteCta": "지금 메모 쓰기",
+  "shareCardDefaultNick": "나",
+  "shareCardOwnerUniverse": "{nick}의 우주",
+  "@shareCardOwnerUniverse": {
+    "placeholders": {
+      "nick": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardTagline": "너의 우주는 어떤 모양일까",
+  "shareCardStoreHint": "App Store / Google Play 에 milkyway",
+  "wrappedTitle": "은하 회고",
+  "wrappedHeroLead": "{month}, 네가",
+  "@wrappedHeroLead": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "wrappedHeroAccent": "멈춘 순간들",
+  "wrappedStarsLeft": "그 자리에 남은 {count}개의 별",
+  "@wrappedStarsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrappedStatSentences": "멈춘 문장",
+  "wrappedStatReadDays": "읽은 날",
+  "wrappedTopBookLabel": "가장 오래 머문 책",
+  "wrappedQuoteLabel": "그 달의 문장",
+  "wrappedQuoteSource": "{title}에서",
+  "@wrappedQuoteSource": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "wrappedShareCta": "회고 공유하기",
+  "wrappedEmptyTitle": "이번 달 회고는 아직 준비 중이에요",
+  "wrappedEmptyBody": "메모를 남기면 그 자리에 별이 쌓여요",
+  "wrappedLoadErrorTitle": "회고를 불러오지 못했어요",
+  "wrappedLoadErrorBody": "잠시 후 다시 시도해요",
+  "wrappedShareLinkCopied": "공유하기 링크가 복사되었어요",
+  "wrappedShareError": "공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요",
+  "commonShare": "공유하기",
+  "orbLoadErrorTitle": "우주를 불러오지 못했어요",
+  "wrappedEntryTitle": "{month} 은하 회고",
+  "@wrappedEntryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "wrappedEntryBody": "그 자리에 남은 {count}개의 별을 모았어요",
+  "@wrappedEntryBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

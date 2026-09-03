@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/features/orb/domain/orb_tier.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 import 'package:whatif_milkyway_app/features/wrapped/domain/wrapped_data.dart';
 import 'package:whatif_milkyway_app/features/wrapped/presentation/widgets/wrapped_card.dart';
 
@@ -25,7 +26,7 @@ WrappedData _data({
       bookCoverUrl: null,
       bookMemoCount: 9,
       quote: quote,
-      quoteBook: quote == null ? null : '미움받을 용기에서',
+      quoteBookTitle: quote == null ? null : '미움받을 용기',
       lyra: lyra,
       tier: OrbTier.t4,
     );
@@ -54,6 +55,9 @@ void main() {
 
     for (final entry in cases.entries) {
       await tester.pumpWidget(MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
         debugShowCheckedModeBanner: false,
         home: Material(
           type: MaterialType.transparency,

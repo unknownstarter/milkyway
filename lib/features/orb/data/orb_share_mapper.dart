@@ -1,7 +1,7 @@
 import '../../constellation/data/models/constellation.dart';
 import '../domain/share_payload.dart';
 
-/// 별자리 엣지 중 '가장 드라마틱한' 연결 1개를 공유 카드 블록으로 매핑.
+/// 별자리 엣지 중 가장 드라마틱한 연결 1개를 공유 카드 블록으로 매핑.
 /// 우선순위: rationale 있음 -> strength 높음 -> 관계(달라짐 > 확장 > 다시 떠오름 > 닮음).
 /// data 계층 매핑(presentation은 이 결과만 소비).
 OrbConnection? pickOrbConnection(Constellation con) {
@@ -31,7 +31,7 @@ OrbConnection? pickOrbConnection(Constellation con) {
     nowPreview: now.preview,
     pastDate: past.createdAt,
     nowDate: now.createdAt,
-    relLabel: _relLabel(e.relType),
+    relType: e.relType,
     rationale: e.rationale,
   );
 }
@@ -48,20 +48,5 @@ int _relRank(RelType? t) {
       return 3;
     default:
       return 4;
-  }
-}
-
-String _relLabel(RelType? t) {
-  switch (t) {
-    case RelType.extends_:
-      return '확장';
-    case RelType.reverses:
-      return '달라짐';
-    case RelType.echo:
-      return '다시 떠오름';
-    case RelType.similar:
-      return '닮음';
-    default:
-      return '연결';
   }
 }
