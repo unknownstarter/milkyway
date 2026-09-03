@@ -12,6 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
+import '../../../../core/presentation/widgets/language_sheet.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_stats_provider.dart';
 import '../../domain/profile_stats.dart';
@@ -296,46 +297,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _showLanguageSheet() {
-    final l = AppL10n.of(context);
-    final current = ref.read(localeControllerProvider)?.languageCode;
-    final items = <(String?, String)>[
-      (null, l.languageSystem),
-      ('ko', l.languageKorean),
-      ('en', l.languageEnglish),
-      ('ja', l.languageJapanese),
-      ('zh', l.languageChinese),
-    ];
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            for (final it in items)
-              ListTile(
-                title: Text(it.$2, style: AppTypography.body),
-                trailing: current == it.$1
-                    ? const Icon(Icons.check, color: AppColors.accentGreen, size: 20)
-                    : null,
-                onTap: () {
-                  ref
-                      .read(localeControllerProvider.notifier)
-                      .setLocale(it.$1 == null ? null : Locale(it.$1!));
-                  Navigator.pop(sheetContext);
-                },
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
+  void _showLanguageSheet() => showLanguageSheet(context, ref);
 
   Future<String> _appVersion() async {
     final info = await PackageInfo.fromPlatform();

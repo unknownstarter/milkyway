@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/presentation/widgets/language_sheet.dart';
+import '../../../../core/presentation/widgets/design/dismissible_pill.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
@@ -42,10 +46,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _lyraShownLogged = false;
 
+  // 첫 진입 1회만 뜨는 언어 전환 알약. X 또는 언어 선택 시 다시 안 뜸.
+  static const _kLangPillSeen = 'home_lang_pill_seen';
+  bool _showLangPill = false;
+
   @override
   void initState() {
     super.initState();
     ref.read(analyticsProvider).logScreenView('home_screen');
+    _maybeShowLangPill();
     if (widget.autoBookSearch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -56,6 +65,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       });
     }
+  }
+
+  Future<void> _maybeShowLangPill() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    if (!(p.getBool(_kLangPillSeen) ?? false)) {
+      setState(() => _showLangPill = true);
+    }
+  }
+
+  Future<void> _dismissLangPill() async {
+    if (_showLangPill) setState(() => _showLangPill = false);
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kLangPillSeen, true);
+  }
+
+  Widget _langPill() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: DismissiblePill(
+          icon: Icons.language_outlined,
+          label: AppL10n.of(context).settingsLanguage,
+          onTap: () async {
+            await showLanguageSheet(context, ref);
+            await _dismissLangPill();
+          },
+          onClose: _dismissLangPill,
+        ),
+      ),
+    );
   }
 
   /// 책 탭. 저장 안 한 책(발견/최근 메모)이면 담기 팝업 → 담고 이동.
@@ -438,6 +479,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: EdgeInsets.only(top: statusBarTop(context), bottom: 210),
               children: [
               _header(),
+              if (_showLangPill) _langPill(),
               const SizedBox(height: 6),
               _stories(),
               if (books.isEmpty) _emptyWelcome(),
