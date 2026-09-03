@@ -216,10 +216,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BannerBar(
-        emoji: '📖',
+        icon: Icons.menu_book_outlined,
+        tint: const Color(0xFF7E9CE0),
         title: '오늘은 어떤 책을 읽을까',
         subtitle: '내 서재에서 골라보세요',
-        accent: true,
         onTap: () {
           ref.read(analyticsProvider).logEvent('click_read_prompt_in_home');
           _openBooksTab();
@@ -253,7 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BannerBar(
         icon: Icons.auto_awesome,
-        accent: true,
+        tint: const Color(0xFF8A7CFF),
         title: '내 우주가 자라고 있어요',
         subtitle: '내 은하수를 확인하고 공유해요',
         onTap: () {
@@ -272,11 +272,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BannerBar(
         icon: Icons.calendar_month_outlined,
+        tint: const Color(0xFFC48CFF),
         title: '${w.monthLabel} 은하 회고',
         subtitle: '그 자리에 남은 ${w.memoCount}개의 별을 모았어요',
         onTap: () {
           ref.read(analyticsProvider).logEvent('wrapped_entry_tap', {'period': w.periodLabel});
           context.pushNamed(AppRoutes.wrappedName);
+        },
+      ),
+    );
+  }
+
+  /// 별자리(사유의 커넥톰) 진입: 메모가 어느 정도 쌓여 연결이 생길 때 노출.
+  /// 메모탭 앱바에도 진입점이 있지만 홈에서도 바로 들어가게.
+  Widget _constellationSection() {
+    final memos = ref.watch(profileStatsProvider).asData?.value.memos;
+    if (memos == null || memos < 3) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BannerBar(
+        icon: Icons.hub_outlined,
+        tint: const Color(0xFF6FD0C4),
+        title: '내 생각들이 이어지고 있어요',
+        subtitle: '메모 사이에 생긴 별자리를 살펴봐요',
+        onTap: () {
+          ref.read(analyticsProvider).logEvent('constellation_entry_tap');
+          context.pushNamed(AppRoutes.constellationName);
         },
       ),
     );
@@ -433,6 +454,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _orbSection(),
               const SizedBox(height: 14),
               _wrappedSection(),
+              const SizedBox(height: 14),
+              _constellationSection(),
               const SizedBox(height: 34),
               _rankingCard(),
               _recordStrip(),

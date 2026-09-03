@@ -10,7 +10,8 @@ class BannerBar extends StatelessWidget {
   final String? emoji;
   final IconData? icon;
   final VoidCallback onTap;
-  final bool accent; // true면 accent 소프트 배경
+  final bool accent; // true면 accent 소프트 배경(형광). 홈 넛지 배너는 tint 사용 권장.
+  final Color? tint; // 컨테이너는 중립 유지, 아이콘 칩만 은은히 틴트(섹션 구분용)
 
   const BannerBar({
     super.key,
@@ -20,6 +21,7 @@ class BannerBar extends StatelessWidget {
     this.icon,
     required this.onTap,
     this.accent = false,
+    this.tint,
   });
 
   @override
@@ -78,6 +80,19 @@ class BannerBar extends StatelessWidget {
   Widget _leading() {
     if (emoji != null) {
       return Text(emoji!, style: const TextStyle(fontSize: 22));
+    }
+    // 틴트가 있으면 은은한 아이콘 칩(컨테이너는 중립 유지, 섹션은 아이콘색으로만 구분).
+    if (tint != null) {
+      return Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: tint!.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon ?? Icons.menu_book_outlined, size: 19, color: tint),
+      );
     }
     return Icon(icon ?? Icons.menu_book_outlined,
         size: 22,
