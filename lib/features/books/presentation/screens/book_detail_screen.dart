@@ -27,6 +27,8 @@ import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../reading/presentation/providers/reading_providers.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../book_status_l10n.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -67,6 +69,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final bookAsync = ref.watch(bookDetailProvider(widget.bookId));
+    final l = AppL10n.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFF181818),
@@ -89,9 +92,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         ),
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '책 상세페이지',
-            style: TextStyle(
+          child: Text(
+            l.bookDetailTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -106,9 +109,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
               onPressed: () => _deleteBook(book),
               child: MediaQuery(
                 data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-                child: const Text(
-                  '삭제',
-                  style: TextStyle(
+                child: Text(
+                  l.bookActionDelete,
+                  style: const TextStyle(
                     color: Colors.red,
                     fontFamily: 'Pretendard',
                     fontSize: 16,
@@ -231,7 +234,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                   size: 20,
                   color: read ? AppColors.accentGreen : AppColors.textSecondary),
               const SizedBox(width: 10),
-              Text(read ? '오늘 읽었어요' : '오늘 읽음',
+              Text(
+                  read
+                      ? AppL10n.of(context).readingLoggedToday
+                      : AppL10n.of(context).readingLogTodayCta,
                   style: AppTypography.bodyBold.copyWith(
                       color:
                           read ? AppColors.accentGreen : AppColors.textPrimary,
@@ -327,7 +333,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                             .copyWith(color: AppColors.textTertiary)),
                   ],
                   const SizedBox(height: 14),
-                  StatusChip(text: book.status.value),
+                  StatusChip(
+                      text: bookStatusLabel(AppL10n.of(context), book.status)),
                 ],
               ),
             ),
@@ -363,12 +370,13 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Widget _buildStatusButtons(Book book) {
+    final l = AppL10n.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           PillFilterButton(
-            label: BookStatus.wantToRead.value,
+            label: bookStatusLabel(l, BookStatus.wantToRead),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.wantToRead,
             onTap: () {
@@ -384,7 +392,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
           const SizedBox(width: 12),
           PillFilterButton(
-            label: BookStatus.reading.value,
+            label: bookStatusLabel(l, BookStatus.reading),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.reading,
             onTap: () {
@@ -400,7 +408,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
           const SizedBox(width: 12),
           PillFilterButton(
-            label: BookStatus.completed.value,
+            label: bookStatusLabel(l, BookStatus.completed),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.completed,
             onTap: () {
@@ -437,9 +445,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         children: [
           MediaQuery(
             data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-            child: const Text(
-              '책 소개',
-              style: TextStyle(
+            child: Text(
+              AppL10n.of(context).bookDescriptionTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontFamily: 'Pretendard',
                 fontWeight: FontWeight.w600,
@@ -479,9 +487,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      '더보기',
-                      style: TextStyle(
+                    Text(
+                      AppL10n.of(context).bookShowMore,
+                      style: const TextStyle(
                         color: Color(0xFFDADADA),
                         fontFamily: 'Pretendard',
                         fontWeight: FontWeight.w400,
@@ -510,18 +518,19 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     final publicAsync = ref.watch(publicBookMemosProvider(book.id));
     final mineAsync = ref.watch(bookMemosProvider(book.id));
     final async = _memoSegment == 0 ? publicAsync : mineAsync;
+    final l = AppL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('이 책의 메모', style: AppTypography.title),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(l.bookMemosTitle, style: AppTypography.title),
         ),
         const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SegmentFilter(
-            segments: const ['함께', '내 메모'],
+            segments: [l.bookMemoSegmentTogether, l.bookMemoSegmentMine],
             selectedIndex: _memoSegment,
             onChanged: (i) => setState(() => _memoSegment = i),
           ),
@@ -530,10 +539,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         // 디자인 시스템 표준: 부드러운 비동기 렌더(깜빡임/점프 없음)
         AsyncView<List<Memo>>(
           value: async,
-          errorText: '메모를 불러오지 못했어요',
+          errorText: l.bookMemosLoadError,
           isEmpty: (memos) => memos.isEmpty,
-          emptyBuilder: () => _memoSectionMessage(
-              _memoSegment == 0 ? '아직 공개된 메모가 없어요' : '아직 남긴 메모가 없어요'),
+          emptyBuilder: () => _memoSectionMessage(_memoSegment == 0
+              ? l.bookMemosEmptyPublic
+              : l.bookMemosEmptyMine),
           builder: (memos) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -551,13 +561,14 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Widget _memoCard(Memo m) {
+    final l = AppL10n.of(context);
     final edited = m.isEdited;
     final date = edited ? m.updatedAt! : m.createdAt;
     return MemoCard(
       content: m.content,
-      authorName: m.userNickname ?? '밀키웨이',
+      authorName: m.userNickname ?? l.bookMemoDefaultAuthor,
       authorImageUrl: m.userAvatarUrl,
-      dateText: _relativeDate(date),
+      dateText: _relativeDate(l, date),
       edited: edited,
       showMineTag: _memoSegment == 1,
       page: m.page,
@@ -569,12 +580,12 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     );
   }
 
-  static String _relativeDate(DateTime dt) {
+  static String _relativeDate(AppL10n l, DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return '방금';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    if (diff.inHours < 24) return '${diff.inHours}시간 전';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    if (diff.inMinutes < 1) return l.bookTimeJustNow;
+    if (diff.inMinutes < 60) return l.bookTimeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l.bookTimeHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l.bookTimeDaysAgo(diff.inDays);
     final mm = dt.month.toString().padLeft(2, '0');
     final dd = dt.day.toString().padLeft(2, '0');
     return '${dt.year}.$mm.$dd';
@@ -605,10 +616,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           borderRadius: BorderRadius.circular(20),
           child: MediaQuery(
             data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-            child: const Center(
+            child: Center(
               child: Text(
-                '메모하기',
-                style: TextStyle(
+                AppL10n.of(context).bookWriteMemoCta,
+                style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Pretendard',
                   fontWeight: FontWeight.w600,
@@ -642,9 +653,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             size: 48,
           ),
           const SizedBox(height: 16),
-          const Text(
-            '책 정보를 불러올 수 없습니다',
-            style: TextStyle(
+          Text(
+            AppL10n.of(context).bookDetailLoadError,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontFamily: 'Pretendard',
@@ -673,11 +684,14 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           .read(bookDetailProvider(widget.bookId).notifier)
           .updateStatus(newStatus);
       if (mounted) {
-        showAppSnackBar(context, '상태를 "${newStatus.value}"로 변경했습니다');
+        final l = AppL10n.of(context);
+        showAppSnackBar(
+            context, l.bookStatusChanged(bookStatusLabel(l, newStatus)));
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, e, operation: '책 상태 변경');
+        ErrorHandler.showError(context, e,
+            operation: AppL10n.of(context).bookOpStatusChange);
       }
     }
   }
@@ -695,32 +709,36 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   Future<void> _deleteBook(Book? book) async {
     if (book == null) return;
 
+    final l = AppL10n.of(context);
+
     // 삭제 확인 다이얼로그
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          '책 삭제',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
+        title: Text(
+          l.bookDeleteTitle,
+          style: const TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
         ),
-        content: const Text(
-          '책을 삭제하면 해당 책의 메모도 모두 삭제되며 복구할 수 없습니다.\n\n정말 삭제하시겠습니까?',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
+        content: Text(
+          l.bookDeleteBody,
+          style: const TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: Colors.grey, fontFamily: 'Pretendard'),
+            child: Text(
+              l.commonCancel,
+              style:
+                  const TextStyle(color: Colors.grey, fontFamily: 'Pretendard'),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '삭제',
-              style: TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
+            child: Text(
+              l.bookActionDelete,
+              style:
+                  const TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
             ),
           ),
         ],
@@ -776,7 +794,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, e, operation: '책 삭제');
+        ErrorHandler.showError(context, e, operation: l.bookOpDelete);
       }
     }
   }

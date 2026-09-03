@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/notification_permission_dialog.dart';
 import 'dart:io' show Platform;
 import '../widgets/auth_background_layout.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -84,12 +85,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             return;
           }
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                '로그인에 실패했습니다. 다시 시도해 주세요.',
-                style: TextStyle(color: Colors.white),
+                AppL10n.of(context).authSignInFailed,
+                style: const TextStyle(color: Colors.white),
               ),
-              backgroundColor: Color(0xFF242424),
+              backgroundColor: const Color(0xFF242424),
             ),
           );
         },
@@ -156,9 +157,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             height: 24,
                           ),
                           const SizedBox(width: 12),
-                          const Text(
-                            'Apple로 시작하기',
-                            style: TextStyle(
+                          Text(
+                            AppL10n.of(context).authSignInApple,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -201,9 +202,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   height: 20,
                                 ),
                               ),
-                              const Text(
-                                'Google로 시작하기',
-                                style: TextStyle(
+                              Text(
+                                AppL10n.of(context).authSignInGoogle,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),

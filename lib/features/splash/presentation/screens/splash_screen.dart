@@ -6,6 +6,7 @@ import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/session_restore.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/splash_layout.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
@@ -86,8 +87,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('업데이트 필요'),
-        content: const Text('새로운 버전이 있습니다.\n원활한 사용을 위해 업데이트를 진행해주세요.'),
+        title: Text(AppL10n.of(context).splashUpdateTitle),
+        content: Text(AppL10n.of(context).splashUpdateBody),
         actions: [
           TextButton(
             onPressed: () {
@@ -96,7 +97,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   : 'your_android_play_store_url';
               launchUrl(Uri.parse(url));
             },
-            child: const Text('업데이트'),
+            child: Text(AppL10n.of(context).splashUpdateAction),
           ),
         ],
       ),

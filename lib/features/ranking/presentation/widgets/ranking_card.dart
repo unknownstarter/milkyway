@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/ranking_stats.dart';
 
 /// 조합: 홈 '이번 주 나의 기록' 카드(익명 백분위 + 성장).
@@ -13,6 +14,7 @@ class RankingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.base),
@@ -29,52 +31,59 @@ class RankingCard extends StatelessWidget {
               const Icon(Icons.trending_up,
                   size: 16, color: AppColors.accentGreen),
               const SizedBox(width: 6),
-              Text('이번 주 나의 기록',
+              Text(l10n.rankingCardTitle,
                   style: AppTypography.caption
                       .copyWith(color: AppColors.textSecondary)),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          if (stats.hasRank) ..._ranked() else ..._empty(),
+          if (stats.hasRank) ..._ranked(l10n) else ..._empty(l10n),
           const SizedBox(height: AppSpacing.base),
-          _statsRow(),
+          _statsRow(l10n),
         ],
       ),
     );
   }
 
-  List<Widget> _ranked() {
+  String _deltaLabel(AppL10n l10n) {
+    if (stats.delta > 0) return l10n.rankingDeltaUp(stats.delta);
+    if (stats.delta < 0) return l10n.rankingDeltaDown(-stats.delta);
+    return l10n.rankingDeltaSame;
+  }
+
+  List<Widget> _ranked(AppL10n l10n) {
     return [
-      Text(stats.topPercentLabel!,
+      Text(l10n.rankingTopPercent(stats.topPercent!),
           style: AppTypography.title.copyWith(
               color: AppColors.accentGreen, fontWeight: FontWeight.w800)),
       const SizedBox(height: 4),
-      Text(stats.deltaLabel,
+      Text(_deltaLabel(l10n),
           style:
               AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
     ];
   }
 
-  List<Widget> _empty() {
+  List<Widget> _empty(AppL10n l10n) {
     return [
-      Text('이번 주 첫 기록을 남겨봐',
+      Text(l10n.rankingEmptyTitle,
           style: AppTypography.body.copyWith(color: AppColors.textBright)),
       if (stats.lastWeekMemos > 0) ...[
         const SizedBox(height: 4),
-        Text('지난주엔 ${stats.lastWeekMemos}개 남겼어',
+        Text(l10n.rankingLastWeek(stats.lastWeekMemos),
             style: AppTypography.bodySmall
                 .copyWith(color: AppColors.textSecondary)),
       ],
     ];
   }
 
-  Widget _statsRow() {
+  Widget _statsRow(AppL10n l10n) {
     return Row(
       children: [
-        _stat(Icons.edit_outlined, '이번 주 ${stats.thisWeekMemos}개'),
-        if (stats.streakLabel != null) ...[
+        _stat(Icons.edit_outlined, l10n.rankingThisWeekCount(stats.thisWeekMemos)),
+        if (stats.hasStreak) ...[
           const SizedBox(width: AppSpacing.base),
-          _stat(Icons.local_fire_department_outlined, stats.streakLabel!),
+          _stat(Icons.local_fire_department_outlined,
+              l10n.rankingStreakDays(stats.streakDays)),
         ],
       ],
     );

@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ProfileImageScreen extends ConsumerStatefulWidget {
   const ProfileImageScreen({super.key});
@@ -37,9 +38,9 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
         backgroundColor: const Color(0xFF181818),
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '프로필 사진',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).onboardingProfileImageTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -110,9 +111,9 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '프로필 사진을 설정해주세요',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).onboardingProfileImageHeading,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.w600,
@@ -121,9 +122,9 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '나중에 언제든지 변경할 수 있어요',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).onboardingProfileImageSubtitle,
+          style: const TextStyle(
             color: Color(0xFF838383),
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -186,10 +187,10 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     return Center(
       child: Column(
         children: [
-          const Text(
-            '등록된 프로필 사진은\n남겨주신 메모와 함께 보여져요',
+          Text(
+            AppL10n.of(context).onboardingProfileImageDescription,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -198,10 +199,10 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            '공개 설정한 메모만 보여지니 걱정마세요',
+          Text(
+            AppL10n.of(context).onboardingProfileImageNote,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Color(0xFF838383),
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -218,9 +219,9 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     return Center(
       child: TextButton(
         onPressed: _isLoading ? null : _skipImage,
-        child: const Text(
-          '건너뛰기',
-          style: TextStyle(
+        child: Text(
+          AppL10n.of(context).onboardingSkip,
+          style: const TextStyle(
             color: Color(0xFF6B7280),
             fontSize: 12,
             fontWeight: FontWeight.w400,
@@ -256,7 +257,7 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
                 : MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                     child: Text(
-                      '다음',
+                      AppL10n.of(context).commonNext,
                       style: TextStyle(
                         color: isEnabled ? Colors.black : Colors.white,
                         fontFamily: 'Pretendard',

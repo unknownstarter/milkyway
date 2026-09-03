@@ -1,47 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+import '../../../l10n/app_localizations.dart';
 
 /// 메모 관련 에러를 처리하고 사용자에게 표시하는 유틸리티 클래스
 class MemoErrorHandler {
   /// 에러를 분석하여 사용자 친화적인 메시지를 반환
-  static String getErrorMessage(dynamic error) {
+  static String getErrorMessage(AppL10n l, dynamic error) {
     if (error is PlatformException) {
       switch (error.code) {
         case 'camera_access_denied':
-          return '카메라 접근 권한이 필요합니다';
+          return l.memoErrorCameraPermission;
         case 'camera_unavailable':
-          return '카메라를 사용할 수 없습니다';
+          return l.memoErrorCameraUnavailable;
         case 'photo_access_denied':
-          return '사진 접근 권한이 필요합니다';
+          return l.memoErrorPhotoPermission;
         default:
-          return '이미지 선택 중 오류가 발생했습니다';
+          return l.memoErrorImagePick;
       }
     }
     
     if (error is SocketException) {
-      return '네트워크 연결을 확인해주세요';
+      return l.memoErrorNetwork;
     }
     
     final errorString = error.toString().toLowerCase();
     
     if (errorString.contains('network') || errorString.contains('connection')) {
-      return '네트워크 연결을 확인해주세요';
+      return l.memoErrorNetwork;
     }
     
     if (errorString.contains('permission') || errorString.contains('권한')) {
-      return '접근 권한이 필요합니다';
+      return l.memoErrorPermission;
     }
     
     if (errorString.contains('upload') || errorString.contains('업로드')) {
-      return '이미지 업로드에 실패했습니다';
+      return l.memoImageUploadFailed;
     }
     
     if (errorString.contains('save') || errorString.contains('저장')) {
-      return '저장 중 오류가 발생했습니다';
+      return l.memoErrorSave;
     }
     
-    return '오류가 발생했습니다';
+    return l.memoErrorGeneric;
   }
 
   /// 에러를 회색 스낵바로 표시
@@ -96,7 +97,7 @@ class MemoErrorHandler {
 
   /// 에러를 분석하여 회색 스낵바로 표시
   static void showError(BuildContext context, dynamic error) {
-    final message = getErrorMessage(error);
+    final message = getErrorMessage(AppL10n.of(context), error);
     showErrorSnackBar(context, message);
   }
 }

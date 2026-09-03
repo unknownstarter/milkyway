@@ -8,6 +8,7 @@ import '../../domain/models/memo_visibility.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/report_memo_bottom_sheet.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 책 상세 화면과 메모 리스트 화면에서 사용하는 메모 카드 컴포넌트
 /// 
@@ -82,19 +83,19 @@ class BookDetailMemoCard extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'report',
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.flag_outlined,
                 color: Colors.white,
                 size: 20,
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Text(
-                '신고하기',
-                style: TextStyle(
+                AppL10n.of(context).reportAction,
+                style: const TextStyle(
                   color: Colors.white,
                   fontFamily: 'Pretendard',
                   fontSize: 16,
@@ -113,7 +114,7 @@ class BookDetailMemoCard extends ConsumerWidget {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: '신고하기',
+      barrierLabel: AppL10n.of(context).reportAction,
       barrierColor: Colors.black.withOpacity(0.5),
       useRootNavigator: true,
       pageBuilder: (context, animation, secondaryAnimation) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'avatar.dart';
 import 'chips.dart';
 import 'cached_image.dart';
@@ -69,7 +70,7 @@ class MemoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (authorName != null) ...[
-              _authorRow(),
+              _authorRow(context),
               const SizedBox(height: 12),
             ],
             if (lyraQuestion != null && lyraQuestion!.isNotEmpty) ...[
@@ -100,7 +101,7 @@ class MemoCard extends StatelessWidget {
             ],
             if (bookTitle != null || page != null || commentCount > 0) ...[
               const SizedBox(height: 12),
-              _metaRow(),
+              _metaRow(context),
             ],
           ],
         ),
@@ -108,7 +109,8 @@ class MemoCard extends StatelessWidget {
     );
   }
 
-  Widget _authorRow() {
+  Widget _authorRow(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Row(
       children: [
         Avatar(
@@ -134,11 +136,12 @@ class MemoCard extends StatelessWidget {
                   ),
                   if (showMineTag) ...[
                     const SizedBox(width: 6),
-                    const LabelChip(text: '내 메모'),
+                    LabelChip(text: l10n.commonMyMemo),
                   ],
                   if (edited) ...[
                     const SizedBox(width: 6),
-                    const LabelChip(text: '수정됨', tone: ChipTone.accentSoft),
+                    LabelChip(
+                        text: l10n.commonEdited, tone: ChipTone.accentSoft),
                   ],
                 ],
               ),
@@ -176,10 +179,10 @@ class MemoCard extends StatelessWidget {
     );
   }
 
-  Widget _metaRow() {
+  Widget _metaRow(BuildContext context) {
     final parts = <String>[
       if (bookTitle != null) bookTitle!,
-      if (page != null) '$page쪽',
+      if (page != null) AppL10n.of(context).commonPageLabel(page!),
     ];
     return Row(
       children: [

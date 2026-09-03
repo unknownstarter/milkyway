@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/features/ranking/domain/models/ranking_stats.dart';
 import 'package:whatif_milkyway_app/features/ranking/presentation/widgets/ranking_card.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 /// RankingCard 카피 규칙 강제 + 빈/경계 상태.
 /// 이 카드는 순수 표현 위젯이라 모든 Text 가 시스템 카피다(사용자 입력 없음).
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   final banned = RegExp(r'[—–·“”‘’…]');
   final honorific = RegExp('당신');

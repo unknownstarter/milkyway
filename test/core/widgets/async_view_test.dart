@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/async_view.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   testWidgets('데이터면 builder 렌더', (tester) async {
     await tester.pumpWidget(wrap(AsyncView<List<String>>(

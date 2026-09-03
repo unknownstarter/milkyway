@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/features/comments/domain/models/comment.dart';
 import 'package:whatif_milkyway_app/features/comments/presentation/widgets/comment_tile.dart';
 import 'package:whatif_milkyway_app/features/comments/presentation/widgets/comment_composer.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 /// 카피 부호/톤 규칙 강제 (docs/design/01-DESIGN_PHILOSOPHY.md 원칙 6, CLAUDE.md).
 /// - AI 금지 기호: em대시 / en대시 / 중간점 / 곡선따옴표 / 단일 말줄임
@@ -11,7 +12,12 @@ import 'package:whatif_milkyway_app/features/comments/presentation/widgets/comme
 /// 사용자 본문(comment.content)은 사용자 입력이라 검사 대상에서 제외하고,
 /// 시스템/UI 카피만 골라 검사한다.
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   // 시스템 카피에 절대 들어오면 안 되는 문자.
   final banned = RegExp(r'[—–·“”‘’…]');

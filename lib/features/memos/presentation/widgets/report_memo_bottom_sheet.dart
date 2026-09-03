@@ -4,6 +4,8 @@ import '../../domain/models/memo.dart';
 import '../../domain/models/report_reason.dart';
 import '../providers/memo_report_provider.dart';
 import 'dart:developer' as developer;
+import '../../../../l10n/app_localizations.dart';
+import '../memo_l10n.dart';
 
 /// 메모 신고 바텀시트
 class ReportMemoBottomSheet extends ConsumerStatefulWidget {
@@ -33,6 +35,7 @@ class _ReportMemoBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -44,9 +47,9 @@ class _ReportMemoBottomSheetState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '신고하기',
-                  style: TextStyle(
+                Text(
+                  l10n.reportAction,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Pretendard',
                     fontSize: 20,
@@ -61,9 +64,9 @@ class _ReportMemoBottomSheetState
             ),
             const SizedBox(height: 24),
             // 안내 문구
-            const Text(
-              '부적절한 콘텐츠를 신고해주세요. 신고된 메모는 검토 후 처리됩니다.',
-              style: TextStyle(
+            Text(
+              l10n.reportGuide,
+              style: const TextStyle(
                 color: Color(0xFF838383),
                 fontFamily: 'Pretendard',
                 fontSize: 14,
@@ -72,9 +75,9 @@ class _ReportMemoBottomSheetState
             ),
             const SizedBox(height: 24),
             // 신고 사유 선택
-            const Text(
-              '신고 사유',
-              style: TextStyle(
+            Text(
+              l10n.reportReasonTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontFamily: 'Pretendard',
                 fontSize: 16,
@@ -86,9 +89,9 @@ class _ReportMemoBottomSheetState
             const SizedBox(height: 24),
             // 추가 설명 (선택사항)
             if (_selectedReason == ReportReason.other) ...[
-              const Text(
-                '추가 설명 (선택사항)',
-                style: TextStyle(
+              Text(
+                l10n.reportDescriptionLabel,
+                style: const TextStyle(
                   color: Colors.white,
                   fontFamily: 'Pretendard',
                   fontSize: 16,
@@ -105,7 +108,7 @@ class _ReportMemoBottomSheetState
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  hintText: '신고 사유를 자세히 설명해주세요',
+                  hintText: l10n.reportDescriptionHint,
                   hintStyle: const TextStyle(
                     color: Color(0xFF838383),
                     fontFamily: 'Pretendard',
@@ -146,9 +149,9 @@ class _ReportMemoBottomSheetState
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
-                        '신고하기',
-                        style: TextStyle(
+                    : Text(
+                        l10n.reportAction,
+                        style: const TextStyle(
                           color: Colors.black,
                           fontFamily: 'Pretendard',
                           fontSize: 16,
@@ -191,7 +194,7 @@ class _ReportMemoBottomSheetState
           children: [
             Expanded(
               child: Text(
-                reason.displayName,
+                reportReasonLabel(AppL10n.of(context), reason),
                 style: TextStyle(
                   color: isSelected ? const Color(0xFF48FF00) : Colors.white,
                   fontFamily: 'Pretendard',
@@ -237,16 +240,16 @@ class _ReportMemoBottomSheetState
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              '신고가 접수되었습니다. 검토 후 처리됩니다.',
-              style: TextStyle(
+              AppL10n.of(context).reportSubmitted,
+              style: const TextStyle(
                 color: Colors.white,
                 fontFamily: 'Pretendard',
               ),
             ),
-            backgroundColor: Color(0xFF242424),
-            duration: Duration(seconds: 2),
+            backgroundColor: const Color(0xFF242424),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -254,8 +257,8 @@ class _ReportMemoBottomSheetState
       developer.log('신고 실패: $e');
       if (mounted) {
         final errorMessage = e.toString().contains('이미 신고한 메모')
-            ? '이미 신고한 메모입니다.'
-            : '신고 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            ? AppL10n.of(context).reportAlreadyReported
+            : AppL10n.of(context).reportFailed;
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

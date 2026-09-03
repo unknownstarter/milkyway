@@ -11,6 +11,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
@@ -92,15 +93,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     }
 
     // 기본 유효성 체크 및 에러 메시지 설정
+    final l10n = AppL10n.of(context);
     String? formatError;
     if (nickname.isEmpty) {
       formatError = null; // 입력 전에는 에러 메시지 표시 안 함
     } else if (nickname.length < 2) {
-      formatError = '닉네임은 최소 2자 이상이어야 합니다';
+      formatError = l10n.profileEditNicknameTooShort;
     } else if (nickname.length > 20) {
-      formatError = '닉네임은 최대 20자까지 입력 가능합니다';
+      formatError = l10n.profileEditNicknameTooLong;
     } else if (hasSpecialCharacters) {
-      formatError = '특수문자는 사용할 수 없습니다';
+      formatError = l10n.profileEditNicknameNoSpecial;
     }
 
     final isValidFormat = nickname.length >= 2 &&
@@ -146,7 +148,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       setState(() {
         _isCheckingNickname = false;
         if (!_lastCheckResult) {
-          _nicknameError = '이미 사용 중인 닉네임입니다';
+          _nicknameError = AppL10n.of(context).profileEditNicknameTaken;
         } else {
           _nicknameError = null;
         }
@@ -171,7 +173,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           _lastCheckedNickname = nickname;
           _lastCheckResult = isAvailable; // 체크 결과 저장
           if (!isAvailable) {
-            _nicknameError = '이미 사용 중인 닉네임입니다';
+            _nicknameError = AppL10n.of(context).profileEditNicknameTaken;
           } else {
             _nicknameError = null;
           }
@@ -182,7 +184,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         setState(() {
           _isCheckingNickname = false;
           _lastCheckResult = false; // 에러 발생 시 안전하게 false로 설정
-          _nicknameError = '닉네임 확인 중 오류가 발생했습니다';
+          _nicknameError = AppL10n.of(context).profileEditNicknameCheckError;
         });
         // 에러 핸들러로도 표시
         ErrorHandler.showError(context, e, operation: '닉네임 중복 체크');
@@ -200,9 +202,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         backgroundColor: const Color(0xFF181818),
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '프로필 수정',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).profileEditTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -219,7 +221,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ? null 
                 : _saveProfile,
             child: Text(
-              '저장',
+              AppL10n.of(context).commonSave,
               style: TextStyle(
                 color: (_isLoading || _isCheckingNickname || _nicknameError != null) 
                     ? Colors.grey 
@@ -279,9 +281,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         TextButton.icon(
           onPressed: _selectImage,
           icon: const Icon(Icons.camera_alt, color: Colors.white),
-          label: const Text(
-            '프로필 사진 변경',
-            style: TextStyle(
+          label: Text(
+            AppL10n.of(context).profileEditChangePhoto,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
             ),
@@ -292,9 +294,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           TextButton.icon(
             onPressed: _removeImage,
             icon: const Icon(Icons.delete, color: Colors.red),
-            label: const Text(
-              '사진 제거',
-              style: TextStyle(
+            label: Text(
+              AppL10n.of(context).profileEditRemovePhoto,
+              style: const TextStyle(
                 color: Colors.red,
                 fontFamily: 'Pretendard',
               ),
@@ -344,9 +346,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '닉네임',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).profileEditNicknameLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -366,7 +368,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             height: 22.4 / 16,
           ),
           decoration: InputDecoration(
-            hintText: '닉네임을 입력하세요',
+            hintText: AppL10n.of(context).profileEditNicknameHint,
             hintStyle: const TextStyle(
               color: Color(0xFF838383),
               fontFamily: 'Pretendard',
@@ -407,9 +409,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Text(
-                '확인 중...',
-                style: TextStyle(
+              Text(
+                AppL10n.of(context).profileEditChecking,
+                style: const TextStyle(
                   color: Color(0xFF838383),
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
@@ -435,9 +437,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ),
               ),
             ] else ...[
-              const Text(
-                '2 - 20자, 특수문자 사용 불가',
-                style: TextStyle(
+              Text(
+                AppL10n.of(context).profileEditNicknameRule,
+                style: const TextStyle(
                   color: Color(0xFF838383),
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
@@ -456,9 +458,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '이메일',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).profileEditEmailLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -475,7 +477,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             border: Border.all(color: Colors.grey.shade800),
           ),
           child: Text(
-            email ?? '이메일 없음',
+            email ?? AppL10n.of(context).profileEditNoEmail,
             style: TextStyle(
               color: Colors.grey.shade400,
               fontFamily: 'Pretendard',
@@ -484,7 +486,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          '이메일은 변경할 수 없습니다',
+          AppL10n.of(context).profileEditEmailFixed,
           style: TextStyle(
             color: Colors.grey.shade500,
             fontSize: 12,
@@ -502,18 +504,21 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: const Color(0xFF1A1A1A),
-          title: const Text('이미지 선택', style: TextStyle(color: Colors.white)),
+          title: Text(AppL10n.of(context).profileEditPickImage,
+              style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Colors.white),
-                title: const Text('갤러리에서 선택', style: TextStyle(color: Colors.white)),
+                title: Text(AppL10n.of(context).profileEditFromGallery,
+                    style: const TextStyle(color: Colors.white)),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Colors.white),
-                title: const Text('카메라로 촬영', style: TextStyle(color: Colors.white)),
+                title: Text(AppL10n.of(context).profileEditFromCamera,
+                    style: const TextStyle(color: Colors.white)),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
             ],
@@ -540,7 +545,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '이미지 선택 중 오류가 발생했습니다: $e',
+              AppL10n.of(context).profileEditPickImageError('$e'),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF242424),
@@ -570,9 +575,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             side: BorderSide(color: Colors.red.shade700, width: 1),
           ),
         ),
-        child: const Text(
-          '로그아웃',
-          style: TextStyle(
+        child: Text(
+          AppL10n.of(context).profileEditLogout,
+          style: const TextStyle(
             color: Colors.red,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -588,27 +593,27 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          '로그아웃',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
+        title: Text(
+          AppL10n.of(context).profileEditLogout,
+          style: const TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
         ),
-        content: const Text(
-          '정말 로그아웃 하시겠습니까?',
-          style: TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
+        content: Text(
+          AppL10n.of(context).profileEditLogoutConfirm,
+          style: const TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: Colors.grey, fontFamily: 'Pretendard'),
+            child: Text(
+              AppL10n.of(context).commonCancel,
+              style: const TextStyle(color: Colors.grey, fontFamily: 'Pretendard'),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
+            child: Text(
+              AppL10n.of(context).profileEditLogout,
+              style: const TextStyle(color: Colors.red, fontFamily: 'Pretendard'),
             ),
           ),
         ],
@@ -642,9 +647,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             side: BorderSide(color: Colors.grey.shade700, width: 1),
           ),
         ),
-        child: const Text(
-          '계정 삭제',
-          style: TextStyle(
+        child: Text(
+          AppL10n.of(context).profileEditDeleteAccount,
+          style: const TextStyle(
             color: Colors.grey,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -657,12 +662,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   Future<void> _deleteAccount() async {
     // 30일 소프트딜리트 안내(기존 컨펌 모달 디자인 재사용).
+    final l10n = AppL10n.of(context);
     final shouldDelete = await showAppConfirm(
       context,
-      title: '계정 삭제',
-      message:
-          '지금 삭제하면 30일 뒤에 책과 메모가 완전히 지워져. 그 전에 다시 로그인하면 그대로 복구돼. 계속할까',
-      confirmText: '삭제',
+      title: l10n.profileEditDeleteAccount,
+      message: l10n.profileEditDeleteAccountMessage,
+      confirmText: l10n.profileEditDelete,
       tone: ConfirmTone.danger,
     );
 
@@ -692,12 +697,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     final nickname = _nicknameController.text.trim();
-    
+    final l10n = AppL10n.of(context);
+
     // 유효성 검사
     if (nickname.isEmpty) {
       ErrorHandler.showSuccess(
         context,
-        '닉네임을 입력해주세요',
+        l10n.profileEditNicknameRequired,
       );
       return;
     }
@@ -708,7 +714,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       if (_isCheckingNickname) {
         ErrorHandler.showSuccess(
           context,
-          '닉네임 확인 중입니다. 잠시만 기다려주세요.',
+          l10n.profileEditNicknameChecking,
         );
         return;
       }
@@ -732,7 +738,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         !_isImageRemoved) {
       ErrorHandler.showSuccess(
         context,
-        '변경된 내용이 없습니다',
+        l10n.profileEditNoChanges,
       );
       return;
     }
@@ -754,7 +760,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           if (mounted) {
             ErrorHandler.showErrorSnackBar(
               context,
-              message: '프로필 이미지 업로드에 실패했습니다',
+              message: l10n.profileEditImageUploadFailed,
             );
           }
           return;
@@ -780,7 +786,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       if (mounted) {
         ErrorHandler.showSuccess(
           context,
-          '프로필이 수정되었습니다',
+          l10n.profileEditSaved,
         );
         // 원본 닉네임 업데이트
         _originalNickname = nickname;

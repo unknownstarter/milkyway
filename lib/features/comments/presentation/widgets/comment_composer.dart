@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 조합: 하단 고정 댓글 입력창(ComposePrompt와 같은 결 - 아바타 + 둥근 입력).
 ///  - [locked]=true(책 미저장)이면 입력 대신 탭 시 [onLockedTap] (책 담기 유도)
@@ -32,6 +33,7 @@ class CommentComposer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.bgPrimary,
@@ -89,8 +91,10 @@ class CommentComposer extends StatelessWidget {
                           border: InputBorder.none,
                           counterText: '',
                           hintText: locked
-                              ? '책을 담으면 댓글을 남길 수 있어'
-                              : (isEditing ? '댓글 수정' : '댓글 남기기'),
+                              ? l10n.commentComposerLocked
+                              : (isEditing
+                                  ? l10n.commentComposerEditHint
+                                  : l10n.commentComposerHint),
                           hintStyle: AppTypography.bodySmall
                               .copyWith(color: AppColors.textTertiary),
                         ),

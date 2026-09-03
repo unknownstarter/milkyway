@@ -50,13 +50,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color: AppColors.textSecondary, strokeWidth: 2),
             ),
             error: (e, st) => Center(
-              child: Text('불러오지 못했어요',
+              child: Text(AppL10n.of(context).profileLoadError,
                   style: AppTypography.bodySmall
                       .copyWith(color: AppColors.textSecondary)),
             ),
             data: (user) => user == null
                 ? Center(
-                    child: Text('로그인이 필요해요',
+                    child: Text(AppL10n.of(context).profileLoginRequired,
                         style: AppTypography.bodySmall
                             .copyWith(color: AppColors.textSecondary)),
                   )
@@ -107,7 +107,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Icon(Icons.edit_outlined,
                           size: 13, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
-                      Text('프로필 편집', style: AppTypography.bodySmall),
+                      Text(AppL10n.of(context).profileEdit,
+                          style: AppTypography.bodySmall),
                     ],
                   ),
                 ),
@@ -134,15 +135,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('내 기록',
+          Text(AppL10n.of(context).profileMyRecord,
               style: AppTypography.label
                   .copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: 16),
           Row(
             children: [
-              _stat('${stats.savedBooks}', '담은 책'),
-              _stat('${stats.memos}', '남긴 메모'),
-              _stat('${stats.completedBooks}', '완독한 책'),
+              _stat('${stats.savedBooks}',
+                  AppL10n.of(context).profileSavedBooks),
+              _stat('${stats.memos}', AppL10n.of(context).statMemosLeft),
+              _stat('${stats.completedBooks}',
+                  AppL10n.of(context).profileCompletedBooks),
             ],
           ),
         ],
@@ -184,10 +187,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           const NotificationSettingsTile(),
           const Divider(color: AppColors.divider, height: 1),
-          _menuRow(Icons.chat_bubble_outline, '의견 보내기',
+          _menuRow(Icons.chat_bubble_outline,
+              AppL10n.of(context).profileMenuFeedback,
               () => _showFeedbackModal(context)),
           const Divider(color: AppColors.divider, height: 1),
-          _menuRow(Icons.description_outlined, '이용약관',
+          _menuRow(Icons.description_outlined,
+              AppL10n.of(context).profileMenuTerms,
               () => _launchTerms()),
           const Divider(color: AppColors.divider, height: 1),
           _menuRow(Icons.language_outlined,
@@ -200,7 +205,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const Icon(Icons.info_outline,
                     size: 20, color: AppColors.textSecondary),
                 const SizedBox(width: 14),
-                Text('앱 버전', style: AppTypography.body),
+                Text(AppL10n.of(context).profileMenuVersion,
+                    style: AppTypography.body),
                 const Spacer(),
                 FutureBuilder<String>(
                   future: _appVersion(),

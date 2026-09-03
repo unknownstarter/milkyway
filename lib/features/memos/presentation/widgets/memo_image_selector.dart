@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'dart:io';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 이미지 선택 위젯
 class MemoImageSelector extends StatelessWidget {
@@ -17,12 +18,13 @@ class MemoImageSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '이미지 (선택사항)',
-          style: TextStyle(
+        Text(
+          l10n.memoImageLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -43,18 +45,18 @@ class MemoImageSelector extends StatelessWidget {
               ? InkWell(
                   onTap: onSelectImage,
                   borderRadius: BorderRadius.circular(12),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.image_outlined,
                         color: Color(0xFF838383),
                         size: 48,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
-                        '저장하고 싶은 페이지를 등록해주세요',
-                        style: TextStyle(
+                        l10n.memoImageHint,
+                        style: const TextStyle(
                           color: Color(0xFF838383),
                           fontSize: 16,
                           fontFamily: 'Pretendard',

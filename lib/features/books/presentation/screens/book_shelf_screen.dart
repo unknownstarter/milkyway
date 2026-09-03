@@ -10,6 +10,8 @@ import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../home/domain/models/book_status.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../book_status_l10n.dart';
 
 /// 필터 옵션 데이터 클래스
 class _FilterOption {
@@ -32,15 +34,19 @@ class BookShelfScreen extends ConsumerStatefulWidget {
 class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
   BookStatus? _selectedFilter;
 
-  // 필터 옵션 리스트 (코드 중복 제거)
-  static final List<_FilterOption> _filterOptions = [
-    const _FilterOption(label: '모든 책', status: null),
-    _FilterOption(
-        label: BookStatus.wantToRead.value, status: BookStatus.wantToRead),
-    _FilterOption(label: BookStatus.reading.value, status: BookStatus.reading),
-    _FilterOption(
-        label: BookStatus.completed.value, status: BookStatus.completed),
-  ];
+  // 필터 옵션 리스트 (코드 중복 제거). 라벨이 언어에 따라 달라져 build 시점에 만든다.
+  List<_FilterOption> _filterOptionsOf(AppL10n l) => [
+        _FilterOption(label: l.bookFilterAll, status: null),
+        _FilterOption(
+            label: bookStatusLabel(l, BookStatus.wantToRead),
+            status: BookStatus.wantToRead),
+        _FilterOption(
+            label: bookStatusLabel(l, BookStatus.reading),
+            status: BookStatus.reading),
+        _FilterOption(
+            label: bookStatusLabel(l, BookStatus.completed),
+            status: BookStatus.completed),
+      ];
 
   /// 랭킹 정렬은 provider가 처리. 여기선 상태 필터만 그 순서 위에 적용.
   List<ShelfBook> _applyStatusFilter(List<ShelfBook> books) {
@@ -62,7 +68,7 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
       body: AsyncView<List<ShelfBook>>(
         value: booksAsync,
         loadingHeight: MediaQuery.of(context).size.height * 0.6,
-        errorText: '책을 불러오지 못했어',
+        errorText: AppL10n.of(context).bookShelfLoadError,
         onRetry: () => ref.invalidate(bookShelfProvider),
         isEmpty: (books) => _applyStatusFilter(books).isEmpty,
         emptyBuilder: () => _emptyState(),
@@ -77,13 +83,13 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
 
   /// 표준 필터바에 들어갈 상태 필터(전체/읽는중/완독 등). 메모탭과 동일한 SegmentFilter.
   Widget _statusFilter() {
-    final selected =
-        _filterOptions.indexWhere((o) => o.status == _selectedFilter);
+    final options = _filterOptionsOf(AppL10n.of(context));
+    final selected = options.indexWhere((o) => o.status == _selectedFilter);
     return SegmentFilter(
-      segments: _filterOptions.map((o) => o.label).toList(),
+      segments: options.map((o) => o.label).toList(),
       selectedIndex: selected < 0 ? 0 : selected,
       onChanged: (i) => setState(() {
-        _selectedFilter = _filterOptions[i].status;
+        _selectedFilter = options[i].status;
       }),
     );
   }
@@ -97,7 +103,7 @@ class _BookShelfScreenState extends ConsumerState<BookShelfScreen> {
           children: [
             const Icon(Icons.note_add, color: Colors.grey, size: 48),
             const SizedBox(height: 16),
-            Text('새로운 책을 추가해주세요',
+            Text(AppL10n.of(context).bookShelfEmpty,
                 style: AppTypography.body.copyWith(color: AppColors.textBright)),
           ],
         ),

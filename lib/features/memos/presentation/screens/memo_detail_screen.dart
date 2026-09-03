@@ -20,6 +20,7 @@ import '../../../comments/presentation/widgets/comment_section.dart';
 import '../../domain/memo_exceptions.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 import '../../../../core/presentation/widgets/design/app_dialog.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 상세 = 작성자행 + 본문 + 이미지 + 책행 + 공개표시. 목업 memo-detail 기준.
 class MemoDetailScreen extends ConsumerStatefulWidget {
@@ -85,7 +86,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       return Scaffold(
         backgroundColor: AppColors.bgPrimary,
         body: Center(
-          child: Text('메모를 불러오지 못했어요',
+          child: Text(AppL10n.of(context).memoLoadFailed,
               style: AppTypography.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
         ),
@@ -120,11 +121,12 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           pathParameters: {'id': bookId});
       return;
     }
+    final l10n = AppL10n.of(context);
     final save = await showAppConfirm(
       context,
-      title: '책 담기',
-      message: '지금은 볼 수 없는 메모야. 이 책을 담고 책 상세로 가볼까',
-      confirmText: '담기',
+      title: l10n.memoSaveBookTitle,
+      message: l10n.memoRestrictedBody,
+      confirmText: l10n.memoSaveBookConfirm,
     );
     if (!mounted) return;
     if (!save) {
@@ -154,6 +156,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   }
 
   Widget _content(Memo memo) {
+    final l10n = AppL10n.of(context);
     final currentUser = ref.watch(authProvider).value;
     final isOwner = currentUser?.id == memo.userId;
     final edited = memo.isEdited;
@@ -174,7 +177,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
             }
           },
         ),
-        title: const Text('메모', style: AppTypography.subtitle),
+        title: Text(l10n.memoTitle, style: AppTypography.subtitle),
         actions: isOwner
             ? [
                 IconButton(
@@ -233,7 +236,8 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
               Row(
                 children: [
                   Flexible(
-                    child: Text(memo.userNickname ?? '밀키웨이',
+                    child: Text(
+                        memo.userNickname ?? AppL10n.of(context).memoAuthorFallback,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.bodyBold
@@ -241,18 +245,22 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
                   ),
                   if (isOwner) ...[
                     const SizedBox(width: 6),
-                    const LabelChip(text: '내 메모'),
+                    LabelChip(text: AppL10n.of(context).memoMineTag),
                   ],
                 ],
               ),
               const SizedBox(height: 3),
               Row(
                 children: [
-                  Text('${date.month}월 ${date.day}일',
+                  Text(
+                      AppL10n.of(context)
+                          .memoDateMonthDay(date.month, date.day),
                       style: AppTypography.caption),
                   if (edited) ...[
                     const SizedBox(width: 6),
-                    const LabelChip(text: '수정됨', tone: ChipTone.accentSoft),
+                    LabelChip(
+                        text: AppL10n.of(context).memoEditedTag,
+                        tone: ChipTone.accentSoft),
                   ],
                 ],
               ),
@@ -285,7 +293,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
                     color: AppColors.accentGreen, shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
-              Text('Lyra의 물음',
+              Text(AppL10n.of(context).memoLyraQuestionLabel,
                   style: AppTypography.caption.copyWith(
                       color: AppColors.accentGreen,
                       fontWeight: FontWeight.w700)),
@@ -340,11 +348,12 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
       return;
     }
+    final l10n = AppL10n.of(context);
     final save = await showAppConfirm(
       context,
-      title: '책 담기',
-      message: '이 책을 담아야 상세를 볼 수 있어. 담을까',
-      confirmText: '담기',
+      title: l10n.memoSaveBookTitle,
+      message: l10n.memoSaveBookBody,
+      confirmText: l10n.memoSaveBookConfirm,
     );
     if (!mounted || !save) return;
     try {
@@ -426,7 +435,9 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
         Icon(pub ? Icons.visibility_outlined : Icons.lock_outline,
             size: 16, color: AppColors.textTertiary),
         const SizedBox(width: 6),
-        Text(pub ? '공개 메모' : '나만 보는 메모',
+        Text(pub
+            ? AppL10n.of(context).memoPublicLabel
+            : AppL10n.of(context).memoPrivateLabel,
             style: AppTypography.caption.copyWith(color: AppColors.textTertiary)),
       ],
     );
@@ -446,7 +457,8 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: Colors.white),
-              title: Text('수정하기', style: AppTypography.body),
+              title: Text(AppL10n.of(context).memoEditAction,
+                  style: AppTypography.body),
               onTap: () {
                 Navigator.pop(context);
                 _editMemo(memo);
@@ -455,7 +467,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
             ListTile(
               leading:
                   const Icon(Icons.delete_outline, color: Color(0xFFE05252)),
-              title: Text('삭제하기',
+              title: Text(AppL10n.of(context).memoDeleteAction,
                   style: AppTypography.body
                       .copyWith(color: const Color(0xFFE05252))),
               onTap: () {
@@ -475,11 +487,12 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   }
 
   Future<void> _deleteMemo(Memo memo) async {
+    final l10n = AppL10n.of(context);
     final shouldDelete = await showAppConfirm(
       context,
-      title: '메모 삭제',
-      message: '이 메모를 삭제할까',
-      confirmText: '삭제',
+      title: l10n.memoDeleteTitle,
+      message: l10n.memoDeleteAsk,
+      confirmText: l10n.memoDelete,
       tone: ConfirmTone.danger,
     );
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 디자인 시스템 표준: 비동기 콘텐츠를 '부드럽게' 렌더한다.
 ///
@@ -18,7 +19,8 @@ class AsyncView<T> extends StatelessWidget {
   final bool Function(T data)? isEmpty;
   final Widget Function()? emptyBuilder;
 
-  final String errorText;
+  /// null이면 공용 기본 문구(commonLoadFailed)를 쓴다.
+  final String? errorText;
 
   /// 재시도 콜백(선택). 주면 에러 상태에 '다시 시도' 버튼이 뜬다.
   /// raw 에러는 절대 노출하지 않음([errorText]만). 원본 에러는 repository/provider에서 log로 적재.
@@ -34,7 +36,7 @@ class AsyncView<T> extends StatelessWidget {
     required this.builder,
     this.isEmpty,
     this.emptyBuilder,
-    this.errorText = '불러오지 못했어',
+    this.errorText,
     this.onRetry,
     this.loadingHeight = 140,
     this.duration = const Duration(milliseconds: 180),
@@ -42,6 +44,7 @@ class AsyncView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return AnimatedSwitcher(
       duration: duration,
       switchInCurve: Curves.easeOut,
@@ -79,7 +82,7 @@ class AsyncView<T> extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(errorText,
+                Text(errorText ?? l10n.commonLoadFailed,
                     textAlign: TextAlign.center,
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary)),
@@ -95,7 +98,8 @@ class AsyncView<T> extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999)),
                     ),
-                    child: Text('다시 시도', style: AppTypography.bodySmall),
+                    child:
+                        Text(l10n.commonRetry, style: AppTypography.bodySmall),
                   ),
                 ],
               ],

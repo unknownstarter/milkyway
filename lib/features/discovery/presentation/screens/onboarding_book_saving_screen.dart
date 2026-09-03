@@ -3,6 +3,7 @@ import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -11,6 +12,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/recommended_book.dart';
 import '../providers/discovery_providers.dart';
+import '../recommended_book_l10n.dart';
 
 /// 온보딩 책 담기(주인공). 공개 메모가 쌓인 책을 추천 → 여러 권 담기.
 class OnboardingBookSavingScreen extends ConsumerStatefulWidget {
@@ -69,7 +71,7 @@ class _OnboardingBookSavingScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.surfaceMuted,
-            content: Text('책을 담는 중 문제가 생겼어요',
+            content: Text(AppL10n.of(context).discoverySaveError,
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textPrimary)),
           ),
@@ -82,6 +84,7 @@ class _OnboardingBookSavingScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     final async = ref.watch(recommendedBooksProvider);
     final selected = ref.watch(bookSelectionProvider);
 
@@ -91,11 +94,11 @@ class _OnboardingBookSavingScreenState
         backgroundColor: AppColors.bgPrimary,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: const Text('책 담기', style: AppTypography.subtitle),
+        title: Text(l.discoveryTitle, style: AppTypography.subtitle),
         actions: [
           TextButton(
             onPressed: _saving ? null : () => _complete(0),
-            child: Text('다음에 담기',
+            child: Text(l.discoverySkip,
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textSecondary)),
           ),
@@ -110,7 +113,7 @@ class _OnboardingBookSavingScreenState
                     color: AppColors.textSecondary, strokeWidth: 2),
               ),
               error: (e, _) => Center(
-                child: Text('추천을 불러오지 못했어요',
+                child: Text(l.discoveryLoadError,
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary)),
               ),
@@ -124,9 +127,10 @@ class _OnboardingBookSavingScreenState
   }
 
   Widget _grid(List<RecommendedBook> books, Set<String> selected) {
+    final l = AppL10n.of(context);
     if (books.isEmpty) {
       return Center(
-        child: Text('아직 추천할 책이 없어요',
+        child: Text(l.discoveryEmpty,
             style: AppTypography.bodySmall
                 .copyWith(color: AppColors.textSecondary)),
       );
@@ -140,9 +144,9 @@ class _OnboardingBookSavingScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('사람들이 메모를 남긴 책', style: AppTypography.heading),
+                Text(l.discoveryHeading, style: AppTypography.heading),
                 const SizedBox(height: AppSpacing.md),
-                Text('마음이 가는 책을 담아보세요\n담은 책에 Lyra가 물음을 건네요',
+                Text(l.discoveryBody,
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary)),
                 const SizedBox(height: AppSpacing.base),
@@ -154,7 +158,7 @@ class _OnboardingBookSavingScreenState
                       const Icon(Icons.search,
                           size: 16, color: AppColors.accentGreen),
                       const SizedBox(width: 6),
-                      Text('찾는 책이 없다면 직접 검색',
+                      Text(l.discoverySearchCta,
                           style: AppTypography.bodySmall.copyWith(
                               color: AppColors.accentGreen,
                               fontWeight: FontWeight.w600)),
@@ -244,7 +248,7 @@ class _OnboardingBookSavingScreenState
               style: AppTypography.bodyBold
                   .copyWith(fontSize: 14, color: AppColors.textBright)),
           const SizedBox(height: 3),
-          Text(book.proofLabel,
+          Text(recommendedBookProof(AppL10n.of(context), book),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption
@@ -255,7 +259,8 @@ class _OnboardingBookSavingScreenState
   }
 
   Widget _cta(int count) {
-    final label = count == 0 ? '다음에 담기' : '$count권 담고 시작하기';
+    final l = AppL10n.of(context);
+    final label = count == 0 ? l.discoverySkip : l.discoveryStartCta(count);
     final active = count > 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(

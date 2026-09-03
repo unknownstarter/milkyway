@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'avatar.dart';
 
 /// 조합: 메모 쓰기 진입(메모 탭 상단). Avatar + 안내 문구, 탭하면 작성 화면.
 class ComposePrompt extends StatelessWidget {
   final String? avatarUrl;
   final String? initial;
-  final String hint;
+  /// null이면 공용 기본 문구(commonComposeHint).
+  final String? hint;
   final VoidCallback onTap;
 
   const ComposePrompt({
     super.key,
     this.avatarUrl,
     this.initial,
-    this.hint = '오늘 읽은 문장을 남겨보세요',
+    this.hint,
     required this.onTap,
   });
 
@@ -37,7 +39,7 @@ class ComposePrompt extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                hint,
+                hint ?? AppL10n.of(context).commonComposeHint,
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textSecondary),
               ),

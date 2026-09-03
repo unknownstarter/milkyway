@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/memo_card.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 /// 소셜 확장(신규 lyraQuestion 인용 라인 + commentCount)의 표현/경계 검증.
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   testWidgets('lyraQuestion 있으면 인용 라인 + 반짝임 아이콘', (tester) async {
     await tester.pumpWidget(wrap(const MemoCard(

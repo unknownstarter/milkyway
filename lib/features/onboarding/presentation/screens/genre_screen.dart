@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../providers/onboarding_genres_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 온보딩 장르 선택(선택 · 건너뛰기 가능). 추천 책 정렬용, 게이팅 아님.
 class GenreScreen extends ConsumerStatefulWidget {
@@ -47,7 +48,8 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
         backgroundColor: AppColors.bgPrimary,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: const Text('취향', style: AppTypography.subtitle),
+        title: Text(AppL10n.of(context).onboardingGenreTitle,
+            style: AppTypography.subtitle),
       ),
       body: Column(
         children: [
@@ -58,11 +60,11 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AppSpacing.xxxl),
-                  const Text('어떤 결의 책을\n좋아하나요',
+                  Text(AppL10n.of(context).onboardingGenreHeading,
                       style: AppTypography.heading),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    '취향을 알려주면 첫 책을 더 잘 골라드려요\n하나 이상 골라주세요',
+                    AppL10n.of(context).onboardingGenreSubtitle,
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary),
                   ),
@@ -88,6 +90,39 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
     );
   }
 
+  /// 저장값은 [kOnboardingGenres]의 한국어 canonical 그대로 두고 표시만 로컬라이즈.
+  String _genreLabel(String genre) {
+    final l10n = AppL10n.of(context);
+    switch (genre) {
+      case '소설':
+        return l10n.onboardingGenreNovel;
+      case '시':
+        return l10n.onboardingGenrePoetry;
+      case '에세이':
+        return l10n.onboardingGenreEssay;
+      case '인문':
+        return l10n.onboardingGenreHumanities;
+      case '철학':
+        return l10n.onboardingGenrePhilosophy;
+      case '과학':
+        return l10n.onboardingGenreScience;
+      case 'SF':
+        return l10n.onboardingGenreSciFi;
+      case '역사':
+        return l10n.onboardingGenreHistory;
+      case '예술':
+        return l10n.onboardingGenreArt;
+      case '심리':
+        return l10n.onboardingGenrePsychology;
+      case '경제경영':
+        return l10n.onboardingGenreBusiness;
+      case '자기계발':
+        return l10n.onboardingGenreSelfHelp;
+      default:
+        return genre;
+    }
+  }
+
   Widget _chip(String genre) {
     final on = _selected.contains(genre);
     return GestureDetector(
@@ -105,7 +140,7 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
           ),
         ),
         child: Text(
-          genre,
+          _genreLabel(genre),
           style: TextStyle(
             fontFamily: AppTypography.fontFamily,
             fontSize: 15,
@@ -120,7 +155,10 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
 
   Widget _nextButton() {
     final enabled = _selected.isNotEmpty;
-    final label = enabled ? '${_selected.length}개 고르고 다음' : '한 개 이상 골라주세요';
+    final l10n = AppL10n.of(context);
+    final label = enabled
+        ? l10n.onboardingGenreNextCount(_selected.length)
+        : l10n.onboardingGenreSelectAtLeastOne;
     return SizedBox(
       width: double.infinity,
       height: 54,

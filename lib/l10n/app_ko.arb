@@ -71,7 +71,7 @@
   "orbShareLinkCopied": "공유하기 링크가 복사되었어요",
   "orbShareError": "공유 준비 중 문제가 생겼어요. 잠시 후 다시 시도해요",
   "orbGateBannerTitle": "첫 오브를 만들어보세요",
-  "orbGateBannerBody": "메모 {count}개만 더 남기면 나만의 은하수가 생겨요",
+  "orbGateBannerBody": "메모 {count}개면 은하수가 생겨",
   "@orbGateBannerBody": {
     "placeholders": {
       "count": {
@@ -154,12 +154,577 @@
       }
     }
   },
-  "wrappedEntryBody": "그 자리에 남은 {count}개의 별을 모았어요",
+  "wrappedEntryBody": "그 자리에 남은 별 {count}개",
   "@wrappedEntryBody": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
-  }
+  },
+  "authSignInApple": "Apple로 시작하기",
+  "authSignInGoogle": "Google로 시작하기",
+  "authSignInFailed": "로그인에 실패했습니다. 다시 시도해 주세요",
+  "authNotificationPermissionTitle": "알림 권한",
+  "authNotificationPermissionBody": "내가 읽고 있는 책에 새로운 메모가 등록되면 알려드려요",
+  "authNotificationPermissionLater": "나중에",
+  "authNotificationPermissionAllow": "허용",
+  "splashUpdateTitle": "업데이트 필요",
+  "splashUpdateBody": "새로운 버전이 있습니다.\n원활한 사용을 위해 업데이트를 진행해주세요",
+  "splashUpdateAction": "업데이트",
+  "onboardingSkip": "건너뛰기",
+  "onboardingNicknameTitle": "닉네임 설정",
+  "onboardingNicknameHeading": "닉네임을 설정해주세요",
+  "onboardingNicknameSubtitle": "밀키웨이의 다른 유저가 볼 수 있는 이름이에요",
+  "onboardingNicknameLabel": "닉네임",
+  "onboardingNicknameHint": "닉네임을 입력하세요",
+  "onboardingNicknameChecking": "확인 중...",
+  "onboardingNicknameHelp": "2 - 20자, 특수문자 사용 불가",
+  "onboardingNicknameErrorTooShort": "닉네임은 최소 2자 이상이어야 합니다",
+  "onboardingNicknameErrorTooLong": "닉네임은 최대 20자까지 입력 가능합니다",
+  "onboardingNicknameErrorSpecialChars": "특수문자는 사용할 수 없습니다",
+  "onboardingNicknameErrorTaken": "이미 사용 중인 닉네임입니다",
+  "onboardingNicknameErrorCheckFailed": "닉네임 확인 중 오류가 발생했습니다",
+  "onboardingNicknameSaveError": "닉네임 설정 중 오류가 발생했습니다: {error}",
+  "@onboardingNicknameSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingProfileImageTitle": "프로필 사진",
+  "onboardingProfileImageHeading": "프로필 사진을 설정해주세요",
+  "onboardingProfileImageSubtitle": "나중에 언제든지 변경할 수 있어요",
+  "onboardingProfileImageDescription": "등록된 프로필 사진은\n남겨주신 메모와 함께 보여져요",
+  "onboardingProfileImageNote": "공개 설정한 메모만 보여지니 걱정마세요",
+  "onboardingGenreTitle": "취향",
+  "onboardingGenreHeading": "어떤 결의 책을\n좋아하나요",
+  "onboardingGenreSubtitle": "취향을 알려주면 첫 책을 더 잘 골라드려요\n하나 이상 골라주세요",
+  "onboardingGenreNextCount": "{count}개 고르고 다음",
+  "@onboardingGenreNextCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGenreSelectAtLeastOne": "한 개 이상 골라주세요",
+  "onboardingGenreNovel": "소설",
+  "onboardingGenrePoetry": "시",
+  "onboardingGenreEssay": "에세이",
+  "onboardingGenreHumanities": "인문",
+  "onboardingGenrePhilosophy": "철학",
+  "onboardingGenreScience": "과학",
+  "onboardingGenreSciFi": "SF",
+  "onboardingGenreHistory": "역사",
+  "onboardingGenreArt": "예술",
+  "onboardingGenrePsychology": "심리",
+  "onboardingGenreBusiness": "경제경영",
+  "onboardingGenreSelfHelp": "자기계발",
+  "onboardingBookIntroTitle": "시작하기",
+  "onboardingBookIntroDescription": "이제 책을 읽으며\n떠오른 반짝이는 생각을\n메모하고 저장해요 ✨",
+  "onboardingBookIntroStart": "책 검색하고 시작하기",
+  "onboardingBookIntroSkip": "다음에 하기",
+  "bookStatusWantToRead": "읽고 싶은",
+  "bookStatusReading": "읽는 중",
+  "bookStatusCompleted": "완독",
+  "bookFilterAll": "모든 책",
+  "bookShelfLoadError": "책을 불러오지 못했어",
+  "bookShelfEmpty": "새로운 책을 추가해주세요",
+  "bookDetailTitle": "책 상세페이지",
+  "bookActionDelete": "삭제",
+  "bookDescriptionTitle": "책 소개",
+  "bookShowMore": "더보기",
+  "bookMemosTitle": "이 책의 메모",
+  "bookMemoSegmentTogether": "함께",
+  "bookMemoSegmentMine": "내 메모",
+  "bookMemosLoadError": "메모를 불러오지 못했어요",
+  "bookMemosEmptyPublic": "아직 공개된 메모가 없어요",
+  "bookMemosEmptyMine": "아직 남긴 메모가 없어요",
+  "bookMemoDefaultAuthor": "밀키웨이",
+  "bookTimeJustNow": "방금",
+  "bookTimeMinutesAgo": "{count}분 전",
+  "@bookTimeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookTimeHoursAgo": "{count}시간 전",
+  "@bookTimeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookTimeDaysAgo": "{count}일 전",
+  "@bookTimeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookWriteMemoCta": "메모하기",
+  "bookDetailLoadError": "책 정보를 불러오지 못했어요",
+  "bookStatusChanged": "{status} 상태로 바꿨어요",
+  "@bookStatusChanged": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bookDeleteTitle": "책 삭제",
+  "bookDeleteBody": "책을 삭제하면 그 책의 메모도 모두 삭제되고 되돌릴 수 없어요.\n\n정말 삭제할까요?",
+  "bookSearchTitle": "책 검색",
+  "bookSearchHint": "책 제목, 저자, ISBN으로 검색하세요",
+  "bookSearchError": "검색 중 오류가 발생했어요",
+  "bookSearchEmptyTitle": "검색 결과가 없어요",
+  "bookSearchEmptyBody": "다른 키워드로 검색해보세요",
+  "bookAlreadyAdded": "이미 등록된 책이에요",
+  "bookAdded": "책을 등록했어요",
+  "bookAddedNew": "새 책을 등록했어요",
+  "bookAddFailed": "책 등록에 실패했어요",
+  "bookOpStatusChange": "책 상태 변경",
+  "bookOpDelete": "책 삭제",
+  "bookOpRegister": "책 등록",
+  "bookOpConnect": "책 연결",
+  "readingLogTodayCta": "오늘 읽음",
+  "readingLoggedToday": "오늘 읽었어요",
+  "calendarTitle": "기록",
+  "calendarSegmentMemos": "메모",
+  "calendarSegmentRead": "읽음",
+  "calendarEmptyMemos": "이 날 남긴 메모가 없어요",
+  "calendarEmptyBooks": "이 날 읽은 책이 없어요",
+  "commentAnonymousAuthor": "밀키웨이",
+  "commentMineTag": "나",
+  "commentEdit": "수정하기",
+  "commentDelete": "삭제하기",
+  "commentHide": "이 댓글 숨기기",
+  "commentReport": "신고하기",
+  "commentComposerLocked": "책을 담으면 댓글을 남길 수 있어",
+  "commentComposerEditHint": "댓글 수정",
+  "commentComposerHint": "댓글 남기기",
+  "commentSendError": "댓글을 못 남겼어",
+  "commentDeleteTitle": "댓글 삭제",
+  "commentDeleteMessage": "이 댓글을 지울까",
+  "commentDeleteConfirm": "삭제",
+  "commentDeleteError": "못 지웠어",
+  "commentHideError": "못 숨겼어",
+  "commentReportReasonTitle": "신고 사유",
+  "commentReportSpam": "스팸/도배",
+  "commentReportInappropriate": "부적절한 내용",
+  "commentReportHarassment": "괴롭힘/혐오",
+  "commentReportSexual": "선정적",
+  "commentReportOther": "기타",
+  "commentReportDone": "신고했어. 이 댓글은 이제 안 보여",
+  "commentReportError": "신고하지 못했어",
+  "commentSaveBookTitle": "책 담기",
+  "commentSaveBookMessage": "이 책을 담아야 댓글을 남길 수 있어. 담을까",
+  "commentSaveBookConfirm": "담기",
+  "commentSaveBookError": "책을 못 담았어",
+  "commentLoadError": "댓글을 못 불러왔어",
+  "commentSectionTitle": "댓글",
+  "commentSectionTitleCount": "댓글 {count}",
+  "@commentSectionTitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commentEmpty": "첫 댓글을 남겨봐",
+  "shareLandingCta": "나도 내 우주를 만들 수 있어요",
+  "shareLandingCtaButton": "나도 만들기",
+  "shareLandingErrorTitle": "카드를 불러오지 못했어요",
+  "shareLandingErrorBody": "링크가 만료되었거나 삭제된 카드일 수 있어요",
+  "shareLandingGoHome": "홈으로",
+  "commonEdited": "수정됨",
+  "commonMyMemo": "내 메모",
+  "commonPageLabel": "{page}쪽",
+  "@commonPageLabel": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "commonLoadFailed": "불러오지 못했어",
+  "commonComposeHint": "오늘 읽은 문장을 남겨보세요",
+  "commonTimeJustNow": "방금",
+  "commonTimeMinutesAgo": "{minutes}분 전",
+  "@commonTimeMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "commonTimeHoursAgo": "{hours}시간 전",
+  "@commonTimeHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "commonTimeDaysAgo": "{days}일 전",
+  "@commonTimeDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "commonNavHome": "홈",
+  "commonNavBooks": "책 목록",
+  "commonNavMemos": "메모",
+  "commonNavProfile": "프로필",
+  "commonEmptyBookTitle": "새로운 책을 골라주세요 👇",
+  "commonEmptyBookCta": "어떤 책을 읽고 싶나요? 🤔",
+  "homeSaveBookTitle": "책 담기",
+  "homeSaveBookMessage": "이 책을 서재에 담을까",
+  "homeSaveAction": "담기",
+  "homeSaveBookError": "책을 담는 중 문제가 생겼어요",
+  "homeSectionOtherThoughts": "다른 별들이 남긴 생각들",
+  "homeDefaultAuthor": "밀키웨이",
+  "homeSectionRecentMemoBooks": "최근 메모가 올라온 책",
+  "homeMemoMeta": "{time} 메모",
+  "@homeMemoMeta": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "homeReadPromptTitle": "오늘은 어떤 책을 읽을까",
+  "homeReadPromptBody": "내 서재에서 골라보세요",
+  "homeOrbTitle": "내 우주가 자라고 있어요",
+  "homeOrbBody": "내 은하수를 확인하고 공유해요",
+  "homeConstellationTitle": "내 생각들이 이어지고 있어요",
+  "homeConstellationBody": "메모 사이에 생긴 별자리를 살펴봐요",
+  "homeWeekdayMon": "월",
+  "homeWeekdayTue": "화",
+  "homeWeekdayWed": "수",
+  "homeWeekdayThu": "목",
+  "homeWeekdayFri": "금",
+  "homeWeekdaySat": "토",
+  "homeWeekdaySun": "일",
+  "homeRecordTitle": "내 기록",
+  "homeViewAll": "전체 보기",
+  "homeTimeJustNow": "방금",
+  "homeTimeMinutesAgo": "{count}분 전",
+  "@homeTimeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTimeHoursAgo": "{count}시간 전",
+  "@homeTimeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTimeDaysAgo": "{count}일 전",
+  "@homeTimeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeWelcomeTitle": "마음이 가는 책 한 권부터",
+  "homeWelcomeBody": "담으면 Lyra가 물음을 건네요\n아래 사람들이 담은 책도 둘러보세요",
+  "homeWelcomeCta": "책 담으러 가기",
+  "homeStatusReading": "읽는 중",
+  "homeSectionSavedByOthers": "다른 사람이 담은 책",
+  "homeAddBook": "책 등록하기",
+  "homeAddMemo": "메모 작성하기",
+  "discoveryTitle": "책 담기",
+  "discoverySkip": "다음에 담기",
+  "discoveryLoadError": "추천을 불러오지 못했어요",
+  "discoveryEmpty": "아직 추천할 책이 없어요",
+  "discoveryHeading": "사람들이 메모를 남긴 책",
+  "discoveryBody": "마음이 가는 책을 담아보세요\n담은 책에 Lyra가 물음을 건네요",
+  "discoverySearchCta": "찾는 책이 없다면 직접 검색",
+  "discoveryStartCta": "{count}권 담고 시작하기",
+  "@discoveryStartCta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverySaveError": "책을 담는 중 문제가 생겼어요",
+  "discoveryProofSavers": "{count}명이 담은 책",
+  "@discoveryProofSavers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoveryProofMemos": "메모 {count}개가 쌓인 책",
+  "@discoveryProofMemos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoveryProofNew": "방금 올라온 책",
+  "memoTitle": "메모",
+  "memoSelectBook": "책 선택",
+  "memoAnsweringLyra": "Lyra의 물음에 답하는 중",
+  "memoContentHint": "오늘 읽은 문장, 그 문장이 남긴 생각을 적어보세요",
+  "memoPageHint": "쪽",
+  "memoVisibilityPublic": "공개",
+  "memoVisibilityPrivateOnlyMe": "나만 보기",
+  "memoNoBooksYet": "먼저 책을 담아주세요",
+  "memoPickBookTitle": "어떤 책의 메모인가요",
+  "memoImagePickTitle": "이미지 선택",
+  "memoImageFromGallery": "갤러리에서 선택",
+  "memoImageFromCamera": "카메라로 촬영",
+  "memoSelectBookRequired": "책을 선택해주세요",
+  "memoContentRequired": "메모 내용을 입력해주세요",
+  "memoImageUploadFailed": "이미지 업로드에 실패했습니다",
+  "memoSaved": "메모가 저장되었습니다",
+  "memoEditTitle": "메모 편집",
+  "memoDelete": "삭제",
+  "memoBookFallback": "책",
+  "memoEditHint": "메모를 입력하세요",
+  "memoUpdated": "메모가 수정되었습니다",
+  "memoDeleteTitle": "메모 삭제",
+  "memoDeleteConfirm": "이 메모를 삭제하시겠습니까?",
+  "memoDeleteAsk": "이 메모를 삭제할까",
+  "memoUnsavedTitle": "변경사항이 있습니다",
+  "memoUnsavedBody": "저장하지 않고 나가시겠습니까?",
+  "memoLeave": "나가기",
+  "memoLoadFailed": "메모를 불러오지 못했어요",
+  "memoSaveBookTitle": "책 담기",
+  "memoSaveBookConfirm": "담기",
+  "memoRestrictedBody": "지금은 볼 수 없는 메모야. 이 책을 담고 책 상세로 가볼까",
+  "memoSaveBookBody": "이 책을 담아야 상세를 볼 수 있어. 담을까",
+  "memoAuthorFallback": "밀키웨이",
+  "memoMineTag": "내 메모",
+  "memoEditedTag": "수정됨",
+  "memoDateMonthDay": "{month}월 {day}일",
+  "@memoDateMonthDay": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "memoLyraQuestionLabel": "Lyra의 물음",
+  "memoPublicLabel": "공개 메모",
+  "memoPrivateLabel": "나만 보는 메모",
+  "memoEditAction": "수정하기",
+  "memoDeleteAction": "삭제하기",
+  "memoConstellationTooltip": "별자리",
+  "memoSegmentMine": "내 메모",
+  "memoFeedLoadFailed": "피드를 불러오지 못했어요",
+  "memoEmptyMine": "아직 남긴 메모가 없어요",
+  "memoEmptyPublic": "아직 공개된 메모가 없어요",
+  "memoTimeJustNow": "방금",
+  "memoTimeMinutesAgo": "{count}분 전",
+  "@memoTimeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memoTimeHoursAgo": "{count}시간 전",
+  "@memoTimeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memoTimeDaysAgo": "{count}일 전",
+  "@memoTimeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memoLoadErrorTitle": "메모를 불러올 수 없습니다",
+  "memoEmptyTitle": "아직 메모가 없습니다",
+  "memoEmptyBody": "첫 번째 메모를 작성해보세요",
+  "memoFilterWrittenByMe": "내가 쓴",
+  "memoFilterAllMemos": "모든 메모",
+  "memoFilterPrivate": "비공개",
+  "memoErrorCameraPermission": "카메라 접근 권한이 필요합니다",
+  "memoErrorCameraUnavailable": "카메라를 사용할 수 없습니다",
+  "memoErrorPhotoPermission": "사진 접근 권한이 필요합니다",
+  "memoErrorImagePick": "이미지 선택 중 오류가 발생했습니다",
+  "memoErrorNetwork": "네트워크 연결을 확인해주세요",
+  "memoErrorPermission": "접근 권한이 필요합니다",
+  "memoErrorSave": "저장 중 오류가 발생했습니다",
+  "memoErrorGeneric": "오류가 발생했습니다",
+  "memoImageLabel": "이미지 (선택사항)",
+  "memoImageHint": "저장하고 싶은 페이지를 등록해주세요",
+  "memoContentLabel": "메모 내용",
+  "memoContentHintMax": "읽은 내용이나 생각을 적어주세요 (최대 {max}자)",
+  "@memoContentHintMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "memoPageLabel": "페이지 숫자 (선택사항)",
+  "memoPageHintExample": "예시: 123 (숫자만 입력 가능해요)",
+  "memoVisibilityLabel": "메모 공개 선택",
+  "memoVisibilityDescription": "이 스위치를 켜면 메모가 공개돼요",
+  "memoAddBookAction": "책 등록하기",
+  "memoAddMemoAction": "메모 작성하기",
+  "reportAction": "신고하기",
+  "reportGuide": "부적절한 콘텐츠를 신고해주세요. 신고된 메모는 검토 후 처리됩니다.",
+  "reportReasonTitle": "신고 사유",
+  "reportDescriptionLabel": "추가 설명 (선택사항)",
+  "reportDescriptionHint": "신고 사유를 자세히 설명해주세요",
+  "reportSubmitted": "신고가 접수되었습니다. 검토 후 처리됩니다.",
+  "reportAlreadyReported": "이미 신고한 메모입니다.",
+  "reportFailed": "신고 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+  "reportReasonSpam": "스팸/광고",
+  "reportReasonInappropriate": "부적절한 콘텐츠",
+  "reportReasonHarassment": "혐오 발언/괴롭힘",
+  "reportReasonSexual": "성적 콘텐츠",
+  "reportReasonViolence": "폭력적 콘텐츠",
+  "reportReasonCopyright": "저작권 침해",
+  "reportReasonOther": "기타",
+  "profileLoadError": "불러오지 못했어요",
+  "profileLoginRequired": "로그인이 필요해요",
+  "profileEdit": "프로필 편집",
+  "profileMyRecord": "내 기록",
+  "profileSavedBooks": "담은 책",
+  "profileCompletedBooks": "완독한 책",
+  "profileMenuNotification": "알림",
+  "profileMenuFeedback": "의견 보내기",
+  "profileMenuTerms": "이용약관",
+  "profileMenuVersion": "앱 버전",
+  "profileNotificationSaveFailed": "설정을 저장하지 못했어요",
+  "profileNotificationPermissionTitle": "알림 권한 필요",
+  "profileNotificationPermissionBody": "알림을 받으려면 시스템 설정에서 알림 권한을 허용해주세요",
+  "profileOpenSettings": "설정 열기",
+  "profileFeedbackTitle": "의견 남기기",
+  "profileFeedbackHint": "의견을 입력해주세요",
+  "profileFeedbackSend": "보내기",
+  "profileFeedbackThanks": "의견 보내주셔서 감사해요",
+  "profileFeedbackError": "의견을 보내는 중 문제가 생겼어요. 잠시 후 다시 시도해요",
+  "profileEditTitle": "프로필 수정",
+  "profileEditChangePhoto": "프로필 사진 변경",
+  "profileEditRemovePhoto": "사진 제거",
+  "profileEditPickImage": "이미지 선택",
+  "profileEditFromGallery": "갤러리에서 선택",
+  "profileEditFromCamera": "카메라로 촬영",
+  "profileEditPickImageError": "이미지 선택 중 오류가 발생했어요: {error}",
+  "@profileEditPickImageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "profileEditNicknameLabel": "닉네임",
+  "profileEditNicknameHint": "닉네임을 입력하세요",
+  "profileEditNicknameRule": "2 - 20자, 특수문자 사용 불가",
+  "profileEditChecking": "확인 중...",
+  "profileEditNicknameTooShort": "닉네임은 최소 2자 이상이어야 합니다",
+  "profileEditNicknameTooLong": "닉네임은 최대 20자까지 입력 가능합니다",
+  "profileEditNicknameNoSpecial": "특수문자는 사용할 수 없습니다",
+  "profileEditNicknameTaken": "이미 사용 중인 닉네임입니다",
+  "profileEditNicknameCheckError": "닉네임 확인 중 오류가 발생했습니다",
+  "profileEditNicknameRequired": "닉네임을 입력해주세요",
+  "profileEditNicknameChecking": "닉네임 확인 중입니다. 잠시만 기다려주세요",
+  "profileEditEmailLabel": "이메일",
+  "profileEditNoEmail": "이메일 없음",
+  "profileEditEmailFixed": "이메일은 변경할 수 없습니다",
+  "profileEditNoChanges": "변경된 내용이 없습니다",
+  "profileEditImageUploadFailed": "프로필 이미지 업로드에 실패했습니다",
+  "profileEditSaved": "프로필이 수정되었습니다",
+  "profileEditLogout": "로그아웃",
+  "profileEditLogoutConfirm": "정말 로그아웃 하시겠습니까?",
+  "profileEditDeleteAccount": "계정 삭제",
+  "profileEditDelete": "삭제",
+  "profileEditDeleteAccountMessage": "지금 삭제하면 30일 뒤에 책과 메모가 완전히 지워져. 그 전에 다시 로그인하면 그대로 복구돼. 계속할까",
+  "rankingCardTitle": "이번 주 나의 기록",
+  "rankingTopPercent": "상위 {percent}%",
+  "@rankingTopPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "rankingDeltaUp": "지난주보다 {count}개 늘었어",
+  "@rankingDeltaUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rankingDeltaDown": "지난주보다 {count}개 줄었어",
+  "@rankingDeltaDown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rankingDeltaSame": "지난주와 같아",
+  "rankingEmptyTitle": "이번 주 첫 기록을 남겨봐",
+  "rankingLastWeek": "지난주엔 {count}개 남겼어",
+  "@rankingLastWeek": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rankingThisWeekCount": "이번 주 {count}개",
+  "@rankingThisWeekCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rankingStreakDays": "{days}일 연속 읽는 중",
+  "@rankingStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "errCameraPermission": "카메라 접근 권한이 필요합니다",
+  "errCameraUnavailable": "카메라를 사용할 수 없습니다",
+  "errPhotoPermission": "사진 접근 권한이 필요합니다",
+  "errGeneric": "작업 중 오류가 발생했습니다",
+  "errNetwork": "네트워크 연결을 확인해주세요",
+  "errPermission": "접근 권한이 필요합니다",
+  "errUploadFailed": "업로드에 실패했습니다",
+  "errCreateFailed": "등록에 실패했습니다",
+  "errUpdateFailed": "수정에 실패했습니다",
+  "errDeleteFailed": "삭제에 실패했습니다",
+  "errSaveFailed": "저장에 실패했습니다",
+  "errAuthRequired": "인증이 필요합니다",
+  "errServer": "서버 오류가 발생했습니다"
 }

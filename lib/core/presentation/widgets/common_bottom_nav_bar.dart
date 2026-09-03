@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class CommonBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -18,26 +19,26 @@ class CommonBottomNavBar extends StatelessWidget {
         unselectedItemColor: Colors.grey.shade600,
         currentIndex: currentIndex,
         onTap: onTap,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_filled),
-            label: '홈',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home_filled),
+            label: AppL10n.of(context).commonNavHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.book_outlined),
-            activeIcon: Icon(Icons.book),
-            label: '책 목록',
+            icon: const Icon(Icons.book_outlined),
+            activeIcon: const Icon(Icons.book),
+            label: AppL10n.of(context).commonNavBooks,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.note_outlined),
-            activeIcon: Icon(Icons.note),
-            label: '메모',
+            icon: const Icon(Icons.note_outlined),
+            activeIcon: const Icon(Icons.note),
+            label: AppL10n.of(context).commonNavMemos,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: '프로필',
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: AppL10n.of(context).commonNavProfile,
           ),
         ],
       );

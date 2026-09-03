@@ -18,6 +18,7 @@ import '../providers/memo_provider.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../utils/memo_image_uploader.dart';
 import '../../utils/memo_error_handler.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 편집 = 작성 화면과 동일 디자인. 로드/변경감지/update/삭제 로직 보존.
 class MemoEditScreen extends ConsumerStatefulWidget {
@@ -110,6 +111,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     final books = ref.watch(userBooksProvider).asData?.value ?? const <Book>[];
     Book? book;
     for (final b in books) {
@@ -133,15 +135,15 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
           onPressed: _isLoading
               ? null
               : (_hasChanges ? _showExitDialog : _close),
-          child: Text('취소',
+          child: Text(l10n.commonCancel,
               style: AppTypography.bodySmall
                   .copyWith(color: AppColors.textSecondary, fontSize: 15)),
         ),
-        title: const Text('메모 편집', style: AppTypography.subtitle),
+        title: Text(l10n.memoEditTitle, style: AppTypography.subtitle),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _deleteMemo,
-            child: Text('삭제',
+            child: Text(l10n.memoDelete,
                 style: AppTypography.bodySmall
                     .copyWith(color: const Color(0xFFE05252), fontSize: 14)),
           ),
@@ -196,7 +198,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 240),
               child: Text(
-                book?.title ?? '책',
+                book?.title ?? AppL10n.of(context).memoBookFallback,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.bodySmall
@@ -224,7 +226,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         decoration: InputDecoration(
           isCollapsed: true,
           border: InputBorder.none,
-          hintText: '메모를 입력하세요',
+          hintText: AppL10n.of(context).memoEditHint,
           hintStyle: AppTypography.body.copyWith(
               fontSize: 17, color: AppColors.textTertiary, height: 1.7),
         ),
@@ -276,7 +278,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       child: PrimaryButton(
-        label: '저장',
+        label: AppL10n.of(context).commonSave,
         loading: _isLoading,
         onPressed: _hasChanges ? _saveMemo : null,
       ),
@@ -308,7 +310,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 6),
                 border: InputBorder.none,
-                hintText: '쪽',
+                hintText: AppL10n.of(context).memoPageHint,
                 hintStyle: AppTypography.bodySmall
                     .copyWith(color: AppColors.textTertiary),
               ),
@@ -337,7 +339,10 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
-        children: [_visOpt('공개', true), _visOpt('나만 보기', false)],
+        children: [
+          _visOpt(AppL10n.of(context).memoVisibilityPublic, true),
+          _visOpt(AppL10n.of(context).memoVisibilityPrivateOnlyMe, false),
+        ],
       ),
     );
   }
@@ -376,22 +381,23 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => AlertDialog(
           backgroundColor: AppColors.surface,
-          title: const Text('이미지 선택',
-              style: TextStyle(color: Colors.white, fontFamily: 'Pretendard')),
+          title: Text(AppL10n.of(context).memoImagePickTitle,
+              style: const TextStyle(
+                  color: Colors.white, fontFamily: 'Pretendard')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Colors.white),
-                title: const Text('갤러리에서 선택',
-                    style: TextStyle(color: Colors.white)),
+                title: Text(AppL10n.of(context).memoImageFromGallery,
+                    style: const TextStyle(color: Colors.white)),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               if (!kIsWeb)
                 ListTile(
                   leading: const Icon(Icons.camera_alt, color: Colors.white),
-                  title: const Text('카메라로 촬영',
-                      style: TextStyle(color: Colors.white)),
+                  title: Text(AppL10n.of(context).memoImageFromCamera,
+                      style: const TextStyle(color: Colors.white)),
                   onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
             ],
@@ -419,7 +425,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
 
   Future<void> _saveMemo() async {
     if (_contentController.text.trim().isEmpty) {
-      MemoErrorHandler.showErrorSnackBar(context, '메모 내용을 입력해주세요');
+      MemoErrorHandler.showErrorSnackBar(
+          context, AppL10n.of(context).memoContentRequired);
       return;
     }
     setState(() => _isLoading = true);
@@ -433,7 +440,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         imageUrl = await MemoImageUploader.uploadImage(_selectedImagePath!);
         if (imageUrl == null) {
           if (mounted) {
-            MemoErrorHandler.showErrorSnackBar(context, '이미지 업로드에 실패했습니다');
+            MemoErrorHandler.showErrorSnackBar(
+                context, AppL10n.of(context).memoImageUploadFailed);
           }
           return;
         }
@@ -451,9 +459,9 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('메모가 수정되었습니다',
-                style: TextStyle(color: Colors.white)),
+          SnackBar(
+            content: Text(AppL10n.of(context).memoUpdated,
+                style: const TextStyle(color: Colors.white)),
             backgroundColor: AppColors.surfaceMuted,
           ),
         );
@@ -472,17 +480,20 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('메모 삭제', style: TextStyle(color: Colors.white)),
-        content: const Text('이 메모를 삭제하시겠습니까?',
-            style: TextStyle(color: Colors.white)),
+        title: Text(AppL10n.of(context).memoDeleteTitle,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(AppL10n.of(context).memoDeleteConfirm,
+            style: const TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+            child: Text(AppL10n.of(context).commonCancel,
+                style: const TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제', style: TextStyle(color: Color(0xFFE05252))),
+            child: Text(AppL10n.of(context).memoDelete,
+                style: const TextStyle(color: Color(0xFFE05252))),
           ),
         ],
       ),
@@ -508,18 +519,20 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('변경사항이 있습니다',
-            style: TextStyle(color: Colors.white)),
-        content: const Text('저장하지 않고 나가시겠습니까?',
-            style: TextStyle(color: Colors.white)),
+        title: Text(AppL10n.of(context).memoUnsavedTitle,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(AppL10n.of(context).memoUnsavedBody,
+            style: const TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+            child: Text(AppL10n.of(context).commonCancel,
+                style: const TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('나가기', style: TextStyle(color: Color(0xFFE05252))),
+            child: Text(AppL10n.of(context).memoLeave,
+                style: const TextStyle(color: Color(0xFFE05252))),
           ),
         ],
       ),

@@ -23,6 +23,7 @@ import '../../domain/models/book.dart';
 import '../providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../discovery/presentation/providers/discovery_providers.dart';
+import '../../../discovery/presentation/recommended_book_l10n.dart';
 import '../../../lyra/presentation/providers/lyra_providers.dart';
 import '../../../lyra/presentation/widgets/lyra_question_card.dart';
 import '../../../lyra/data/models/lyra_prompt.dart';
@@ -117,11 +118,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // 스토리 링은 반응형으로 자동 재계산된다(수동 invalidate 불필요).
       return;
     }
+    final l = AppL10n.of(context);
     final save = await showAppConfirm(
       context,
-      title: '책 담기',
-      message: '이 책을 서재에 담을까',
-      confirmText: '담기',
+      title: l.homeSaveBookTitle,
+      message: l.homeSaveBookMessage,
+      confirmText: l.homeSaveAction,
     );
     if (!save || !mounted) return;
     try {
@@ -140,7 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.surfaceMuted,
-            content: Text('책을 담는 중 문제가 생겼어요',
+            content: Text(AppL10n.of(context).homeSaveBookError,
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textPrimary)),
           ),
@@ -180,9 +182,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('다른 별들이 남긴 생각들', style: AppTypography.title),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(AppL10n.of(context).homeSectionOtherThoughts,
+              style: AppTypography.title),
         ),
         const SizedBox(height: 16),
         Padding(
@@ -192,7 +195,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               for (final m in items) ...[
                 MemoCard(
                   content: m.content,
-                  authorName: m.userNickname ?? '밀키웨이',
+                  authorName:
+                      m.userNickname ?? AppL10n.of(context).homeDefaultAuthor,
                   authorImageUrl: m.userAvatarUrl,
                   dateText: _rel(m.createdAt),
                   bookTitle: m.bookTitle,
@@ -226,9 +230,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('최근 메모가 올라온 책', style: AppTypography.title),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(AppL10n.of(context).homeSectionRecentMemoBooks,
+              style: AppTypography.title),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -244,7 +249,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 title: m.bookTitle,
                 author: (m.books['author'] as String?) ?? '',
                 coverUrl: m.books['cover_url'] as String?,
-                meta: '${_rel(m.createdAt)} 메모',
+                meta: AppL10n.of(context).homeMemoMeta(_rel(m.createdAt)),
                 onTap: () => _openBook(m.bookId),
               );
             },
@@ -260,8 +265,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BannerBar(
         icon: Icons.menu_book_outlined,
         tint: const Color(0xFF7E9CE0),
-        title: '오늘은 어떤 책을 읽을까',
-        subtitle: '내 서재에서 골라보세요',
+        title: AppL10n.of(context).homeReadPromptTitle,
+        subtitle: AppL10n.of(context).homeReadPromptBody,
         onTap: () {
           ref.read(analyticsProvider).logEvent('click_read_prompt_in_home');
           _openBooksTab();
@@ -296,8 +301,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BannerBar(
         icon: Icons.auto_awesome,
         tint: const Color(0xFF8A7CFF),
-        title: '내 우주가 자라고 있어요',
-        subtitle: '내 은하수를 확인하고 공유해요',
+        title: AppL10n.of(context).homeOrbTitle,
+        subtitle: AppL10n.of(context).homeOrbBody,
         onTap: () {
           ref.read(analyticsProvider).logEvent('orb_entry_tap');
           context.pushNamed(AppRoutes.myOrbName);
@@ -337,8 +342,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BannerBar(
         icon: Icons.hub_outlined,
         tint: const Color(0xFF6FD0C4),
-        title: '내 생각들이 이어지고 있어요',
-        subtitle: '메모 사이에 생긴 별자리를 살펴봐요',
+        title: AppL10n.of(context).homeConstellationTitle,
+        subtitle: AppL10n.of(context).homeConstellationBody,
         onTap: () {
           ref.read(analyticsProvider).logEvent('constellation_entry_tap');
           context.pushNamed(AppRoutes.constellationName);
@@ -366,7 +371,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final today = dayKey(DateTime.now());
     // 월요일 시작 (weekday: Mon=1..Sun=7 -> 월요일까지 뒤로)
     final weekStart = today.subtract(Duration(days: today.weekday - 1));
-    const labels = ['월', '화', '수', '목', '금', '토', '일'];
+    final l = AppL10n.of(context);
+    final labels = [
+      l.homeWeekdayMon,
+      l.homeWeekdayTue,
+      l.homeWeekdayWed,
+      l.homeWeekdayThu,
+      l.homeWeekdayFri,
+      l.homeWeekdaySat,
+      l.homeWeekdaySun,
+    ];
     return GestureDetector(
       onTap: _openCalendar,
       behavior: HitTestBehavior.opaque,
@@ -377,9 +391,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                const Text('내 기록', style: AppTypography.title),
+                Text(l.homeRecordTitle, style: AppTypography.title),
                 const Spacer(),
-                Text('전체 보기',
+                Text(l.homeViewAll,
                     style: AppTypography.caption
                         .copyWith(color: AppColors.textSecondary)),
                 const Icon(Icons.chevron_right,
@@ -418,7 +432,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         Text(label,
             style: AppTypography.caption.copyWith(
-                color: label == '일'
+                color: label == AppL10n.of(context).homeWeekdaySun
                     ? const Color(0xFFA05252)
                     : AppColors.textTertiary,
                 fontSize: 11)),
@@ -451,12 +465,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  static String _rel(DateTime dt) {
+  String _rel(DateTime dt) {
+    final l = AppL10n.of(context);
     final d = DateTime.now().difference(dt);
-    if (d.inMinutes < 1) return '방금';
-    if (d.inMinutes < 60) return '${d.inMinutes}분 전';
-    if (d.inHours < 24) return '${d.inHours}시간 전';
-    if (d.inDays < 7) return '${d.inDays}일 전';
+    if (d.inMinutes < 1) return l.homeTimeJustNow;
+    if (d.inMinutes < 60) return l.homeTimeMinutesAgo(d.inMinutes);
+    if (d.inHours < 24) return l.homeTimeHoursAgo(d.inHours);
+    if (d.inDays < 7) return l.homeTimeDaysAgo(d.inDays);
     return '${dt.month}.${dt.day}';
   }
 
@@ -537,9 +552,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('마음이 가는 책 한 권부터', style: AppTypography.heading),
+          Text(AppL10n.of(context).homeWelcomeTitle,
+              style: AppTypography.heading),
           const SizedBox(height: 8),
-          Text('담으면 Lyra가 물음을 건네요\n아래 사람들이 담은 책도 둘러보세요',
+          Text(AppL10n.of(context).homeWelcomeBody,
               style: AppTypography.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: 14),
@@ -551,7 +567,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 const Icon(Icons.search, size: 16, color: AppColors.accentGreen),
                 const SizedBox(width: 6),
-                Text('책 담으러 가기',
+                Text(AppL10n.of(context).homeWelcomeCta,
                     style: AppTypography.bodySmall.copyWith(
                         color: AppColors.accentGreen,
                         fontWeight: FontWeight.w700)),
@@ -573,7 +589,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           StoryCircle(
-            label: '담기',
+            label: AppL10n.of(context).homeSaveAction,
             ring: StoryRing.add,
             onTap: _openSearch,
           ),
@@ -617,7 +633,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             question: p.question,
             bookTitle: p.bookTitle,
             bookCoverUrl: cover,
-            bookStatusLabel: p.isBook ? '읽는 중' : null,
+            bookStatusLabel:
+                p.isBook ? AppL10n.of(context).homeStatusReading : null,
             onAnswer: () => _answerPrompt(p),
           ),
         );
@@ -636,9 +653,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text('다른 사람이 담은 책', style: AppTypography.title),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(AppL10n.of(context).homeSectionSavedByOthers,
+                  style: AppTypography.title),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -652,7 +670,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   title: books[i].title,
                   author: books[i].author,
                   coverUrl: books[i].coverUrl,
-                  meta: books[i].proofLabel,
+                  meta: recommendedBookProof(
+                      AppL10n.of(context), books[i]),
                   onTap: () => _openBook(books[i].id),
                 ),
               ),
