@@ -32,3 +32,18 @@ class LocaleController extends Notifier<Locale?> {
 
 final localeControllerProvider =
     NotifierProvider<LocaleController, Locale?>(LocaleController.new);
+
+/// 지원 언어. 서버(Lyra 물음 번역)와 동일한 집합.
+const supportedLangCodes = {'ko', 'en', 'ja', 'zh'};
+
+/// 서버에 넘길 현재 언어 코드. 사용자가 고른 값이 있으면 그것,
+/// 없으면 기기 언어(지원 목록에 있을 때). 그 외에는 정본인 'ko'.
+/// 서버는 번역이 없으면 한국어로 폴백하므로 이 값이 틀려도 화면은 비지 않는다.
+final effectiveLangProvider = Provider<String>((ref) {
+  final override = ref.watch(localeControllerProvider)?.languageCode;
+  if (override != null && supportedLangCodes.contains(override)) return override;
+  for (final l in WidgetsBinding.instance.platformDispatcher.locales) {
+    if (supportedLangCodes.contains(l.languageCode)) return l.languageCode;
+  }
+  return 'ko';
+});
