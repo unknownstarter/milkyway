@@ -11,7 +11,9 @@ import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/session_restore.dart';
+import 'core/providers/locale_controller.dart';
 import 'core/router/app_routes.dart';
+import 'l10n/app_localizations.dart';
 import 'package:inspire_blur/inspire_blur.dart';
 
 void main() async {
@@ -307,12 +309,17 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // null = 기기 설정 따름. 사용자가 프로필에서 고른 언어가 있으면 그것.
+    final locale = ref.watch(localeControllerProvider);
     return MaterialApp.router(
       title: 'milkyway',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: AppL10n.supportedLocales,
+      localizationsDelegates: AppL10n.localizationsDelegates,
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(

@@ -1,0 +1,16 @@
+{
+  "@@locale": "zh",
+  "appName": "milkyway",
+  "commonSave": "保存",
+  "commonCancel": "取消",
+  "commonNext": "下一步",
+  "commonClose": "关闭",
+  "commonConfirm": "确定",
+  "commonRetry": "重试",
+  "settingsLanguage": "语言",
+  "languageSystem": "系统默认",
+  "languageKorean": "한국어",
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "languageChinese": "中文"
+}
