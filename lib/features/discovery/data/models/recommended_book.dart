@@ -44,7 +44,8 @@ class RecommendedBook {
     );
   }
 
-  /// 사회적 증거 문구(쉬운 말, 금지 기호 없음). savers 우선.
+  /// 사회적 증거 문구(한국어 원문). UI는 이걸 쓰지 말고
+  /// `presentation/recommended_book_l10n.dart`의 recommendedBookProof를 쓴다.
   String get proofLabel {
     if (savers > 0) return '$savers명이 담은 책';
     if (publicMemos > 0) return '메모 $publicMemos개가 쌓인 책';

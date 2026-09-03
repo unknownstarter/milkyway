@@ -20,6 +20,7 @@ import '../providers/memo_form_provider.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../utils/memo_image_uploader.dart';
 import '../../utils/memo_error_handler.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 작성 = 상단바(취소/메모/저장) + 책 칩 + (Lyra 물음) + 큰 에디터 + 하단 툴바(쪽/이미지/공개).
 /// 승인 목업 memo-create-plain / memo-create 기준.
@@ -75,6 +76,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     final books = ref.watch(userBooksProvider).asData?.value ?? const <Book>[];
     Book? selected;
     for (final b in books) {
@@ -96,11 +98,11 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         leadingWidth: 72,
         leading: TextButton(
           onPressed: _isLoading ? null : _close,
-          child: Text('취소',
+          child: Text(l10n.commonCancel,
               style: AppTypography.bodySmall
                   .copyWith(color: AppColors.textSecondary, fontSize: 15)),
         ),
-        title: const Text('메모', style: AppTypography.subtitle),
+        title: Text(l10n.memoTitle, style: AppTypography.subtitle),
       ),
       body: SafeArea(
         child: Column(
@@ -164,7 +166,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 220),
                 child: Text(
-                  selected?.title ?? '책 선택',
+                  selected?.title ?? AppL10n.of(context).memoSelectBook,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.bodySmall.copyWith(
@@ -206,7 +208,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                     color: AppColors.accentGreen, shape: BoxShape.circle),
               ),
               const SizedBox(width: 7),
-              Text('Lyra의 물음에 답하는 중',
+              Text(AppL10n.of(context).memoAnsweringLyra,
                   style: AppTypography.caption.copyWith(
                       color: AppColors.accentGreen, fontWeight: FontWeight.w700)),
             ],
@@ -235,7 +237,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         decoration: InputDecoration(
           isCollapsed: true,
           border: InputBorder.none,
-          hintText: '오늘 읽은 문장, 그 문장이 남긴 생각을 적어보세요',
+          hintText: AppL10n.of(context).memoContentHint,
           hintStyle: AppTypography.body.copyWith(
               fontSize: 17, color: AppColors.textTertiary, height: 1.7),
         ),
@@ -284,7 +286,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       child: PrimaryButton(
-        label: '저장',
+        label: AppL10n.of(context).commonSave,
         loading: _isLoading,
         onPressed: _isFormValid ? _saveMemo : null,
       ),
@@ -316,7 +318,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 6),
                 border: InputBorder.none,
-                hintText: '쪽',
+                hintText: AppL10n.of(context).memoPageHint,
                 hintStyle:
                     AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
               ),
@@ -346,8 +348,8 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       ),
       child: Row(
         children: [
-          _visOpt('공개', true),
-          _visOpt('나만 보기', false),
+          _visOpt(AppL10n.of(context).memoVisibilityPublic, true),
+          _visOpt(AppL10n.of(context).memoVisibilityPrivateOnlyMe, false),
         ],
       ),
     );
@@ -378,7 +380,8 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
 
   void _pickBook(List<Book> books) {
     if (books.isEmpty) {
-      MemoErrorHandler.showErrorSnackBar(context, '먼저 책을 담아주세요');
+      MemoErrorHandler.showErrorSnackBar(
+          context, AppL10n.of(context).memoNoBooksYet);
       return;
     }
     showModalBottomSheet(
@@ -407,7 +410,8 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('어떤 책의 메모인가요', style: AppTypography.title),
+              Text(AppL10n.of(context).memoPickBookTitle,
+                  style: AppTypography.title),
               const SizedBox(height: 16),
               Expanded(
                 child: ListView.separated(
@@ -475,22 +479,23 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => AlertDialog(
           backgroundColor: AppColors.surface,
-          title: const Text('이미지 선택',
-              style: TextStyle(color: Colors.white, fontFamily: 'Pretendard')),
+          title: Text(AppL10n.of(context).memoImagePickTitle,
+              style: const TextStyle(
+                  color: Colors.white, fontFamily: 'Pretendard')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Colors.white),
-                title: const Text('갤러리에서 선택',
-                    style: TextStyle(color: Colors.white)),
+                title: Text(AppL10n.of(context).memoImageFromGallery,
+                    style: const TextStyle(color: Colors.white)),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               if (!kIsWeb)
                 ListTile(
                   leading: const Icon(Icons.camera_alt, color: Colors.white),
-                  title: const Text('카메라로 촬영',
-                      style: TextStyle(color: Colors.white)),
+                  title: Text(AppL10n.of(context).memoImageFromCamera,
+                      style: const TextStyle(color: Colors.white)),
                   onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
             ],
@@ -525,11 +530,13 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
   Future<void> _saveMemo() async {
     if (!_isFormValid) {
       if (_selectedBookId == null || _selectedBookId!.isEmpty) {
-        MemoErrorHandler.showErrorSnackBar(context, '책을 선택해주세요');
+        MemoErrorHandler.showErrorSnackBar(
+            context, AppL10n.of(context).memoSelectBookRequired);
         return;
       }
       if (_contentController.text.trim().isEmpty) {
-        MemoErrorHandler.showErrorSnackBar(context, '메모 내용을 입력해주세요');
+        MemoErrorHandler.showErrorSnackBar(
+            context, AppL10n.of(context).memoContentRequired);
         return;
       }
     }
@@ -545,7 +552,8 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         imageUrl = await MemoImageUploader.uploadImage(_selectedImagePath!);
         if (imageUrl == null) {
           if (mounted) {
-            MemoErrorHandler.showErrorSnackBar(context, '이미지 업로드에 실패했습니다');
+            MemoErrorHandler.showErrorSnackBar(
+                context, AppL10n.of(context).memoImageUploadFailed);
           }
           return;
         }
@@ -577,7 +585,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       }
 
       if (mounted) {
-        showAppSnackBar(context, '메모가 저장되었습니다');
+        showAppSnackBar(context, AppL10n.of(context).memoSaved);
         context.pop();
       }
     } catch (e) {

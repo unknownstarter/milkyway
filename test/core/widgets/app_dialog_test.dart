@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/app_dialog.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 void main() {
   Widget host(void Function(BuildContext) onTap) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
         home: Scaffold(
           body: Builder(
             builder: (ctx) => Center(

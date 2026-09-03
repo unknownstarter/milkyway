@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/utils/error_handler.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class BookIntroScreen extends ConsumerStatefulWidget {
   const BookIntroScreen({super.key});
@@ -31,9 +32,9 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
         backgroundColor: const Color(0xFF181818),
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '시작하기',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).onboardingBookIntroTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -115,11 +116,11 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
   }
 
   Widget _buildDescription() {
-    return const Center(
+    return Center(
       child: Text(
-        '이제 책을 읽으며\n떠오른 반짝이는 생각을\n메모하고 저장해요 ✨',
+        AppL10n.of(context).onboardingBookIntroDescription,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontFamily: 'Pretendard',
           fontSize: 24,
@@ -151,9 +152,9 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
                   )
                 : MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-                    child: const Text(
-                      '책 검색하고 시작하기',
-                      style: TextStyle(
+                    child: Text(
+                      AppL10n.of(context).onboardingBookIntroStart,
+                      style: const TextStyle(
                         color: Colors.black,
                         fontFamily: 'Pretendard',
                         fontWeight: FontWeight.w600,
@@ -172,9 +173,9 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
     return Center(
       child: TextButton(
         onPressed: _isLoading ? null : _handleSkip,
-        child: const Text(
-          '다음에 하기',
-          style: TextStyle(
+        child: Text(
+          AppL10n.of(context).onboardingBookIntroSkip,
+          style: const TextStyle(
             color: Color(0xFF6B7280),
             fontSize: 12,
             fontWeight: FontWeight.w400,

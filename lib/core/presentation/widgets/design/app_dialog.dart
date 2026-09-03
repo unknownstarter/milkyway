@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
 import '../../../theme/app_spacing.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 확인 버튼 톤. accent=초록(긍정 액션), danger=빨강(파괴 액션).
 enum ConfirmTone { accent, danger }
@@ -13,9 +14,10 @@ Future<bool> showAppConfirm(
   required String title,
   required String message,
   required String confirmText,
-  String cancelText = '취소',
+  String? cancelText,
   ConfirmTone tone = ConfirmTone.accent,
 }) async {
+  final cancel = cancelText ?? AppL10n.of(context).commonCancel;
   final result = await showDialog<bool>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.55),
@@ -23,7 +25,7 @@ Future<bool> showAppConfirm(
       title: title,
       message: message,
       confirmText: confirmText,
-      cancelText: cancelText,
+      cancelText: cancel,
       tone: tone,
     ),
   );

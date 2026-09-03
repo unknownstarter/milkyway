@@ -14,6 +14,7 @@ import '../../../memos/presentation/providers/memo_provider.dart';
 import '../../../reading/data/models/reading_log.dart';
 import '../../../reading/presentation/providers/reading_providers.dart';
 import '../../domain/calendar_logic.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 기록 캘린더. 메모/책 세그먼트 + 월 그리드. 날짜 탭 -> 그날 기록 바텀시트.
 /// 내 메모(created_at) / 내 책(담은 날) 기준, 전부 클라이언트 데이터.
@@ -31,7 +32,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late int _segment;
   late DateTime _month; // 해당 월 1일
 
-  static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+  /// 월요일 시작 요일 라벨. 언어별 표기는 MaterialLocalizations가 이미 갖고 있어
+  /// (narrowWeekdays는 일요일 시작 인덱스) 여기선 순서만 월요일 시작으로 돌린다.
+  List<String> _weekdayLabels(BuildContext context) {
+    final narrow = MaterialLocalizations.of(context).narrowWeekdays;
+    return [for (var i = 0; i < 7; i++) narrow[(i + 1) % 7]];
+  }
 
   @override
   void initState() {
@@ -64,7 +70,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               size: 20, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: const Text('기록', style: AppTypography.subtitle),
+        title: Text(AppL10n.of(context).calendarTitle,
+            style: AppTypography.subtitle),
       ),
       body: Column(
         children: [
@@ -73,7 +80,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Center(
               child: SegmentFilter(
-                segments: const ['메모', '읽음'],
+                segments: [
+                  AppL10n.of(context).calendarSegmentMemos,
+                  AppL10n.of(context).calendarSegmentRead,
+                ],
                 selectedIndex: _segment,
                 onChanged: (i) => setState(() => _segment = i),
               ),
@@ -99,7 +109,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             onPressed: () => _shiftMonth(-1),
           ),
           const SizedBox(width: 8),
-          Text('${_month.year}년 ${_month.month}월',
+          Text(MaterialLocalizations.of(context).formatMonthYear(_month),
               style: AppTypography.subtitle.copyWith(color: Colors.white)),
           const SizedBox(width: 8),
           IconButton(
@@ -113,6 +123,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _weekdayHeader() {
+    final weekdays = _weekdayLabels(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Row(
@@ -121,7 +132,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Expanded(
               child: Center(
                 child: Text(
-                  _weekdays[i],
+                  weekdays[i],
                   style: AppTypography.caption.copyWith(
                     color: i == 6 ? const Color(0xFFA05252) : AppColors.textTertiary,
                     fontSize: 11.5,
@@ -223,7 +234,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _daySheet(DateTime day) {
-    final title = '${day.month}월 ${day.day}일';
+    final title = MaterialLocalizations.of(context).formatShortMonthDay(day);
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.55,
@@ -260,7 +271,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget _memoList(DateTime day, ScrollController controller) {
     final memos = ref.read(allMemosProvider).asData?.value ?? const <Memo>[];
     final items = itemsOnDay<Memo>(memos, (m) => m.createdAt, day);
-    if (items.isEmpty) return _empty('이 날 남긴 메모가 없어요');
+    if (items.isEmpty) return _empty(AppL10n.of(context).calendarEmptyMemos);
     return ListView.separated(
       controller: controller,
       itemCount: items.length,
@@ -285,7 +296,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final logs =
         ref.read(readingLogsProvider).asData?.value ?? const <ReadingLog>[];
     final items = itemsOnDay<ReadingLog>(logs, (l) => l.readOn, day);
-    if (items.isEmpty) return _empty('이 날 읽은 책이 없어요');
+    if (items.isEmpty) return _empty(AppL10n.of(context).calendarEmptyBooks);
     return ListView.separated(
       controller: controller,
       itemCount: items.length,

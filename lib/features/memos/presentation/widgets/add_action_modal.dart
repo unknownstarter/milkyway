@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class AddActionModal extends StatelessWidget {
   const AddActionModal({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -27,9 +29,9 @@ class AddActionModal extends StatelessWidget {
               color: Color(0xFF4117EB),
             ),
           ),
-          title: const Text(
-            '책 등록하기',
-            style: TextStyle(
+          title: Text(
+            l10n.memoAddBookAction,
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.black,
             ),
@@ -55,9 +57,9 @@ class AddActionModal extends StatelessWidget {
               color: Color(0xFF4117EB),
             ),
           ),
-          title: const Text(
-            '메모 작성하기',
-            style: TextStyle(
+          title: Text(
+            l10n.memoAddMemoAction,
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.black,
             ),

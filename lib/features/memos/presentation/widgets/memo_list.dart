@@ -6,6 +6,8 @@ import '../../domain/models/memo_visibility_filter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'book_detail_memo_card.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../memo_l10n.dart';
 
 class MemoList extends ConsumerStatefulWidget {
   final String? bookId;
@@ -108,6 +110,7 @@ class _MemoListState extends ConsumerState<MemoList> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     final memosAsync = ref.watch(paginatedMemosProvider(widget.bookId));
     final currentUserId = ref.watch(authProvider).value?.id;
 
@@ -120,7 +123,7 @@ class _MemoListState extends ConsumerState<MemoList> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SelectableText.rich(
             TextSpan(
-              text: '메모를 불러올 수 없습니다: ',
+              text: '${l10n.memoLoadErrorTitle}: ',
               style: const TextStyle(
                 color: Colors.red,
                 fontFamily: 'Pretendard',
@@ -167,9 +170,9 @@ class _MemoListState extends ConsumerState<MemoList> {
                             size: 48,
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            '아직 메모가 없습니다',
-                            style: TextStyle(
+                          Text(
+                            l10n.memoEmptyTitle,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -178,7 +181,7 @@ class _MemoListState extends ConsumerState<MemoList> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '첫 번째 메모를 작성해보세요',
+                            l10n.memoEmptyBody,
                             style: TextStyle(
                               color: Colors.grey.shade400,
                               fontSize: 14,
@@ -239,12 +242,13 @@ class _MemoListState extends ConsumerState<MemoList> {
 
   /// MemoVisibility 필터 버튼 (모든 메모, 공개, 비공개)
   Widget _buildVisibilityFilter() {
+    final l10n = AppL10n.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Row(
         children: [
           PillFilterButton(
-            label: MemoVisibilityFilter.all.label,
+            label: memoVisibilityFilterLabel(l10n, MemoVisibilityFilter.all),
             isActive: _selectedFilter == MemoVisibilityFilter.all,
             onTap: () => _updateFilter(MemoVisibilityFilter.all),
             width: 77,
@@ -254,7 +258,8 @@ class _MemoListState extends ConsumerState<MemoList> {
           ),
           const SizedBox(width: 12),
           PillFilterButton(
-            label: MemoVisibilityFilter.public.label,
+            label:
+                memoVisibilityFilterLabel(l10n, MemoVisibilityFilter.public),
             isActive: _selectedFilter == MemoVisibilityFilter.public,
             onTap: () => _updateFilter(MemoVisibilityFilter.public),
             width: 53,
@@ -264,7 +269,8 @@ class _MemoListState extends ConsumerState<MemoList> {
           ),
           const SizedBox(width: 12),
           PillFilterButton(
-            label: MemoVisibilityFilter.private.label,
+            label:
+                memoVisibilityFilterLabel(l10n, MemoVisibilityFilter.private),
             isActive: _selectedFilter == MemoVisibilityFilter.private,
             onTap: () => _updateFilter(MemoVisibilityFilter.private),
             width: 64,

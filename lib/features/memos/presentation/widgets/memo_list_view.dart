@@ -5,6 +5,8 @@ import '../providers/memo_report_provider.dart';
 import '../../domain/models/memo_filter.dart';
 import 'book_detail_memo_card.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../memo_l10n.dart';
 
 /// 책 상세 화면에서 사용하는 메모 리스트 뷰
 /// 
@@ -31,6 +33,7 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     // 필터에 따라 다른 provider 사용
     // "내가 쓴": 현재 사용자의 메모만
     // "모든 메모": 해당 책의 모든 공개 메모 (다른 유저의 것도 포함, 페이지네이션 지원)
@@ -135,7 +138,7 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
           error: (error, stack) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              '메모를 불러올 수 없습니다: $error',
+              '${l10n.memoLoadErrorTitle}: $error',
               style: const TextStyle(
                 color: Colors.red,
                 fontFamily: 'Pretendard',
@@ -184,12 +187,13 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
   }
 
   Widget _buildMemoFilter() {
+    final l10n = AppL10n.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           PillFilterButton(
-            label: MemoFilter.myMemos.label,
+            label: memoFilterLabel(l10n, MemoFilter.myMemos),
             isActive: _selectedFilter == MemoFilter.myMemos,
             onTap: () => _updateFilter(MemoFilter.myMemos),
             width: 90,
@@ -199,7 +203,7 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
           ),
           const SizedBox(width: 12),
           PillFilterButton(
-            label: MemoFilter.all.label,
+            label: memoFilterLabel(l10n, MemoFilter.all),
             isActive: _selectedFilter == MemoFilter.all,
             onTap: () => _updateFilter(MemoFilter.all),
             width: 104,
@@ -213,6 +217,7 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
   }
 
   Widget _buildEmptyMemos() {
+    final l10n = AppL10n.of(context);
     return Padding(
       padding: const EdgeInsets.only(
         bottom: 120, // 메모하기 버튼(41px) + 상하 padding(40px) + 여유 공간(39px)
@@ -227,9 +232,9 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
               size: 48,
             ),
             const SizedBox(height: 16),
-            const Text(
-              '아직 메모가 없습니다',
-              style: TextStyle(
+            Text(
+              l10n.memoEmptyTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -238,7 +243,7 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
             ),
             const SizedBox(height: 8),
             Text(
-              '첫 번째 메모를 작성해보세요',
+              l10n.memoEmptyBody,
               style: TextStyle(
                 color: Colors.grey.shade400,
                 fontSize: 14,

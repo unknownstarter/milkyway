@@ -8,6 +8,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/shared_card_provider.dart';
 
 /// 공유 카드 랜딩(딥링크 도착지). 설치+로그인+온보딩 완료 유저가 공유 링크를
@@ -78,10 +79,12 @@ class SharedCardScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('나도 내 우주를 만들 수 있어요',
+              Text(AppL10n.of(context).shareLandingCta,
                   style: AppTypography.bodySmall, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.md),
-              PrimaryButton(label: '나도 만들기', onPressed: () => _goHome(context)),
+              PrimaryButton(
+                  label: AppL10n.of(context).shareLandingCtaButton,
+                  onPressed: () => _goHome(context)),
             ],
           ),
         ),
@@ -95,13 +98,15 @@ class SharedCardScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('카드를 불러오지 못했어요',
+              Text(AppL10n.of(context).shareLandingErrorTitle,
                   style: AppTypography.subtitle, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.sm),
-              const Text('링크가 만료되었거나 삭제된 카드일 수 있어요',
+              Text(AppL10n.of(context).shareLandingErrorBody,
                   style: AppTypography.bodySmall, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.lg),
-              PrimaryButton(label: '홈으로', onPressed: () => _goHome(context)),
+              PrimaryButton(
+                  label: AppL10n.of(context).shareLandingGoHome,
+                  onPressed: () => _goHome(context)),
             ],
           ),
         ),

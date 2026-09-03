@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 
 class EmptyBookCard extends StatelessWidget {
   const EmptyBookCard({super.key});
@@ -8,15 +9,16 @@ class EmptyBookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final l10n = AppL10n.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 16, bottom: 15),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, bottom: 15),
           child: Text(
-            '새로운 책을 골라주세요 👇',
-            style: TextStyle(
+            l10n.commonEmptyBookTitle,
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -56,9 +58,9 @@ class EmptyBookCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  '어떤 책을 읽고 싶나요? 🤔',
-                  style: TextStyle(
+                Text(
+                  l10n.commonEmptyBookCta,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

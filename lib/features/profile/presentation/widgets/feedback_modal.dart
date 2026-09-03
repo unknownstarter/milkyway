@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 의견 보내기. 컨트롤러를 State에 보관(build마다 재생성돼 입력이 사라지던 버그 수정) +
 /// mailto(메일앱 없으면 실패) 대신 서버(feedback 테이블) 저장.
@@ -30,6 +31,7 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppL10n.of(context);
     final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
     try {
       final user = ref.read(authProvider).value;
@@ -63,31 +65,33 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(
-        content: Text('의견 보내주셔서 감사해요', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF242424),
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.profileFeedbackThanks,
+            style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF242424),
       ));
     } catch (_) {
       if (!mounted) return;
       setState(() => _sending = false);
-      messenger.showSnackBar(const SnackBar(
-        content: Text('의견을 보내는 중 문제가 생겼어요. 잠시 후 다시 시도해요',
-            style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF242424),
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.profileFeedbackError,
+            style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF242424),
       ));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '의견 남기기',
-            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          Text(
+            l10n.profileFeedbackTitle,
+            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -101,7 +105,7 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
               cursorColor: Colors.white,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: '의견을 입력해주세요',
+                hintText: l10n.profileFeedbackHint,
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 filled: true,
                 fillColor: Colors.grey[900],
@@ -125,7 +129,7 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('취소하기', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: Text(l10n.commonCancel, style: const TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -141,7 +145,7 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
                       ? const SizedBox(
                           width: 20, height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                      : const Text('보내기', style: TextStyle(color: Colors.black, fontSize: 16)),
+                      : Text(l10n.profileFeedbackSend, style: const TextStyle(color: Colors.black, fontSize: 16)),
                 ),
               ),
             ],

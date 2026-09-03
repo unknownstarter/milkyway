@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 내용 입력 위젯
 class MemoContentInput extends StatelessWidget {
@@ -14,13 +15,14 @@ class MemoContentInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textLength = controller.text.length;
+    final l10n = AppL10n.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '메모 내용',
-          style: TextStyle(
+        Text(
+          l10n.memoContentLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -44,7 +46,7 @@ class MemoContentInput extends StatelessWidget {
                 fontSize: 16,
               ),
               decoration: InputDecoration(
-                hintText: '읽은 내용이나 생각을 적어주세요! (최대 200자)',
+                hintText: l10n.memoContentHintMax(maxLength),
                 hintStyle: const TextStyle(
                   color: Color(0xFF838383),
                   fontFamily: 'Pretendard',

@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/comment.dart';
 import '../providers/comment_providers.dart';
 import 'comment_tile.dart';
@@ -85,7 +86,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       _editing = null;
       _refresh();
     } catch (_) {
-      if (mounted) _toast('댓글을 못 남겼어');
+      if (mounted) _toast(AppL10n.of(context).commentSendError);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -106,11 +107,12 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   }
 
   Future<void> _delete(Comment c) async {
+    final l10n = AppL10n.of(context);
     final ok = await showAppConfirm(
       context,
-      title: '댓글 삭제',
-      message: '이 댓글을 지울까',
-      confirmText: '삭제',
+      title: l10n.commentDeleteTitle,
+      message: l10n.commentDeleteMessage,
+      confirmText: l10n.commentDeleteConfirm,
       tone: ConfirmTone.danger,
     );
     if (!ok) return;
@@ -120,7 +122,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       if (_editing?.id == c.id) _cancelEdit();
       _refresh();
     } catch (_) {
-      if (mounted) _toast('못 지웠어');
+      if (mounted) _toast(l10n.commentDeleteError);
     }
   }
 
@@ -129,17 +131,18 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       await ref.read(commentRepositoryProvider).hideComment(c.id);
       _refresh();
     } catch (_) {
-      if (mounted) _toast('못 숨겼어');
+      if (mounted) _toast(AppL10n.of(context).commentHideError);
     }
   }
 
   Future<void> _report(Comment c) async {
-    const reasons = <String, String>{
-      'spam': '스팸/도배',
-      'inappropriate': '부적절한 내용',
-      'harassment': '괴롭힘/혐오',
-      'sexual': '선정적',
-      'other': '기타',
+    final l10n = AppL10n.of(context);
+    final reasons = <String, String>{
+      'spam': l10n.commentReportSpam,
+      'inappropriate': l10n.commentReportInappropriate,
+      'harassment': l10n.commentReportHarassment,
+      'sexual': l10n.commentReportSexual,
+      'other': l10n.commentReportOther,
     };
     final reason = await showModalBottomSheet<String>(
       context: context,
@@ -152,7 +155,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text('신고 사유', style: AppTypography.label),
+            Text(l10n.commentReportReasonTitle, style: AppTypography.label),
             const SizedBox(height: 4),
             for (final e in reasons.entries)
               ListTile(
@@ -167,22 +170,23 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     if (reason == null) return;
     try {
       await ref.read(commentRepositoryProvider).reportComment(c.id, reason);
-      if (mounted) _toast('신고했어. 이 댓글은 이제 안 보여');
+      if (mounted) _toast(l10n.commentReportDone);
       _refresh();
     } catch (_) {
-      if (mounted) _toast('신고하지 못했어');
+      if (mounted) _toast(l10n.commentReportError);
     }
   }
 
   /// 책 미저장 시: 담기 팝업 → 담고 게이트 해제.
   Future<void> _saveBookPrompt() async {
+    final l10n = AppL10n.of(context);
     final repo = ref.read(bookRepositoryProvider);
     final userId = repo.getCurrentUserId();
     final save = await showAppConfirm(
       context,
-      title: '책 담기',
-      message: '이 책을 담아야 댓글을 남길 수 있어. 담을까',
-      confirmText: '담기',
+      title: l10n.commentSaveBookTitle,
+      message: l10n.commentSaveBookMessage,
+      confirmText: l10n.commentSaveBookConfirm,
     );
     if (!save) return;
     try {
@@ -193,7 +197,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       ref.invalidate(homeBooksProvider);
       ref.invalidate(userBooksProvider);
     } catch (_) {
-      if (mounted) _toast('책을 못 담았어');
+      if (mounted) _toast(l10n.commentSaveBookError);
     }
   }
 
@@ -251,7 +255,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
                       ),
                     ),
                   ),
-                  error: (_, __) => _empty('댓글을 못 불러왔어'),
+                  error: (_, __) =>
+                      _empty(AppL10n.of(context).commentLoadError),
                   data: (comments) => _list(comments, myId),
                 ),
               ],
@@ -274,16 +279,19 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
   }
 
   Widget _list(List<Comment> comments, String? myId) {
+    final l10n = AppL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          comments.isEmpty ? '댓글' : '댓글 ${comments.length}',
+          comments.isEmpty
+              ? l10n.commentSectionTitle
+              : l10n.commentSectionTitleCount(comments.length),
           style: AppTypography.label.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (comments.isEmpty)
-          _empty('첫 댓글을 남겨봐')
+          _empty(l10n.commentEmpty)
         else
           for (final c in comments)
             CommentTile(

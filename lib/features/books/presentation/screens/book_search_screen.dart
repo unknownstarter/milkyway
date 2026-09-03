@@ -12,6 +12,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class BookSearchScreen extends ConsumerStatefulWidget {
   final bool isFromOnboarding;
@@ -80,9 +81,9 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       appBar: glassAppBar(
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '책 검색',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).bookSearchTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -134,7 +135,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
         cursorColor: Colors.white,
         style: const TextStyle(color: Colors.white, fontFamily: 'Pretendard'),
         decoration: InputDecoration(
-          hintText: '책 제목, 저자, ISBN으로 검색하세요',
+          hintText: AppL10n.of(context).bookSearchHint,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'Pretendard'),
           prefixIcon: const Icon(Icons.search, color: Color(0xFF48FF00)),
           suffixIcon: _searchController.text.isNotEmpty
@@ -291,7 +292,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            '검색 중 오류가 발생했습니다',
+            AppL10n.of(context).bookSearchError,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -333,9 +334,9 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            '검색 결과가 없습니다',
-            style: TextStyle(
+          Text(
+            AppL10n.of(context).bookSearchEmptyTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -344,7 +345,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '다른 키워드로 검색해보세요',
+            AppL10n.of(context).bookSearchEmptyBody,
             style: TextStyle(
               color: Colors.grey.shade400,
               fontSize: 14,
@@ -376,12 +377,12 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           // 이미 연결된 책
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  '이미 등록된 책입니다',
-                  style: TextStyle(color: Colors.white),
+                  AppL10n.of(context).bookAlreadyAdded,
+                  style: const TextStyle(color: Colors.white),
                 ),
-                backgroundColor: Color(0xFF242424),
+                backgroundColor: const Color(0xFF242424),
               ),
             );
           }
@@ -395,7 +396,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, e, operation: '책 등록');
+        ErrorHandler.showError(context, e,
+            operation: AppL10n.of(context).bookOpRegister);
       }
     }
   }
@@ -405,12 +407,12 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       await ref.read(bookRegisterProvider.notifier).connectExistingBook(bookId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              '책이 등록되었습니다',
-              style: TextStyle(color: Colors.white),
+              AppL10n.of(context).bookAdded,
+              style: const TextStyle(color: Colors.white),
             ),
-            backgroundColor: Color(0xFF242424),
+            backgroundColor: const Color(0xFF242424),
           ),
         );
         // 책 상세 페이지로 이동 (등록 플래그 및 온보딩 플래그 포함)
@@ -425,7 +427,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, e, operation: '책 연결');
+        ErrorHandler.showError(context, e,
+            operation: AppL10n.of(context).bookOpConnect);
       }
     }
   }
@@ -436,12 +439,12 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       if (mounted) {
         if (book != null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                '새 책이 등록되었습니다',
-                style: TextStyle(color: Colors.white),
+                AppL10n.of(context).bookAddedNew,
+                style: const TextStyle(color: Colors.white),
               ),
-              backgroundColor: Color(0xFF242424),
+              backgroundColor: const Color(0xFF242424),
             ),
           );
           // 책 상세 페이지로 이동 (등록 플래그 및 온보딩 플래그 포함)
@@ -455,19 +458,20 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                '책 등록에 실패했습니다',
-                style: TextStyle(color: Colors.white),
+                AppL10n.of(context).bookAddFailed,
+                style: const TextStyle(color: Colors.white),
               ),
-              backgroundColor: Color(0xFF242424),
+              backgroundColor: const Color(0xFF242424),
             ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, e, operation: '책 등록');
+        ErrorHandler.showError(context, e,
+            operation: AppL10n.of(context).bookOpRegister);
       }
     }
   }

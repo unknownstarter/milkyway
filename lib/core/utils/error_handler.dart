@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'dart:developer' as developer;
+import '../../l10n/app_localizations.dart';
 
 /// 에러 타입 enum
 enum ErrorType {
@@ -119,22 +120,22 @@ class ErrorHandler {
     return ErrorType.unknown;
   }
   /// 에러를 분석하여 사용자 친화적인 메시지를 반환
-  static String getErrorMessage(dynamic error) {
+  static String getErrorMessage(AppL10n l, dynamic error) {
     if (error is PlatformException) {
       switch (error.code) {
         case 'camera_access_denied':
-          return '카메라 접근 권한이 필요합니다';
+          return l.errCameraPermission;
         case 'camera_unavailable':
-          return '카메라를 사용할 수 없습니다';
+          return l.errCameraUnavailable;
         case 'photo_access_denied':
-          return '사진 접근 권한이 필요합니다';
+          return l.errPhotoPermission;
         default:
-          return '작업 중 오류가 발생했습니다';
+          return l.errGeneric;
       }
     }
     
     if (error is SocketException) {
-      return '네트워크 연결을 확인해주세요';
+      return l.errNetwork;
     }
     
     final errorString = error.toString().toLowerCase();
@@ -145,21 +146,21 @@ class ErrorHandler {
         errorString.contains('internet') ||
         errorString.contains('timeout') ||
         errorString.contains('failed host lookup')) {
-      return '네트워크 연결을 확인해주세요';
+      return l.errNetwork;
     }
     
     // 권한 관련 오류
     if (errorString.contains('permission') || 
         errorString.contains('권한') ||
         errorString.contains('denied')) {
-      return '접근 권한이 필요합니다';
+      return l.errPermission;
     }
     
     // 업로드 관련 오류
     if (errorString.contains('upload') || 
         errorString.contains('업로드') ||
         errorString.contains('storage')) {
-      return '업로드에 실패했습니다';
+      return l.errUploadFailed;
     }
     
     // 저장 관련 오류
@@ -169,15 +170,15 @@ class ErrorHandler {
         errorString.contains('update') ||
         errorString.contains('delete')) {
       if (errorString.contains('create') || errorString.contains('등록')) {
-        return '등록에 실패했습니다';
+        return l.errCreateFailed;
       }
       if (errorString.contains('update') || errorString.contains('수정')) {
-        return '수정에 실패했습니다';
+        return l.errUpdateFailed;
       }
       if (errorString.contains('delete') || errorString.contains('삭제')) {
-        return '삭제에 실패했습니다';
+        return l.errDeleteFailed;
       }
-      return '저장에 실패했습니다';
+      return l.errSaveFailed;
     }
     
     // 인증 관련 오류
@@ -185,18 +186,18 @@ class ErrorHandler {
         errorString.contains('인증') ||
         errorString.contains('unauthorized') ||
         errorString.contains('forbidden')) {
-      return '인증이 필요합니다';
+      return l.errAuthRequired;
     }
     
     // 서버 관련 오류
     if (errorString.contains('server') || 
         errorString.contains('500') ||
         errorString.contains('503')) {
-      return '서버 오류가 발생했습니다';
+      return l.errServer;
     }
     
     // 기본 메시지
-    return '작업 중 오류가 발생했습니다';
+    return l.errGeneric;
   }
 
   /// 에러를 회색 스낵바로 표시하고 로그를 기록
@@ -213,7 +214,9 @@ class ErrorHandler {
   }) {
     if (!context.mounted) return;
     
-    final displayMessage = message ?? getErrorMessage(error ?? '알 수 없는 오류');
+    final l10n = AppL10n.of(context);
+    final displayMessage =
+        message ?? getErrorMessage(l10n, error ?? 'unknown');
     
     // 에러 로그 기록
     if (error != null) {

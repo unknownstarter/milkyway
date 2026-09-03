@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 알림 권한 요청 다이얼로그
 class NotificationPermissionDialog extends StatelessWidget {
@@ -17,18 +18,18 @@ class NotificationPermissionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1A1A1A),
-      title: const Text(
-        '알림 권한',
-        style: TextStyle(
+      title: Text(
+        AppL10n.of(context).authNotificationPermissionTitle,
+        style: const TextStyle(
           color: Colors.white,
           fontFamily: 'Pretendard',
           fontWeight: FontWeight.w600,
           fontSize: 20,
         ),
       ),
-      content: const Text(
-        '내가 읽고 있는 책에 새로운 메모가 등록되면 알려드려요!',
-        style: TextStyle(
+      content: Text(
+        AppL10n.of(context).authNotificationPermissionBody,
+        style: const TextStyle(
           color: Colors.white,
           fontFamily: 'Pretendard',
           fontWeight: FontWeight.w300,
@@ -39,9 +40,9 @@ class NotificationPermissionDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text(
-            '나중에',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).authNotificationPermissionLater,
+            style: const TextStyle(
               color: Color(0xFF838383),
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w300,
@@ -60,9 +61,9 @@ class NotificationPermissionDialog extends StatelessWidget {
               Navigator.of(context).pop(granted);
             }
           },
-          child: const Text(
-            '허용',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).authNotificationPermissionAllow,
+            style: const TextStyle(
               color: Color(0xFF48FF00),
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,

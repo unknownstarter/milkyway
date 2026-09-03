@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 공개/비공개 토글 위젯
 class MemoVisibilityToggle extends StatelessWidget {
@@ -13,12 +14,13 @@ class MemoVisibilityToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '메모 공개 선택',
-          style: TextStyle(
+        Text(
+          l10n.memoVisibilityLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -30,9 +32,9 @@ class MemoVisibilityToggle extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              '이 스위치를 켜면 메모가 공개돼요',
-              style: TextStyle(
+            Text(
+              l10n.memoVisibilityDescription,
+              style: const TextStyle(
                 color: Color(0xFF838383),
                 fontSize: 16,
                 fontFamily: 'Pretendard',

@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:app_settings/app_settings.dart';
 
@@ -102,9 +103,9 @@ class _NotificationSettingsTileState
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('설정 저장에 실패했습니다.'),
-            backgroundColor: Color(0xFF242424),
+          SnackBar(
+            content: Text(AppL10n.of(context).profileNotificationSaveFailed),
+            backgroundColor: const Color(0xFF242424),
           ),
         );
       }
@@ -116,18 +117,18 @@ class _NotificationSettingsTileState
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          '알림 권한 필요',
-          style: TextStyle(
+        title: Text(
+          AppL10n.of(context).profileNotificationPermissionTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontFamily: 'Pretendard',
             fontWeight: FontWeight.w600,
             fontSize: 20,
           ),
         ),
-        content: const Text(
-          '알림을 받으려면 시스템 설정에서 알림 권한을 허용해주세요.',
-          style: TextStyle(
+        content: Text(
+          AppL10n.of(context).profileNotificationPermissionBody,
+          style: const TextStyle(
             color: Colors.white,
             fontFamily: 'Pretendard',
             fontWeight: FontWeight.w300,
@@ -137,9 +138,9 @@ class _NotificationSettingsTileState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              '취소',
-              style: TextStyle(
+            child: Text(
+              AppL10n.of(context).commonCancel,
+              style: const TextStyle(
                 color: Color(0xFF838383),
                 fontFamily: 'Pretendard',
               ),
@@ -150,9 +151,9 @@ class _NotificationSettingsTileState
               Navigator.of(context).pop();
               AppSettings.openAppSettings();
             },
-            child: const Text(
-              '설정 열기',
-              style: TextStyle(
+            child: Text(
+              AppL10n.of(context).profileOpenSettings,
+              style: const TextStyle(
                 color: Color(0xFF48FF00),
                 fontFamily: 'Pretendard',
                 fontWeight: FontWeight.w600,
@@ -174,7 +175,8 @@ class _NotificationSettingsTileState
           const Icon(Icons.notifications_outlined,
               size: 20, color: AppColors.textSecondary),
           const SizedBox(width: 14),
-          Text('알림', style: AppTypography.body),
+          Text(AppL10n.of(context).profileMenuNotification,
+              style: AppTypography.body),
           const Spacer(),
           _isLoading
               ? const SizedBox(

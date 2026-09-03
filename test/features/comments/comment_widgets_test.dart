@@ -4,6 +4,7 @@ import 'package:whatif_milkyway_app/features/comments/domain/models/comment.dart
 import 'package:whatif_milkyway_app/features/comments/presentation/widgets/comment_tile.dart';
 import 'package:whatif_milkyway_app/features/comments/presentation/widgets/comment_composer.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/memo_card.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 Comment _comment({String content = '좋은 문장이네요', String? updated}) =>
     Comment.fromJson({
@@ -17,7 +18,12 @@ Comment _comment({String content = '좋은 문장이네요', String? updated}) =
     });
 
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   group('CommentTile', () {
     testWidgets('작성자/본문 노출 + 본인이면 나 칩', (tester) async {

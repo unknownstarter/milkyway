@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 메모 페이지 숫자 입력 위젯
 class MemoPageInput extends StatelessWidget {
@@ -12,12 +13,13 @@ class MemoPageInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '페이지 숫자 (선택사항)',
-          style: TextStyle(
+        Text(
+          l10n.memoPageLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -45,7 +47,7 @@ class MemoPageInput extends StatelessWidget {
             fontSize: 16,
           ),
           decoration: InputDecoration(
-            hintText: '예시: 123 (숫자만 입력 가능해요)',
+            hintText: l10n.memoPageHintExample,
             hintStyle: const TextStyle(
               color: Color(0xFF838383),
               fontFamily: 'Pretendard',

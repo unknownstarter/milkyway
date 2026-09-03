@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class AddActionModal extends StatelessWidget {
   const AddActionModal({super.key});
@@ -45,9 +46,9 @@ class AddActionModal extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            title: const Text(
-              '책 등록하기',
-              style: TextStyle(
+            title: Text(
+              AppL10n.of(context).homeAddBook,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
                 fontFamily: 'Pretendard',
@@ -74,9 +75,9 @@ class AddActionModal extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            title: const Text(
-              '메모 작성하기',
-              style: TextStyle(
+            title: Text(
+              AppL10n.of(context).homeAddMemo,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
                 fontFamily: 'Pretendard',

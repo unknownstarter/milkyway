@@ -5,9 +5,15 @@ import 'package:whatif_milkyway_app/core/presentation/widgets/design/chips.dart'
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/segment_filter.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/buttons.dart';
 import 'package:whatif_milkyway_app/core/presentation/widgets/design/memo_card.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   testWidgets('Avatar 이미지 없으면 이니셜 노출', (tester) async {
     await tester.pumpWidget(wrap(const Avatar(initial: '노아')));

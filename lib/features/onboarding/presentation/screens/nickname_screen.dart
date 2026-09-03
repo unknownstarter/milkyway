@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NicknameScreen extends ConsumerStatefulWidget {
   const NicknameScreen({super.key});
@@ -44,15 +45,16 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
     final hasSpecialCharacters = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(nickname);
 
     // 기본 유효성 체크 및 에러 메시지 설정
+    final l10n = AppL10n.of(context);
     String? formatError;
     if (nickname.isEmpty) {
       formatError = null; // 입력 전에는 에러 메시지 표시 안 함
     } else if (nickname.length < 2) {
-      formatError = '닉네임은 최소 2자 이상이어야 합니다';
+      formatError = l10n.onboardingNicknameErrorTooShort;
     } else if (nickname.length > 20) {
-      formatError = '닉네임은 최대 20자까지 입력 가능합니다';
+      formatError = l10n.onboardingNicknameErrorTooLong;
     } else if (hasSpecialCharacters) {
-      formatError = '특수문자는 사용할 수 없습니다';
+      formatError = l10n.onboardingNicknameErrorSpecialChars;
     }
 
     final isValidFormat = nickname.length >= 2 &&
@@ -105,7 +107,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           _isCheckingNickname = false;
           _lastCheckedNickname = nickname;
           if (!isAvailable) {
-            _nicknameError = '이미 사용 중인 닉네임입니다';
+            _nicknameError = AppL10n.of(context).onboardingNicknameErrorTaken;
             _isButtonEnabled = false;
           } else {
             _nicknameError = null;
@@ -117,7 +119,8 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
       if (mounted) {
         setState(() {
           _isCheckingNickname = false;
-          _nicknameError = '닉네임 확인 중 오류가 발생했습니다';
+          _nicknameError =
+              AppL10n.of(context).onboardingNicknameErrorCheckFailed;
           _isButtonEnabled = false;
         });
       }
@@ -132,9 +135,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
         backgroundColor: AppColors.bgPrimary,
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: const Text(
-            '닉네임 설정',
-            style: TextStyle(
+          child: Text(
+            AppL10n.of(context).onboardingNicknameTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'Pretendard',
               fontWeight: FontWeight.w600,
@@ -192,9 +195,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '닉네임을 설정해주세요',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).onboardingNicknameHeading,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.w600,
@@ -203,9 +206,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '밀키웨이의 다른 유저가 볼 수 있는 이름이에요',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).onboardingNicknameSubtitle,
+          style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -221,9 +224,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '닉네임',
-          style: TextStyle(
+        Text(
+          AppL10n.of(context).onboardingNicknameLabel,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -244,7 +247,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           ),
           cursorColor: Colors.white,
           decoration: InputDecoration(
-            hintText: '닉네임을 입력하세요',
+            hintText: AppL10n.of(context).onboardingNicknameHint,
             hintStyle: const TextStyle(
               color: AppColors.textSecondary,
               fontFamily: 'Pretendard',
@@ -285,9 +288,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Text(
-                '확인 중...',
-                style: TextStyle(
+              Text(
+                AppL10n.of(context).onboardingNicknameChecking,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
@@ -313,9 +316,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                 ),
               ),
             ] else ...[
-              const Text(
-                '2 - 20자, 특수문자 사용 불가',
-                style: TextStyle(
+              Text(
+                AppL10n.of(context).onboardingNicknameHelp,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
@@ -334,9 +337,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
     return Center(
       child: TextButton(
         onPressed: _isLoading ? null : _handleSkip,
-        child: const Text(
-          '건너뛰기',
-          style: TextStyle(
+        child: Text(
+          AppL10n.of(context).onboardingSkip,
+          style: const TextStyle(
             color: Color(0xFF6B7280),
             fontSize: 12,
             fontWeight: FontWeight.w400,
@@ -372,7 +375,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                 : MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                     child: Text(
-                      '다음',
+                      AppL10n.of(context).commonNext,
                       style: TextStyle(
                         color: isEnabled ? Colors.black : Colors.white,
                         fontFamily: 'Pretendard',
@@ -415,7 +418,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '닉네임 설정 중 오류가 발생했습니다: $e',
+              AppL10n.of(context).onboardingNicknameSaveError('$e'),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: AppColors.surfaceMuted,
