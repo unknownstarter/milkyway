@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import '../../domain/wrapped_data.dart';
 
 /// 은하 회고 공유 카드(1080x1350). 화면엔 안 띄우고 공유 시 오프스크린 캡처 전용.
@@ -23,6 +25,9 @@ class WrappedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final monthLabel = DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag())
+        .format(DateTime(data.year, data.month));
     return SizedBox(
       width: w,
       height: h,
@@ -115,8 +120,10 @@ class WrappedCard extends StatelessWidget {
                     height: 1.12,
                     color: Color(0xFFF5F5F7)),
                 children: [
-                  TextSpan(text: '${data.monthLabel}, 네가\n'),
-                  const TextSpan(text: '멈춘 순간들', style: TextStyle(color: accent)),
+                  TextSpan(text: '${l10n.wrappedHeroLead(monthLabel)}\n'),
+                  TextSpan(
+                      text: l10n.wrappedHeroAccent,
+                      style: const TextStyle(color: accent)),
                 ],
               ),
             ),
@@ -126,7 +133,7 @@ class WrappedCard extends StatelessWidget {
           Positioned(
             top: 316,
             left: _mx,
-            child: Text('그 자리에 남은 ${data.memoCount}개의 별',
+            child: Text(l10n.wrappedStarsLeft(data.memoCount),
                 style: const TextStyle(
                     fontFamily: _f, color: Color(0xFF9AA0AC), fontWeight: FontWeight.w600, fontSize: 30)),
           ),
@@ -138,22 +145,25 @@ class WrappedCard extends StatelessWidget {
             right: _mx,
             child: Row(
               children: [
-                _stat('${data.memoCount}', '개', '멈춘 문장', false),
+                _stat('${data.memoCount}', l10n.unitCount,
+                    l10n.wrappedStatSentences, false),
                 _statDiv(),
-                _stat('${data.readDays}', '일', '읽은 날', false),
+                _stat('${data.readDays}', l10n.unitDays,
+                    l10n.wrappedStatReadDays, false),
                 _statDiv(),
-                _stat(data.topPercent != null ? '${data.topPercent}' : '-', '%', '상위', true),
+                _stat(data.topPercent != null ? '${data.topPercent}' : '-', '%',
+                    l10n.statTopPercent, true),
               ],
             ),
           ),
 
           // 최애 책
           if (data.bookTitle != null)
-            Positioned(top: 568, left: _mx, right: _mx, child: _bookCard()),
+            Positioned(top: 568, left: _mx, right: _mx, child: _bookCard(l10n)),
 
           // 그 달의 문장
           if (data.quote != null)
-            Positioned(top: 812, left: _mx, right: _mx, child: _quoteBlock()),
+            Positioned(top: 812, left: _mx, right: _mx, child: _quoteBlock(l10n)),
 
           // Lyra 물음
           if (data.lyra != null)
@@ -166,20 +176,16 @@ class WrappedCard extends StatelessWidget {
             right: 0,
             child: Column(
               children: [
-                const Text('너의 우주는 어떤 모양일까',
-                    style: TextStyle(
+                Text(l10n.shareCardTagline,
+                    style: const TextStyle(
                         fontFamily: _f, color: Color(0xFFEDEDED), fontWeight: FontWeight.w700, fontSize: 30)),
                 const SizedBox(height: 11),
-                RichText(
-                  text: const TextSpan(
-                    style: TextStyle(
-                        fontFamily: _f, color: Color(0xFF7C828A), fontWeight: FontWeight.w600, fontSize: 23),
-                    children: [
-                      TextSpan(text: 'App Store / Google Play', style: TextStyle(color: Color(0xFFAEB2BB))),
-                      TextSpan(text: ' 에 milkyway'),
-                    ],
-                  ),
-                ),
+                Text(l10n.shareCardStoreHint,
+                    style: const TextStyle(
+                        fontFamily: _f,
+                        color: Color(0xFF7C828A),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 23)),
               ],
             ),
           ),
@@ -231,7 +237,7 @@ class WrappedCard extends StatelessWidget {
         child: Icon(Icons.auto_stories_outlined, color: Colors.white.withValues(alpha: 0.35), size: 44),
       );
 
-  Widget _bookCard() => Container(
+  Widget _bookCard(AppL10n l10n) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 30),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.045),
@@ -266,8 +272,8 @@ class WrappedCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('가장 오래 머문 책',
-                      style: TextStyle(fontFamily: _f, color: accent, fontWeight: FontWeight.w700, fontSize: 24)),
+                  Text(l10n.wrappedTopBookLabel,
+                      style: const TextStyle(fontFamily: _f, color: accent, fontWeight: FontWeight.w700, fontSize: 24)),
                   const SizedBox(height: 10),
                   Text(data.bookTitle!,
                       maxLines: 2,
@@ -294,7 +300,7 @@ class WrappedCard extends StatelessWidget {
         ),
       );
 
-  Widget _quoteBlock() => Column(
+  Widget _quoteBlock(AppL10n l10n) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(data.quote!,
@@ -307,9 +313,9 @@ class WrappedCard extends StatelessWidget {
                   fontSize: 40,
                   height: 1.5,
                   letterSpacing: -0.8)),
-          if ((data.quoteBook ?? '').isNotEmpty) ...[
+          if ((data.quoteBookTitle ?? '').isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(data.quoteBook!,
+            Text(l10n.wrappedQuoteSource(data.quoteBookTitle!),
                 style: const TextStyle(
                     fontFamily: _f, color: Color(0xFF8A9098), fontWeight: FontWeight.w600, fontSize: 24)),
           ],

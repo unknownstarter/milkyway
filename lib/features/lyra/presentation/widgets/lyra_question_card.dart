@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -69,7 +70,7 @@ class LyraQuestionCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Lyra의 물음',
+                AppL10n.of(context).lyraQuestionLabel,
                 style: AppTypography.caption.copyWith(
                   color: AppColors.accentGreen,
                   fontWeight: FontWeight.w700,
@@ -96,7 +97,7 @@ class LyraQuestionCard extends StatelessWidget {
                     size: 16, color: AppColors.accentGreen),
                 const SizedBox(width: 6),
                 Text(
-                  '이 물음에 메모 남기기',
+                  AppL10n.of(context).lyraAnswerCta,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.accentGreen,
                     fontWeight: FontWeight.w700,

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:whatif_milkyway_app/features/lyra/presentation/widgets/lyra_question_card.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  // 로컬라이즈된 문구를 검증하므로 한국어 로케일로 고정.
+  Widget wrap(Widget child) => MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
+        home: Scaffold(body: child),
+      );
 
   testWidgets('물음 텍스트와 라벨을 노출한다', (tester) async {
     await tester.pumpWidget(wrap(

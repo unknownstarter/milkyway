@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/config/env_config.dart';
 import 'core/services/firebase_service.dart';
@@ -239,6 +240,8 @@ void main() async {
   }
 
   timeago.setLocaleMessages('ko', timeago.KoMessages());
+  // 회고 월 이름(DateFormat.MMMM)을 4개 언어에서 쓰므로 날짜 심볼 초기화.
+  await initializeDateFormatting();
 
   final supabaseUrl = EnvConfig.supabaseUrl;
   final supabaseAnonKey = EnvConfig.supabaseAnonKey;

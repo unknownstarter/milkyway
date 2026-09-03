@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/presentation/widgets/language_sheet.dart';
@@ -314,8 +315,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BannerBar(
         icon: Icons.calendar_month_outlined,
         tint: const Color(0xFFC48CFF),
-        title: '${w.monthLabel} 은하 회고',
-        subtitle: '그 자리에 남은 ${w.memoCount}개의 별을 모았어요',
+        title: AppL10n.of(context).wrappedEntryTitle(
+            DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag())
+                .format(DateTime(w.year, w.month))),
+        subtitle: AppL10n.of(context).wrappedEntryBody(w.memoCount),
         onTap: () {
           ref.read(analyticsProvider).logEvent('wrapped_entry_tap', {'period': w.periodLabel});
           context.pushNamed(AppRoutes.wrappedName);

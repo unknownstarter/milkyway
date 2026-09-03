@@ -6,23 +6,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/constellation.dart';
-
-String _relLabel(RelType? t) {
-  switch (t) {
-    case RelType.extends_:
-      return '확장';
-    case RelType.reverses:
-      return '달라짐';
-    case RelType.echo:
-      return '다시 떠오름';
-    case RelType.similar:
-      return '닮음';
-    default:
-      return '연결';
-  }
-}
+import '../screens/constellation_screen.dart' show relLabel;
 
 Color _relColor(RelType? t) {
   switch (t) {
@@ -51,7 +38,9 @@ Future<void> showConnectionReveal(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.modal)),
     ),
-    builder: (ctx) => SafeArea(
+    builder: (ctx) {
+      final l10n = AppL10n.of(ctx);
+      return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
         child: Column(
@@ -66,11 +55,11 @@ Future<void> showConnectionReveal(
                   color: _relColor(relType),
                 ),
                 const SizedBox(width: 8),
-                Text('선이 하나 그어졌어',
+                Text(l10n.constellationRevealTitle,
                     style: AppTypography.caption
                         .copyWith(color: AppColors.textSecondary)),
                 const Spacer(),
-                Text(_relLabel(relType),
+                Text(relLabel(l10n, relType),
                     style: AppTypography.caption.copyWith(
                         color: _relColor(relType),
                         fontWeight: FontWeight.w600)),
@@ -104,7 +93,7 @@ Future<void> showConnectionReveal(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                  child: Text('별자리에서 보기',
+                  child: Text(l10n.constellationViewInConstellation,
                       style: AppTypography.bodySmall.copyWith(
                           color: AppColors.accentGreen,
                           fontWeight: FontWeight.w700)),
@@ -114,7 +103,8 @@ Future<void> showConnectionReveal(
           ],
         ),
       ),
-    ),
+    );
+    },
   );
 }
 

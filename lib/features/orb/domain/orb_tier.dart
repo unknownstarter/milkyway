@@ -4,21 +4,20 @@ enum OrbTier { t1, t2, t3, t4, t5, t6 }
 
 class OrbTierInfo {
   final OrbTier tier;
-  final String name; // 한국어 표시명
   final int lo; // 포인트 하한(이상)
-  const OrbTierInfo(this.tier, this.name, this.lo);
+  const OrbTierInfo(this.tier, this.lo);
 }
 
 /// 오브 생성 최소 메모 수(게이트).
 const int orbGateMemos = 7;
 
 const List<OrbTierInfo> orbTiers = [
-  OrbTierInfo(OrbTier.t1, '작은 성운', 0),
-  OrbTierInfo(OrbTier.t2, '별무리', 30),
-  OrbTierInfo(OrbTier.t3, '별자리', 90),
-  OrbTierInfo(OrbTier.t4, '성단', 200),
-  OrbTierInfo(OrbTier.t5, '은하', 500),
-  OrbTierInfo(OrbTier.t6, '대은하', 1000),
+  OrbTierInfo(OrbTier.t1, 0),
+  OrbTierInfo(OrbTier.t2, 30),
+  OrbTierInfo(OrbTier.t3, 90),
+  OrbTierInfo(OrbTier.t4, 200),
+  OrbTierInfo(OrbTier.t5, 500),
+  OrbTierInfo(OrbTier.t6, 1000),
 ];
 
 /// 메모가 주동력(책의 3배 가중). 책은 보조.

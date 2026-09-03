@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/orb_tier.dart';
 import '../../domain/share_payload.dart';
+import '../orb_tier_l10n.dart';
 import 'orb_palette.dart';
 import 'orb_view.dart';
 
@@ -14,8 +16,9 @@ class ShareCard extends StatelessWidget {
   static const double h = 1350;
 
   final OrbShareData data;
-  final String nick;
-  const ShareCard({super.key, required this.data, this.nick = '나'});
+  /// null이면 현재 언어의 기본 호칭(예: '나')을 쓴다.
+  final String? nick;
+  const ShareCard({super.key, required this.data, this.nick});
 
   TextStyle _t(double size, FontWeight weight, Color color,
           {double spacing = -0.03}) =>
@@ -30,10 +33,13 @@ class ShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     final accent = orbAccentOf(data.tier);
-    final name = orbTierInfo(data.tier).name;
+    final name = orbTierName(l10n, data.tier);
     final idx = OrbTier.values.indexOf(data.tier);
-    final nextName = idx < orbTiers.length - 1 ? orbTiers[idx + 1].name : null;
+    final nextName = idx < orbTiers.length - 1
+        ? orbTierName(l10n, orbTiers[idx + 1].tier)
+        : null;
 
     return Container(
       width: w,
@@ -60,37 +66,45 @@ class ShareCard extends StatelessWidget {
             children: [
               Text('milkyway',
                   style: _t(30, FontWeight.w800, AppColors.textPrimary, spacing: 0.09)),
-              _badge(name, accent),
+              _badge(l10n, name, accent),
             ],
           ),
           const SizedBox(height: 24),
           OrbView(tier: data.tier, size: 600, animate: false),
           const SizedBox(height: 20),
-          Text('$nick의 우주',
+          Text(l10n.shareCardOwnerUniverse(nick ?? l10n.shareCardDefaultNick),
               style: _t(30, FontWeight.w600, AppColors.textSecondary, spacing: 0)),
           const SizedBox(height: 10),
-          RichText(
-            text: TextSpan(children: [
-              TextSpan(text: '지금은 ', style: _t(70, FontWeight.w800, AppColors.textPrimary)),
-              TextSpan(text: name, style: _t(70, FontWeight.w800, accent)),
-            ]),
+          // 언어별로 등급명 길이가 달라도(EN 'Star Cluster' 등) 항상 한 줄.
+          // 넘칠 때만 축소해 포스터 세로 레이아웃이 밀리지 않게 한다.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: RichText(
+              maxLines: 1,
+              text: TextSpan(children: [
+                TextSpan(
+                    text: l10n.orbNowPrefix,
+                    style: _t(70, FontWeight.w800, AppColors.textPrimary)),
+                TextSpan(text: name, style: _t(70, FontWeight.w800, accent)),
+              ]),
+            ),
           ),
           const SizedBox(height: 34),
-          _statsPanel(accent),
+          _statsPanel(l10n, accent),
           const SizedBox(height: 30),
-          _progress(accent, nextName),
+          _progress(l10n, accent, nextName),
           const Spacer(),
-          Text('너의 우주는 어떤 모양일까',
+          Text(l10n.shareCardTagline,
               style: _t(31, FontWeight.w700, AppColors.textPrimary, spacing: -0.01)),
           const SizedBox(height: 12),
-          Text('App Store / Google Play 에 milkyway',
+          Text(l10n.shareCardStoreHint,
               style: _t(23, FontWeight.w600, AppColors.textSecondary, spacing: 0)),
         ],
       ),
     );
   }
 
-  Widget _badge(String name, Color accent) => Container(
+  Widget _badge(AppL10n l10n, String name, Color accent) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: 0.13),
@@ -100,11 +114,11 @@ class ShareCard extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Container(width: 9, height: 9, decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
           const SizedBox(width: 10),
-          Text('$name 단계', style: _t(24, FontWeight.w700, accent, spacing: 0)),
+          Text(l10n.orbTierBadge(name), style: _t(24, FontWeight.w700, accent, spacing: 0)),
         ]),
       );
 
-  Widget _statsPanel(Color accent) => Container(
+  Widget _statsPanel(AppL10n l10n, Color accent) => Container(
         height: 188,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.045),
@@ -112,13 +126,16 @@ class ShareCard extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: 0.09), width: 1.5),
         ),
         child: Row(children: [
-          _cell('${data.books}', '권', '읽은 책', AppColors.textPrimary),
+          _cell('${data.books}', l10n.unitBooks, l10n.statBooksRead,
+              AppColors.textPrimary),
           _divider(),
-          _cell('${data.memos}', '개', '남긴 메모', AppColors.textPrimary),
+          _cell('${data.memos}', l10n.unitCount, l10n.statMemosLeft,
+              AppColors.textPrimary),
           _divider(),
-          _cell('${data.topPercent ?? '-'}', '%', '상위', accent),
+          _cell('${data.topPercent ?? '-'}', '%', l10n.statTopPercent, accent),
           _divider(),
-          _cell('${data.streakDays}', '일', '연속', AppColors.textPrimary),
+          _cell('${data.streakDays}', l10n.unitDays, l10n.statStreak,
+              AppColors.textPrimary),
         ]),
       );
 
@@ -134,11 +151,18 @@ class ShareCard extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 12),
-          Text(label, style: _t(26, FontWeight.w600, AppColors.textSecondary, spacing: 0)),
+          // 라벨은 언어와 무관하게 한 줄(칸 폭보다 길면 축소).
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label,
+                maxLines: 1,
+                style: _t(26, FontWeight.w600, AppColors.textSecondary,
+                    spacing: 0)),
+          ),
         ]),
       );
 
-  Widget _progress(Color accent, String? nextName) {
+  Widget _progress(AppL10n l10n, Color accent, String? nextName) {
     final pts = orbPoints(data.books, data.memos);
     final curLo = orbTierInfo(data.tier).lo;
     final idx = OrbTier.values.indexOf(data.tier);
@@ -161,14 +185,14 @@ class ShareCard extends StatelessWidget {
           ? RichText(
               text: TextSpan(children: [
                 TextSpan(
-                    text: '다음 단계 $nextName까지 ',
+                    text: l10n.orbToNextTier(nextName),
                     style: _t(26, FontWeight.w600, AppColors.textSecondary, spacing: 0)),
                 TextSpan(
                     text: '${data.pointsToNext}',
                     style: _t(26, FontWeight.w800, accent, spacing: 0)),
               ]),
             )
-          : Text('가장 깊은 우주에 도달',
+          : Text(l10n.orbDeepestReached,
               style: _t(26, FontWeight.w600, AppColors.textSecondary, spacing: 0)),
     ]);
   }

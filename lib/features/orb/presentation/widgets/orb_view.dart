@@ -77,6 +77,22 @@ class _OrbViewState extends State<OrbView> with TickerProviderStateMixin {
         child: Stack(
           alignment: Alignment.center,
           children: [
+            // 안개(정적, 넓고 은은하게 오브를 배경에 스며들게)
+            Container(
+              width: s * 1.38,
+              height: s * 1.38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    accent.withValues(alpha: 0.09),
+                    accent.withValues(alpha: 0.028),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.52, 1.0],
+                ),
+              ),
+            ),
             // 뒤 글로우(호흡)
             AnimatedBuilder(
               animation: _glow,

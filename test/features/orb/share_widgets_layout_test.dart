@@ -4,6 +4,7 @@ import 'package:whatif_milkyway_app/features/orb/domain/orb_tier.dart';
 import 'package:whatif_milkyway_app/features/orb/domain/share_payload.dart';
 import 'package:whatif_milkyway_app/features/orb/presentation/widgets/share_card.dart';
 import 'package:whatif_milkyway_app/features/orb/presentation/widgets/orb_gate_banner.dart';
+import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 // 레이아웃 계약: 포스터가 1080x1350 안에 오버플로 없이 들어가는지, 배너가 정상 렌더되는지.
 // (이미지/폰트 로드 없이도 오버플로는 잡힌다 - 가장 흔한 버그 방어.)
@@ -21,6 +22,9 @@ void main() {
         pointsToNext: tier == OrbTier.t6 ? null : 138, connection: null,
       );
       await tester.pumpWidget(MaterialApp(
+        locale: const Locale('ko'),
+        supportedLocales: AppL10n.supportedLocales,
+        localizationsDelegates: AppL10n.localizationsDelegates,
         home: Scaffold(body: Center(child: ShareCard(data: d))),
       ));
       expect(tester.takeException(), isNull, reason: 'tier=$tier 오버플로');
@@ -29,6 +33,9 @@ void main() {
 
   testWidgets('OrbGateBanner 오버플로 없음', (tester) async {
     await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ko'),
+      supportedLocales: AppL10n.supportedLocales,
+      localizationsDelegates: AppL10n.localizationsDelegates,
       home: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(20),
