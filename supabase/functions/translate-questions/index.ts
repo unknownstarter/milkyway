@@ -62,10 +62,16 @@ interface Row {
   question: string;
 }
 
+// 금지 기호는 거부 대신 치환한다. 영어는 em dash를, 중국어는 중간점을 자연스럽게 쓰기
+// 때문에 거부만 하면 멀쩡한 번역이 계속 버려진다(재시도해도 같은 기호가 다시 나온다).
 function sanitize(text: string): string {
   return text
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
+    .replace(/\s*[—–]\s*/g, ' - ')
+    .replace(/·/g, '/')
+    .replace(/…/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
     .trim();
 }
 
@@ -77,8 +83,12 @@ function validate(text: string, lang: Lang): { ok: boolean; reason?: string } {
   if (lang === 'ja' && text.includes('あなた')) {
     return { ok: false, reason: 'forbidden_word_anata' };
   }
-  // 번역이 안 되고 한국어가 그대로 남은 경우 방지.
-  if (/[가-힣]/.test(text)) return { ok: false, reason: 'untranslated_korean' };
+  // 번역이 안 되고 한국어가 그대로 남은 경우 방지. 다만 한국어 책 제목/고유명사가
+  // 그대로 인용될 수 있으므로 '대부분 한국어'일 때만 실패로 본다.
+  const korean = (text.match(/[가-힣]/g) ?? []).length;
+  if (korean / text.length > 0.3) {
+    return { ok: false, reason: 'untranslated_korean' };
+  }
   return { ok: true };
 }
 
@@ -241,15 +251,41 @@ Deno.serve(async (req) => {
       return json({ error: 'all 또는 (source, question_id)가 필요합니다.' }, 400);
     }
 
-    const results = [];
+    // 할 일 목록(문항 x 언어). 이미 번역된 건 빼서 한 번에 조금씩만 처리한다.
+    // (420건을 한 호출에 돌리면 엣지 함수 실행 시간 제한에 걸린다.)
+    let todo: Array<{ row: Row; lang: Lang }> = [];
     for (const row of rows) {
-      for (const lang of langs) {
-        results.push(await processOne(row, lang, force));
-      }
+      for (const lang of langs) todo.push({ row, lang });
+    }
+
+    if (!force) {
+      const { data: done } = await supabase
+        .from('question_translations')
+        .select('source, question_id, lang');
+      const have = new Set(
+        (done ?? []).map((d) => `${d.source}:${d.question_id}:${d.lang}`),
+      );
+      todo = todo.filter(
+        (t) => !have.has(`${t.row.source}:${t.row.question_id}:${t.lang}`),
+      );
+    }
+
+    const remainingBefore = todo.length;
+    const limit = typeof body.limit === 'number' ? body.limit : 20;
+    const batch = todo.slice(0, limit);
+
+    const results = [];
+    for (const t of batch) {
+      results.push(await processOne(t.row, t.lang, force));
     }
 
     const translated = results.filter((r) => r.ok && !r.reason).length;
-    return json({ total: results.length, translated, results });
+    return json({
+      processed: results.length,
+      translated,
+      remaining: remainingBefore - translated,
+      results,
+    });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
