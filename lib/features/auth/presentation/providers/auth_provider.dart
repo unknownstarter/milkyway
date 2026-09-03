@@ -6,6 +6,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/datasources/auth_remote_data_source_impl.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/services/session_restore.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
@@ -94,6 +95,9 @@ class Auth extends _$Auth {
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
+
+      // 마지막 위치 복원 캐시 정리(로그아웃 후 콜드스타트가 앱 안으로 복원되지 않게).
+      await SessionRestore.clear();
 
       // 모든 데이터 provider 캐시 초기화 (다른 사용자 데이터가 표시되지 않도록)
       _clearAllDataProviders();
@@ -324,7 +328,8 @@ class Auth extends _$Auth {
 
       await _supabase.rpc('soft_delete_account');
 
-      // 로그아웃 + 데이터 캐시 초기화
+      // 로그아웃 + 데이터/복원 캐시 초기화
+      await SessionRestore.clear();
       await _supabase.auth.signOut();
       _clearAllDataProviders();
       ref.invalidateSelf();

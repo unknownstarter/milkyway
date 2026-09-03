@@ -10,6 +10,7 @@ import 'core/config/env_config.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
+import 'core/services/session_restore.dart';
 import 'core/router/app_routes.dart';
 import 'package:inspire_blur/inspire_blur.dart';
 
@@ -289,10 +290,17 @@ class _MyAppState extends ConsumerState<MyApp> {
     };
     // 딥링크 수신 시작(콜드=pending 저장 후 스플래시가 소비, 웜=즉시 라우팅).
     _deepLink = DeepLinkService(ref)..init();
+    // 라우트 변경마다 마지막 위치 저장(콜드스타트 시 스플래시가 복원 -> 재개처럼).
+    router.routerDelegate.addListener(_saveLocation);
+  }
+
+  void _saveLocation() {
+    SessionRestore.save(router.routerDelegate.currentConfiguration.uri.toString());
   }
 
   @override
   void dispose() {
+    router.routerDelegate.removeListener(_saveLocation);
     _deepLink?.dispose();
     super.dispose();
   }

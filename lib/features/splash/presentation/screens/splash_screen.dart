@@ -3,14 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/services/session_restore.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/splash_layout.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'dart:developer';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -32,81 +31,44 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   Future<void> _validateSession() async {
     try {
-      // 네트워크 연결 체크 추가
-      final connectivity = await Connectivity().checkConnectivity();
-      if (connectivity == ConnectivityResult.none) {
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: const Text('인터넷 연결 없음'),
-              content: const Text('인터넷 연결을 확인하고 다시 시도해주세요.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    _validateSession(); // 재시도
-                    Navigator.pop(context);
-                  },
-                  child: const Text('재시도'),
-                ),
-              ],
-            ),
-          );
-        }
-        return;
-      }
-
       // 앱 버전 체크는 라우팅을 막지 않게 백그라운드로(현재 no-op, 강제업데이트 도입 대비).
       unawaited(ref.read(authProvider.notifier).checkAppVersion());
 
-      // 세션 갱신 시도 (refresh token을 사용하여 최대 1개월까지 유지)
       final supabase = Supabase.instance.client;
       final session = supabase.auth.currentSession;
 
-      if (session != null && !session.isExpired) {
-        // 세션이 유효하면 사용자 정보 가져오기
-        final user = await ref.read(authProvider.notifier).getCurrentUser();
-        if (user == null) {
-          if (mounted) context.goNamed(AppRoutes.loginName);
-          return;
-        }
+      if (session != null) {
+        // 로컬 세션이 있으면(리프레시토큰 최대 1개월 유효) 낙관적으로 즉시 진입한다.
+        // 네트워크 refreshSession/유저조회를 기다리지 않아 스플래시 체류가 없고 오프라인도
+        // 동작한다(백그라운드에서 OS가 앱을 종료해 콜드스타트로 돌아와도 재개처럼).
+        // 세션/유저 갱신은 authProvider가 백그라운드에서 수행한다.
 
-        if (!user.onboardingCompleted) {
-          if (mounted) context.goNamed(AppRoutes.onboardingNicknameName);
-          return;
-        }
-
-        // 딥링크 pending code 있으면 홈 대신 그 카드로.
+        // 딥링크로 켜졌으면 그 카드가 우선.
         if (await DeepLinkService.consumePending()) return;
-        if (mounted) context.goNamed(AppRoutes.homeName);
+
+        // 마지막 위치가 있으면 바로 복원(스플래시->홈 점프 방지).
+        final last = await SessionRestore.last();
+        if (last != null) {
+          if (mounted) context.go(last);
+          return;
+        }
+
+        // 마지막 위치가 없으면(첫 진입 등) 네트워크로 온보딩 판단 후 홈.
+        final user = await ref.read(authProvider.notifier).getCurrentUser();
+        if (!mounted) return;
+        if (user == null) {
+          context.goNamed(AppRoutes.loginName);
+          return;
+        }
+        if (!user.onboardingCompleted) {
+          context.goNamed(AppRoutes.onboardingNicknameName);
+          return;
+        }
+        context.goNamed(AppRoutes.homeName);
         return;
       }
 
-      // 세션이 없거나 만료된 경우, refresh token으로 갱신 시도
-      if (session != null) {
-        try {
-          log('세션 만료됨, refresh token으로 갱신 시도...');
-          await supabase.auth.refreshSession();
-          log('세션 갱신 성공');
-          
-          // 갱신 후 다시 사용자 정보 확인
-          final user = await ref.read(authProvider.notifier).getCurrentUser();
-          if (user != null) {
-            if (!user.onboardingCompleted) {
-              if (mounted) context.goNamed(AppRoutes.onboardingNicknameName);
-              return;
-            }
-            if (await DeepLinkService.consumePending()) return;
-            if (mounted) context.goNamed(AppRoutes.homeName);
-            return;
-          }
-        } catch (e) {
-          log('세션 갱신 실패: $e');
-        }
-      }
-
-      // 세션 갱신 실패 또는 세션이 없는 경우 로그인 화면으로
+      // 세션 없음 -> 로그인.
       if (mounted) context.goNamed(AppRoutes.loginName);
     } catch (e) {
       if (e.toString().contains('업데이트가 필요합니다')) {
