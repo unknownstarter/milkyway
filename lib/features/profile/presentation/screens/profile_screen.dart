@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/providers/locale_controller.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -187,6 +189,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _menuRow(Icons.description_outlined, '이용약관',
               () => _launchTerms()),
           const Divider(color: AppColors.divider, height: 1),
+          _menuRow(Icons.language_outlined,
+              AppL10n.of(context).settingsLanguage, () => _showLanguageSheet()),
+          const Divider(color: AppColors.divider, height: 1),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
@@ -289,6 +294,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (_) {
       await launchUrl(url);
     }
+  }
+
+  void _showLanguageSheet() {
+    final l = AppL10n.of(context);
+    final current = ref.read(localeControllerProvider)?.languageCode;
+    final items = <(String?, String)>[
+      (null, l.languageSystem),
+      ('ko', l.languageKorean),
+      ('en', l.languageEnglish),
+      ('ja', l.languageJapanese),
+      ('zh', l.languageChinese),
+    ];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            for (final it in items)
+              ListTile(
+                title: Text(it.$2, style: AppTypography.body),
+                trailing: current == it.$1
+                    ? const Icon(Icons.check, color: AppColors.accentGreen, size: 20)
+                    : null,
+                onTap: () {
+                  ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(it.$1 == null ? null : Locale(it.$1!));
+                  Navigator.pop(sheetContext);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<String> _appVersion() async {

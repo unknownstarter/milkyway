@@ -1,0 +1,16 @@
+{
+  "@@locale": "ko",
+  "appName": "milkyway",
+  "commonSave": "저장",
+  "commonCancel": "취소",
+  "commonNext": "다음",
+  "commonClose": "닫기",
+  "commonConfirm": "확인",
+  "commonRetry": "다시 시도",
+  "settingsLanguage": "언어",
+  "languageSystem": "기기 설정",
+  "languageKorean": "한국어",
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "languageChinese": "中文"
+}
