@@ -8,9 +8,13 @@ import 'package:whatif_milkyway_app/features/wrapped/domain/wrapped_data.dart';
 import 'package:whatif_milkyway_app/features/wrapped/presentation/widgets/wrapped_card.dart';
 import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
+import '../../support/test_fonts.dart';
+
 /// 4개 언어에서 공유 카드/회고 카드/게이트 배너가 오버플로 없이 렌더되는지.
 /// (번역문이 한국어보다 길어져 레이아웃이 깨지는 걸 잡는다.)
 void main() {
+  setUpAll(loadAppFonts);
+
   const locales = [Locale('ko'), Locale('en'), Locale('ja'), Locale('zh')];
 
   Widget app(Locale locale, Widget child) => MaterialApp(

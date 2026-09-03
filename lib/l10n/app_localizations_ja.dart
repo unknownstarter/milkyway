@@ -162,7 +162,7 @@ class AppL10nJa extends AppL10n {
   String get orbShareError => '共有の準備中に問題が起きました。少し後にもう一度お試しください';
 
   @override
-  String get orbGateBannerTitle => 'はじめてのオーブを作ってみよう';
+  String get orbGateBannerTitle => 'オーブを作ってみよう';
 
   @override
   String orbGateBannerBody(int count) {

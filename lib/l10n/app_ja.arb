@@ -49,7 +49,7 @@
   "orbDeepestReached": "いちばん深い宇宙に到達",
   "orbShareLinkCopied": "共有リンクをコピーしました",
   "orbShareError": "共有の準備中に問題が起きました。少し後にもう一度お試しください",
-  "orbGateBannerTitle": "はじめてのオーブを作ってみよう",
+  "orbGateBannerTitle": "オーブを作ってみよう",
   "orbGateBannerBody": "あと {count} 件メモを残すと自分だけの銀河ができます",
   "orbGateSheetTitle": "オーブまであと {count} 件",
   "orbGateSheetBody": "メモをあと {count} 件残すと\n自分だけの銀河オーブが完成します",

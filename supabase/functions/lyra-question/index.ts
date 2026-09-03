@@ -144,16 +144,39 @@ async function processBook(
       .eq('is_active', true);
   }
 
-  const { error } = await supabase.from('book_questions').insert({
-    book_id: book.id,
-    question,
-    model: MODEL,
-    is_active: true,
-  });
+  const { data: inserted, error } = await supabase
+    .from('book_questions')
+    .insert({
+      book_id: book.id,
+      question,
+      model: MODEL,
+      is_active: true,
+    })
+    .select('id')
+    .single();
   if (error) {
     return { book_id: book.id, ok: false, reason: `insert_error: ${error.message}` };
   }
+  // 한국어 정본이 생기는 즉시 en/ja/zh 번역까지 채운다(비한국어 유저가 기다리지 않게).
+  // 실패해도 물음 생성 자체는 성공. 조회 시 한국어로 폴백되고, 나중에 백필로 메꿔진다.
+  if (inserted?.id) await translateInBackground(inserted.id);
   return { book_id: book.id, ok: true };
+}
+
+/// 번역 함수 호출(실패는 삼킨다 - 물음 생성 흐름을 막지 않는다).
+async function translateInBackground(questionId: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/translate-questions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ source: 'book', question_id: questionId }),
+    });
+  } catch (_e) {
+    // 무시: 백필이 나중에 채운다.
+  }
 }
 
 Deno.serve(async (req) => {
