@@ -13,7 +13,7 @@
 | `../design/02-TYPOGRAPHY.md` | 타이포 정본 — Pretendard 단일 + 자간·행간 |
 | `../design/HOME_IA_AND_EXPERIMENTS.md` | 홈 섹션 IA + 발견/소셜 가설·지표·이벤트 |
 | `../design/previews/` | 홈 목업 HTML/PNG (우주형 5안 + 현행 디자인 MVP 2안) |
-| `../VISION_v2.md` | 상위 비전(진실의 원천). §6.2 영구금지는 소셜 방향으로 갱신 예정 |
+| `../VISION_v3.md` | 상위 비전(진실의 원천). v2는 기록 보존 |
 
 ## 데이터 스냅샷 (2026-08-15, 근거)
 - 가입 96 / 프로필 95 · 최근 90일 신규 5(광고 0, 자연 유입은 실낱)
