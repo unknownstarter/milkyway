@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -120,38 +121,53 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
 
   Widget _content(AppL10n l10n, OrbShareData data) {
     final accent = orbAccentOf(data.tier);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final name = orbTierName(l10n, data.tier);
-        // 오브를 화면 높이에 맞춰 반응형: 큰 폰은 340 그대로, 작은 폰만 살짝 축소(최소 290).
-        // -> 스크롤 없이 딱 맞고, 오브가 하단 공유 버튼을 가리지 않는다.
-        final orbSize =
-            (constraints.maxHeight * 0.40).clamp(290.0, 340.0).toDouble();
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(AppSpacing.lg,
-              glassTopPadding(context) + AppSpacing.sm, AppSpacing.lg, 104),
-          child: Column(
-            children: [
-              ShaderOrb(tier: data.tier, size: orbSize, animate: true),
-              const SizedBox(height: 20),
-              _badge(l10n, name, accent),
-              const SizedBox(height: 12),
-              RichText(
-                text: TextSpan(children: [
-                  TextSpan(
-                      text: l10n.orbNowPrefix,
-                      style: _num(32, AppColors.textPrimary)),
-                  TextSpan(text: name, style: _num(32, accent)),
-                ]),
-              ),
-              const SizedBox(height: 20),
-              _statsPanel(l10n, data, accent),
-              const SizedBox(height: 14),
-              _progress(l10n, data, accent),
-            ],
+    final name = orbTierName(l10n, data.tier);
+    // 하단 공유 버튼(높이 56 + 상하 여백 + 홈 인디케이터)이 차지하는 몫.
+    // 예전엔 이걸 104 상수로 찍어놨어서 기기마다 어긋났다.
+    final bottomReserve = 56 +
+        AppSpacing.md * 2 +
+        AppSpacing.sm +
+        MediaQuery.of(context).padding.bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg, glassTopPadding(context), AppSpacing.lg, bottomReserve),
+      // 스크롤 없음. 텍스트 블록은 자기 높이만 쓰고, 남는 세로 공간 전부를 오브가 먹는다.
+      // (예전: 오브 340 고정 + clamp 최소 290 -> 작은 화면에서 넘쳐 스크롤 발생)
+      child: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, c) {
+                // 남은 공간의 정사각 내접. 상한만 두고 하한은 두지 않는다(넘침 방지).
+                final orbSize = math.min(math.min(c.maxWidth, c.maxHeight), 380.0);
+                return Center(
+                  child: ShaderOrb(tier: data.tier, size: orbSize, animate: true),
+                );
+              },
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          _badge(l10n, name, accent),
+          const SizedBox(height: 12),
+          // 32pt 헤드라인은 한 줄 유지(영어/일본어에서 두 줄로 접히면 그만큼 오브가 줄어듦).
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: RichText(
+              maxLines: 1,
+              text: TextSpan(children: [
+                TextSpan(
+                    text: l10n.orbNowPrefix,
+                    style: _num(32, AppColors.textPrimary)),
+                TextSpan(text: name, style: _num(32, accent)),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _statsPanel(l10n, data, accent),
+          const SizedBox(height: 14),
+          _progress(l10n, data, accent),
+        ],
+      ),
     );
   }
 

@@ -83,19 +83,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await p.setBool(_kLangPillSeen, true);
   }
 
+  /// 1회성 언어 전환 알약. 리스트에 끼지 않고 화면 위에 떠 있는다(닫아도 콘텐츠가 안 튐).
+  /// 상단 헤더 밴드는 워드마크(milkyway)가 차지해서 가운데 알약이 겹치므로,
+  /// 하단 네비 위 FAB와 같은 높이 밴드에 가운데로 띄운다(FAB는 우측이라 안 겹침).
   Widget _langPill() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: DismissiblePill(
-          icon: Icons.language_outlined,
-          label: AppL10n.of(context).settingsLanguage,
-          onTap: () async {
-            await showLanguageSheet(context, ref);
-            await _dismissLangPill();
-          },
-          onClose: _dismissLangPill,
+    return Positioned(
+      // padding.bottom = 하단 네비 높이(extendBody라 Scaffold가 그렇게 넘겨줌) + 홈 인디케이터.
+      // +26 = FAB와 세로 중심을 맞춘 값.
+      bottom: MediaQuery.of(context).padding.bottom + 26,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: DismissiblePill(
+            icon: Icons.language_outlined,
+            label: AppL10n.of(context).homeLanguagePill,
+            onTap: () async {
+              await showLanguageSheet(context, ref);
+              await _dismissLangPill();
+            },
+            onClose: _dismissLangPill,
+          ),
         ),
       ),
     );
@@ -497,7 +515,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: EdgeInsets.only(top: statusBarTop(context), bottom: 210),
               children: [
               _header(),
-              if (_showLangPill) _langPill(),
               const SizedBox(height: 6),
               _stories(),
               if (books.isEmpty) _emptyWelcome(),
@@ -524,6 +541,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
           const Positioned(
               top: 0, left: 0, right: 0, child: StatusBarBlur()),
+          if (_showLangPill) _langPill(),
         ],
       ),
     );

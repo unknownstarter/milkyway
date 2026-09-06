@@ -8,6 +8,7 @@
   "commonConfirm": "OK",
   "commonRetry": "Try again",
   "settingsLanguage": "Language",
+  "homeLanguagePill": "Change language",
   "languageSystem": "System default",
   "languageKorean": "한국어",
   "languageEnglish": "English",
