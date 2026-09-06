@@ -149,6 +149,12 @@ abstract class AppL10n {
   /// **'언어'**
   String get settingsLanguage;
 
+  /// No description provided for @homeLanguagePill.
+  ///
+  /// In ko, this message translates to:
+  /// **'언어 변경'**
+  String get homeLanguagePill;
+
   /// No description provided for @languageSystem.
   ///
   /// In ko, this message translates to:

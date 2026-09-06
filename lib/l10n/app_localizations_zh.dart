@@ -33,6 +33,9 @@ class AppL10nZh extends AppL10n {
   String get settingsLanguage => '语言';
 
   @override
+  String get homeLanguagePill => '更改语言';
+
+  @override
   String get languageSystem => '跟随系统';
 
   @override

@@ -33,6 +33,9 @@ class AppL10nEn extends AppL10n {
   String get settingsLanguage => 'Language';
 
   @override
+  String get homeLanguagePill => 'Change language';
+
+  @override
   String get languageSystem => 'System default';
 
   @override

@@ -33,6 +33,9 @@ class AppL10nJa extends AppL10n {
   String get settingsLanguage => '言語';
 
   @override
+  String get homeLanguagePill => '言語を変更';
+
+  @override
   String get languageSystem => '端末の設定';
 
   @override

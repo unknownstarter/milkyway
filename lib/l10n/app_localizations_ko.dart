@@ -33,6 +33,9 @@ class AppL10nKo extends AppL10n {
   String get settingsLanguage => '언어';
 
   @override
+  String get homeLanguagePill => '언어 변경';
+
+  @override
   String get languageSystem => '기기 설정';
 
   @override
