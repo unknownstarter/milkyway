@@ -23,7 +23,24 @@
 | **AppDialog** (`showAppConfirm`) | 확인 팝업 | 제목+본문+취소/확인. `surface`+`modal 24`. 톤 `accent`(긍정)/`danger`(파괴). 앱 전역 팝업은 이걸로 통일(AlertDialog 직접 X) |
 | **AsyncView** | 비동기 섹션 렌더 | 로딩/에러/빈/데이터를 **부드럽게**(skipLoadingOnReload+고정높이+크로스페이드). 섹션 로딩에 스피너 직접 박기 금지. 규칙 `04-COMPOSITION.md §7` |
 | **glassAppBar** | 앱바(표준) | 반투명 55% + 블러 18(콘텐츠가 뒤로 비쳐 넓어 보임). `Scaffold(extendBodyBehindAppBar: true)` + 스크롤 본문 상단 `glassTopPadding` 필수. 정렬/세그먼트 칩은 `bottom`에 넣어 상단 스티키. 불투명 AppBar 직접 쓰기 지양 |
-| **DismissiblePill** | 닫을 수 있는 알약 | pill(999) `surfaceMuted`+`divider` 테두리. 선행 아이콘(옵션)+라벨(`label`, `textBright`)+우측 X(`textSecondary`). 본체 탭=`onTap`, X 탭=`onClose`. 1회성 힌트/전환 유도(예: 홈 상단 언어 전환). 노출 1회 제어는 호출부(shared_preferences 플래그) 책임 |
+| **DismissiblePill** | 닫을 수 있는 알약 | pill(999) `surfaceMuted`+`divider` 테두리. 선행 아이콘(옵션)+라벨(`label`, `textBright`)+우측 X(`textSecondary`). 본체 탭=`onTap`, X 탭=`onClose`. **항상 한 줄** - 내용만큼 가로로 늘어나고 폭이 모자랄 때만 말줄임(줄바꿈 금지) |
+| **FloatingPill** | 떠 있는 알약 | `DismissiblePill` + 그림자 + 가로 가운데. **`Stack`의 자식**으로 두고 `top`만 준다 -> 레이아웃을 밀지 않아 닫혀도 아래가 안 튄다. 경로/텍스트/노출정책은 `FloatingPillSpec` 한 곳에서. 홈 언어 알약은 좌상단 로고와 같은 밴드(`statusBarTop + 12`) |
+
+
+### 알약 노출 정책 (`PillPolicy`)
+
+`FloatingPillSpec.frequency`로 정한다. 저장은 `shared_preferences` (`pill.<id>.*`).
+
+| 빈도 | 뜻 |
+|---|---|
+| `once` | 평생 딱 한 번(뜨는 순간 소진) |
+| `daily` | 하루에 한 번 |
+| `untilDismissed` | 닫기 전까지 매번 - 1회성 안내의 기본값 |
+| `always` | 조건 없이 항상 |
+
+**빈도와 무관한 절대 규칙: X를 한 번이라도 누르면 그 알약은 끝.** 본체를 눌러 목적을
+달성해도 기본은 종료(`dismissOnTap`). 정책 도입 전 플래그가 있으면 `legacyDismissedKey`로
+넘겨 이미 닫은 사용자에게 되살아나지 않게 한다.
 
 ## 조합 컴포넌트 (Composite)
 

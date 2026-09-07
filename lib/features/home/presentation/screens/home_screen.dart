@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/presentation/widgets/language_sheet.dart';
-import '../../../../core/presentation/widgets/design/dismissible_pill.dart';
+import '../../../../core/presentation/widgets/design/floating_pill.dart';
+import '../../../../core/services/pill_policy.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/providers/analytics_provider.dart';
@@ -48,15 +48,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _lyraShownLogged = false;
 
-  // 첫 진입 1회만 뜨는 언어 전환 알약. X 또는 언어 선택 시 다시 안 뜸.
-  static const _kLangPillSeen = 'home_lang_pill_seen';
-  bool _showLangPill = false;
-
   @override
   void initState() {
     super.initState();
     ref.read(analyticsProvider).logScreenView('home_screen');
-    _maybeShowLangPill();
     if (widget.autoBookSearch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -69,52 +64,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Future<void> _maybeShowLangPill() async {
-    final p = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    if (!(p.getBool(_kLangPillSeen) ?? false)) {
-      setState(() => _showLangPill = true);
-    }
-  }
-
-  Future<void> _dismissLangPill() async {
-    if (_showLangPill) setState(() => _showLangPill = false);
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kLangPillSeen, true);
-  }
-
-  /// 1회성 언어 전환 알약. 리스트에 끼지 않고 화면 위에 떠 있는다(닫아도 콘텐츠가 안 튐).
-  /// 상단 헤더 밴드는 워드마크(milkyway)가 차지해서 가운데 알약이 겹치므로,
-  /// 하단 네비 위 FAB와 같은 높이 밴드에 가운데로 띄운다(FAB는 우측이라 안 겹침).
+  /// 1회성 언어 전환 알약. 좌상단 로고와 같은 밴드에 가로 가운데로 떠 있는다.
+  /// 경로/텍스트/노출 정책은 FloatingPillSpec 한 곳에서만 정한다.
   Widget _langPill() {
-    return Positioned(
-      // padding.bottom = 하단 네비 높이(extendBody라 Scaffold가 그렇게 넘겨줌) + 홈 인디케이터.
-      // +26 = FAB와 세로 중심을 맞춘 값.
-      bottom: MediaQuery.of(context).padding.bottom + 26,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.45),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: DismissiblePill(
-            icon: Icons.language_outlined,
-            label: AppL10n.of(context).homeLanguagePill,
-            onTap: () async {
-              await showLanguageSheet(context, ref);
-              await _dismissLangPill();
-            },
-            onClose: _dismissLangPill,
-          ),
-        ),
+    return FloatingPill(
+      // 로고(패딩 14 + 21pt 워드마크)의 세로 중앙에 알약 중앙을 맞춘 값.
+      top: statusBarTop(context) + 12,
+      spec: FloatingPillSpec(
+        id: 'home_lang',
+        label: AppL10n.of(context).homeLanguagePill,
+        icon: Icons.language_outlined,
+        frequency: PillFrequency.untilDismissed,
+        // 0.2.7~0.2.8에서 이미 닫은 사용자에게 되살아나지 않게.
+        legacyDismissedKey: 'home_lang_pill_seen',
+        onTap: (context) => showLanguageSheet(context, ref),
       ),
     );
   }
@@ -541,7 +504,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
           const Positioned(
               top: 0, left: 0, right: 0, child: StatusBarBlur()),
-          if (_showLangPill) _langPill(),
+          _langPill(),
         ],
       ),
     );
