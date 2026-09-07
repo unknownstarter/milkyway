@@ -128,51 +128,71 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
         AppSpacing.md * 2 +
         AppSpacing.sm +
         MediaQuery.of(context).padding.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          AppSpacing.lg, glassTopPadding(context), AppSpacing.lg, bottomReserve),
-      // 스크롤 없음. 텍스트 블록은 자기 높이만 쓰고, 남는 세로 공간 전부를 오브가 먹는다.
-      // (예전: 오브 340 고정 + clamp 최소 290 -> 작은 화면에서 넘쳐 스크롤 발생)
-      child: Column(
-        children: [
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, c) {
-                // 남은 공간의 정사각 내접. 상한만 두고 하한은 두지 않는다(넘침 방지).
-                final orbSize = math.min(math.min(c.maxWidth, c.maxHeight), 380.0);
-                return Center(
-                  child: ShaderOrb(tier: data.tier, size: orbSize, animate: true),
-                );
-              },
-            ),
+    // 주의: 반드시 이 context(Scaffold 바깥)로 계산한다. extendBodyBehindAppBar면
+    // body 안쪽 MediaQuery.padding.top에 이미 앱바 높이가 더해져 있어서, 그 context로
+    // glassTopPadding을 부르면 앱바를 두 번 세어 오브가 그만큼 줄어든다.
+    final topPad = glassTopPadding(context);
+    return LayoutBuilder(
+      builder: (_, outer) {
+        // 세로가 짧은 기기(SE/미니)에서는 텍스트 블록을 조여서 오브 몫을 늘린다.
+        // 안 그러면 고정 리듬이 화면 절반을 먹어 오브가 초라해진다.
+        final compact = outer.maxHeight < 760;
+        // ignore: avoid_print
+        final gapAfterOrb = compact ? 10.0 : 16.0;
+        final gapAfterBadge = compact ? 8.0 : 12.0;
+        final gapAfterTitle = compact ? 12.0 : 20.0;
+        final gapAfterStats = compact ? 10.0 : 14.0;
+        final titleSize = compact ? 26.0 : 32.0;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+              AppSpacing.lg, topPad, AppSpacing.lg, bottomReserve),
+          // 스크롤 없음. 텍스트 블록은 자기 높이만 쓰고, 남는 세로 공간 전부를 오브가 먹는다.
+          // (예전: 오브 340 고정 + clamp 최소 290 -> 작은 화면에서 넘쳐 스크롤 발생)
+          child: Column(
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    // 남은 공간의 정사각 내접. 상한만 두고 하한은 두지 않는다(넘침 방지).
+                    final orbSize =
+                        math.min(math.min(c.maxWidth, c.maxHeight), 380.0);
+                    return Center(
+                      child:
+                          ShaderOrb(tier: data.tier, size: orbSize, animate: true),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: gapAfterOrb),
+              _badge(l10n, name, accent, compact),
+              SizedBox(height: gapAfterBadge),
+              // 헤드라인은 한 줄 유지(영어/일본어에서 두 줄로 접히면 그만큼 오브가 줄어듦).
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  maxLines: 1,
+                  text: TextSpan(children: [
+                    TextSpan(
+                        text: l10n.orbNowPrefix,
+                        style: _num(titleSize, AppColors.textPrimary)),
+                    TextSpan(text: name, style: _num(titleSize, accent)),
+                  ]),
+                ),
+              ),
+              SizedBox(height: gapAfterTitle),
+              _statsPanel(l10n, data, accent, compact),
+              SizedBox(height: gapAfterStats),
+              _progress(l10n, data, accent),
+            ],
           ),
-          const SizedBox(height: 16),
-          _badge(l10n, name, accent),
-          const SizedBox(height: 12),
-          // 32pt 헤드라인은 한 줄 유지(영어/일본어에서 두 줄로 접히면 그만큼 오브가 줄어듦).
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: RichText(
-              maxLines: 1,
-              text: TextSpan(children: [
-                TextSpan(
-                    text: l10n.orbNowPrefix,
-                    style: _num(32, AppColors.textPrimary)),
-                TextSpan(text: name, style: _num(32, accent)),
-              ]),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _statsPanel(l10n, data, accent),
-          const SizedBox(height: 14),
-          _progress(l10n, data, accent),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _badge(AppL10n l10n, String name, Color accent) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+  Widget _badge(AppL10n l10n, String name, Color accent, bool compact) =>
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 5 : 7),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: 0.13),
           borderRadius: BorderRadius.circular(999),
@@ -185,8 +205,9 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
         ]),
       );
 
-  Widget _statsPanel(AppL10n l10n, OrbShareData d, Color accent) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+  Widget _statsPanel(AppL10n l10n, OrbShareData d, Color accent, bool compact) =>
+      Container(
+        padding: EdgeInsets.symmetric(vertical: compact ? 12 : 18),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(AppRadius.cardLarge),
