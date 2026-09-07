@@ -57,10 +57,13 @@ void main() {
   // 이라 작은 기기에서 넘쳐 스크롤이 생겼다. 남는 공간을 오브가 먹는 구조로 바뀐 뒤의 계약.
   testWidgets('MyOrbScreen 기기별 오버플로/스크롤 없음', (tester) async {
     const sizes = <Size>[
-      Size(320, 568),   // iPhone SE 1세대(최소)
-      Size(375, 667),   // iPhone SE 2/3세대
-      Size(390, 844),   // iPhone 14
-      Size(430, 932),   // iPhone 17 Pro Max
+      Size(320, 568),  // iPhone SE 1세대(최소)
+      Size(375, 667),  // iPhone SE 2/3세대, 8
+      Size(375, 812),  // iPhone 13 mini
+      Size(390, 844),  // iPhone 13/14
+      Size(393, 852),  // iPhone 15/16 Pro
+      Size(430, 932),  // iPhone 14 Pro Max
+      Size(440, 956),  // iPhone 17 Pro Max
     ];
     const data = OrbShareData(
       books: 14, memos: 62, topPercent: 23, streakDays: 9,
@@ -71,8 +74,13 @@ void main() {
       for (final lang in ['ko', 'en', 'ja', 'zh']) {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1.0;
+        // 노치/홈인디케이터를 빼먹으면 실기기보다 후하게 재게 된다.
+        tester.view.padding = const FakeViewPadding(top: 47, bottom: 34);
+        tester.view.viewPadding = const FakeViewPadding(top: 47, bottom: 34);
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPadding);
+        addTearDown(tester.view.resetViewPadding);
 
         await tester.pumpWidget(ProviderScope(
           overrides: [
@@ -89,6 +97,7 @@ void main() {
         expect(tester.takeException(), isNull, reason: '$size/$lang 오버플로');
         expect(find.byType(Scrollable), findsNothing,
             reason: '$size/$lang 스크롤이 생김');
+
         // 스크롤을 없애려고 오브를 쪼그라뜨리는 회귀 방지.
         // 320x568(SE 1세대)은 텍스트 블록만으로 화면 절반이라 예외 - 넘치지만 않으면 된다.
         if (size.height >= 640) {
