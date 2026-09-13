@@ -34,7 +34,18 @@ class ShareRepository {
       if (payload != null) 'payload': payload,
     });
 
-    return '${EnvConfig.supabaseUrl}/functions/v1/s/$code';
+    // 공개 도메인(mymilkyway.xyz)의 /s/{code}. Cloudflare Worker가 엣지 함수로 프록시한다.
+    // supabase.co를 직접 노출하면 프로젝트 ref가 새고, 그 도메인은 HTML을 못 서빙해서
+    // OG 미리보기도 인앱 웹뷰도 깨진다(플랫폼이 text/plain으로 강등).
+    final base = EnvConfig.shareLinkBase;
+    if (base.isEmpty) {
+      throw StateError('SHARE_LINK_BASE 가 설정되지 않았습니다');
+    }
+    // 폴백(도메인 미설정)일 때만 옛 경로. 정상 경로는 /s/{code}.
+    if (base == EnvConfig.supabaseUrl) {
+      return '$base/functions/v1/s/$code';
+    }
+    return '$base/s/$code';
   }
 
   /// 6자 base62 숏튼 코드.
