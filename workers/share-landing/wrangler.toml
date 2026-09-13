@@ -1,0 +1,19 @@
+# 배포: cd workers/share-landing && npx wrangler deploy
+# 최초 1회: npx wrangler login  (브라우저로 Cloudflare 로그인)
+#
+# SUPABASE_URL은 비밀이 아니다(공개 프로젝트 URL). 그래도 코드에 박지 않고 var로 둔다.
+name = "milkyway-share-landing"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+SUPABASE_URL = "https://hyjgfgzexvxhgfmqgiqu.supabase.co"
+
+# mymilkyway.xyz/s/* 만 이 워커가 받는다. 나머지 경로는 건드리지 않음.
+[[routes]]
+pattern = "mymilkyway.xyz/s/*"
+zone_name = "mymilkyway.xyz"
+
+[[routes]]
+pattern = "mymilkyway.xyz/healthz"
+zone_name = "mymilkyway.xyz"
