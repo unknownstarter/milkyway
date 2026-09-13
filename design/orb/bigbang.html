@@ -1,0 +1,830 @@
+<title>오브 빅뱅</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+
+<style>
+  /* 밀키웨이 오브 화면과 같은 밤을 유지한다. 이펙트는 검정 위에서만 판단이 되므로
+     이 페이지는 의도적으로 단일(다크) 테마다. */
+  :root {
+    --ground: #08080E;
+    --panel: #101017;
+    --panel-2: #16161F;
+    --line: #24242F;
+    --line-soft: #1B1B24;
+    --ink: #ECECEC;
+    --ink-2: #8A8A96;
+    --ink-3: #5A5A66;
+    --accent: #48FF00;
+    --warn: #FFC24D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 56px;
+    align-items: start;
+  }
+
+  header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.4px; }
+  header p { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.6; }
+
+  /* 무대 */
+  .stage {
+    position: relative;
+    background: #05050A;
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+  canvas { display: block; width: 100%; max-width: 460px; height: auto; touch-action: none; }
+
+  .stage-chrome { position: absolute; inset: 0; pointer-events: none; padding: 16px 18px; }
+  .tier-read {
+    align-self: flex-start;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .phase-read {
+    display: flex; align-items: center; gap: 9px; margin-top: 8px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-3);
+  }
+  .phase-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--ink-3); transition: background .12s; }
+  .phase-dot.live { background: var(--accent); }
+
+  /* 타임라인 */
+  .timeline { grid-column: 1 / 2; margin-top: 14px; }
+  .tl-track {
+    position: relative; height: 26px; border-radius: 6px;
+    background: var(--panel); border: 1px solid var(--line-soft);
+    display: flex; overflow: hidden;
+  }
+  .tl-seg {
+    position: relative; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .02em;
+    color: var(--ink-3); border-right: 1px solid var(--line-soft); white-space: nowrap;
+    overflow: hidden;
+  }
+  .tl-seg:last-child { border-right: 0; }
+  .tl-head {
+    position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent);
+    box-shadow: 0 0 8px rgba(72,255,0,.55); opacity: 0; transition: opacity .15s;
+  }
+  .tl-head.live { opacity: 1; }
+
+  /* 제어 */
+  .rail { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 14px; padding: 16px; }
+  .card h2 {
+    margin: 0 0 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  .fire { display: flex; gap: 8px; }
+  button {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; letter-spacing: -0.1px;
+    color: var(--ink); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 11px 12px; cursor: pointer; flex-grow: 1;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  button:hover { background: #1D1D28; border-color: #333340; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { color: var(--accent); border-color: rgba(72,255,0,.42); background: rgba(72,255,0,.10); }
+  button.primary:hover { background: rgba(72,255,0,.17); }
+
+  .tiers { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tier {
+    flex-grow: 1; padding: 8px 4px; border-radius: 8px; cursor: pointer;
+    background: transparent; border: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-2);
+  }
+  .tier[aria-pressed="true"] { color: #05050A; font-weight: 600; }
+
+  .row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 13px; }
+  .row:last-child { margin-bottom: 0; }
+  .row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .row-head label { font-size: 12.5px; color: var(--ink-2); }
+  .row-head output {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--line); border-radius: 999px; }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--line); border-radius: 999px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 13px; height: 13px; margin-top: -5px;
+    border-radius: 999px; background: var(--ink); border: 0;
+  }
+  input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 999px; background: var(--ink); border: 0; }
+  input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .toggles { display: flex; flex-direction: column; gap: 9px; }
+  .tg { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+  .tg input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  /* 셰이더 상수 출력 */
+  .emit {
+    grid-column: 1 / -1; margin-top: 4px;
+    background: var(--panel); border: 1px solid var(--line-soft); border-radius: 14px; padding: 16px;
+  }
+  .emit h2 { margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); }
+  .emit p { margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+  pre {
+    margin: 0; overflow-x: auto; padding: 14px; border-radius: 10px;
+    background: #0B0B12; border: 1px solid var(--line-soft);
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; line-height: 1.75; color: #C9C9D4;
+  }
+  .cm { color: #55555F; }
+  .nm { color: var(--warn); }
+
+  .note { grid-column: 1 / -1; color: var(--ink-3); font-size: 12px; line-height: 1.7; margin: 0; }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); }
+    .timeline { grid-column: 1 / -1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .phase-dot, .tl-head { transition: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>오브 빅뱅</h1>
+    <p>첫 오브가 태어나는 순간과 승급 순간. 실제 프래그먼트 셰이더로 돌아가고, 숫자를 바꾸면 그대로 반영된다</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="gl" width="920" height="1360" aria-label="오브 이펙트 미리보기"></canvas>
+    <div class="stage-chrome">
+      <div class="tier-read" id="tierRead">t1 작은 성운</div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="card">
+      <h2>재생</h2>
+      <div class="fire">
+        <button class="primary" id="fireBirth">빅뱅</button>
+        <button id="firePromote">승급</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>등급</h2>
+      <div class="tiers" id="tiers"></div>
+    </div>
+
+    <div class="card">
+      <h2>타이밍</h2>
+      <div class="row">
+        <div class="row-head"><label for="sAnt">예비동작 (수축)</label><output id="oAnt"></output></div>
+        <input type="range" id="sAnt" min="0" max="500" step="10" value="210">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sBurst">폭발</label><output id="oBurst"></output></div>
+        <input type="range" id="sBurst" min="80" max="1600" step="20" value="620">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sWind">감김 (차등 회전)</label><output id="oWind"></output></div>
+        <input type="range" id="sWind" min="200" max="3500" step="50" value="1600">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sCool">색이 식는 시간</label><output id="oCool"></output></div>
+        <input type="range" id="sCool" min="200" max="4000" step="50" value="2200">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>충격파</h2>
+      <div class="row">
+        <div class="row-head"><label for="sAmp">강도</label><output id="oAmp"></output></div>
+        <input type="range" id="sAmp" min="0" max="200" step="5" value="100">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sSpd">퍼지는 시간</label><output id="oSpd"></output></div>
+        <input type="range" id="sSpd" min="200" max="3000" step="50" value="1500">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sWav">일렁임 (파동 수)</label><output id="oWav"></output></div>
+        <input type="range" id="sWav" min="8" max="45" step="1" value="16">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sChr">색수차</label><output id="oChr"></output></div>
+        <input type="range" id="sChr" min="0" max="200" step="5" value="70">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>기록</h2>
+      <div class="row">
+        <div class="row-head"><label for="sMemo">메모</label><output id="oMemo"></output></div>
+        <input type="range" id="sMemo" min="1" max="150" step="1" value="40">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sBook">책</label><output id="oBook"></output></div>
+        <input type="range" id="sBook" min="0" max="24" step="1" value="9">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sSeed">지문 (seed)</label><output id="oSeed"></output></div>
+        <input type="range" id="sSeed" min="1" max="120" step="1" value="41">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sDust">성운 농도 (평상시)</label><output id="oDust"></output></div>
+        <input type="range" id="sDust" min="0" max="120" step="5" value="30">
+      </div>
+      <div class="row">
+        <div class="row-head"><label for="sClump">책 덩어리</label><output id="oClump"></output></div>
+        <input type="range" id="sClump" min="0" max="100" step="5" value="80">
+      </div>
+      <div class="toggles" style="margin-top:12px">
+        <label class="tg"><input type="checkbox" id="cShock" checked> 충격파 왜곡</label>
+        <label class="tg"><input type="checkbox" id="cSettle" checked> 잔여 진동</label>
+        <label class="tg"><input type="checkbox" id="cIdle" checked> 대기 중 회전</label>
+        <label class="tg"><input type="checkbox" id="cNeb" checked> 성운 (부피 렌더)</label>
+        <label class="tg"><input type="checkbox" id="cHist" checked> 잔상 (시간 누적)</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="emit">
+    <h2>지금 설정</h2>
+    <p>맞춰진 값을 그대로 <code>orb.frag</code> 배선에 옮기면 된다. Dart가 시각을 계산해 uniform으로 넘기고, 셰이더는 받은 값을 그린다</p>
+    <pre id="emit"></pre>
+  </div>
+
+  <p class="note">
+    화면 전체가 물결치게 하려면 왜곡을 오브가 아니라 그 아래 UI에 걸어야 하고, 그건 위젯을 텍스처로 받아야 한다 (<code>flutter_shaders</code>의 <code>AnimatedSampler</code>). 여기 미리보기는 오브가 놓인 공간만 왜곡한다
+  </p>
+</div>
+
+<script>
+(() => {
+  const TIERS = [
+    { id: 't1', name: '작은 성운', col: [0.616, 0.706, 1.000] },
+    { id: 't2', name: '별무리',   col: [0.663, 0.612, 1.000] },
+    { id: 't3', name: '별자리',   col: [0.604, 0.549, 1.000] },
+    { id: 't4', name: '성단',     col: [0.769, 0.549, 1.000] },
+    { id: 't5', name: '은하',     col: [1.000, 0.620, 0.796] },
+    { id: 't6', name: '대은하',   col: [1.000, 0.761, 0.302] },
+  ];
+
+  const VS = `#version 300 es
+  in vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }`;
+
+  const FS = `#version 300 es
+  precision highp float;
+  out vec4 fragColor;
+
+  uniform vec2  uRes;
+  uniform float uTime, uFrame;
+  uniform float uExpand, uWind, uFlash, uShockR, uShockA, uTemp, uSquash, uChroma;
+  uniform vec3  uColA, uColB;
+  uniform float uColMix, uStars, uBooks, uSeed, uNebula, uHistory, uDust, uWaveN, uClump;
+  uniform sampler2D uPrev;
+
+  float h11(float p){ p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
+  float h21(vec2 v){ return fract(sin(dot(v, vec2(41.3, 289.1))) * 43758.5453); }
+
+  const mat3 M3 = mat3( 0.00, 0.80, 0.60,
+                       -0.80, 0.36, -0.48,
+                       -0.60, -0.48, 0.64 );
+
+  // 밀도장. fbm 대신 삼각함수 격자를 접는다.
+  // 노이즈 텍스처 없이도 결이 생기고, fbm보다 훨씬 싸다.
+  float density(vec3 p, float rot){
+    float rad = length(p.xy);
+    // 차등 회전: 안쪽이 빠르게 돈다. 나선은 이 규칙의 결과로 생긴다.
+    float a = rot / (0.24 + rad * 2.2);
+    float c = cos(a), s = sin(a);
+    p.xy = mat2(c, -s, s, c) * p.xy;
+
+    float d = 0.0, z = 1.0;
+    vec3 q = p * 2.3;
+    for (int i = 0; i < 5; i++){
+      d -= abs(dot(cos(q), sin(q.yzx))) * z;
+      z *= 0.58;
+      q = M3 * q * 1.93;
+    }
+    // 원반으로 가둔다. 얇을수록 은하처럼 보인다.
+    float disc = exp(-rad * rad * 2.6) * exp(-p.z * p.z * 26.0);
+    return (d + 1.55) * disc;
+  }
+
+  vec3 ramp(float t, vec3 base){
+    vec3 deep = base * vec3(0.14, 0.11, 0.26);
+    vec3 mid  = base * 0.90;
+    vec3 hot  = mix(base, vec3(1.0, 0.95, 0.88), 0.82);
+    t = clamp(t, 0.0, 1.0);
+    return t < 0.55 ? mix(deep, mid, t / 0.55) : mix(mid, hot, (t - 0.55) / 0.45);
+  }
+
+  vec3 tierColor(){ return mix(uColA, uColB, uColMix); }
+  float ringAt(float d, float r){ return smoothstep(r - 0.075, r, d) - smoothstep(r, r + 0.075, d); }
+  vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0.0, 1.0); }
+
+  void main(){
+    vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    float d0 = length(uv);
+    vec2 dir = d0 > 1e-4 ? uv / d0 : vec2(0.0);
+
+    // 링 하나를 밀면 테두리만 움직인다. 감쇠하는 사인 다발을 쓰면 마루가 여러 개 생겨
+    // 공간이 실제로 출렁인다. 파장은 uWaveN으로 조절한다.
+    // 파동은 하나만 쓴다. 속도가 다른 파를 겹치면 맥놀이가 생겨서
+    // 흐르다 멈추다 하는 것처럼 보인다.
+    float w = d0 - uShockR;
+    float lambda = 1.0 / max(uWaveN, 0.4);              // 파장
+    // 포락선을 파장에 맞춘다. 그래야 슬라이더를 어디에 두든 마루가 두세 개 보인다.
+    float env = exp(-(w * w) / (0.55 * lambda * lambda));
+    float wave = sin(w * 6.28318 / lambda) * env;
+    float ring = ringAt(d0, uShockR);
+    // 원형파는 퍼질수록 약해진다. 에너지가 둘레로 나뉘기 때문.
+    float spread = inversesqrt(max(uShockR, 0.10) * 3.2);
+    vec2 uvs = uv + dir * wave * uShockA * 0.15 * spread;
+
+    vec3 base = tierColor();
+    vec3 col = vec3(0.0);
+
+    // ---------- 성운: 실제로 부피를 통과시킨다 ----------
+    if (uNebula > 0.5) {
+      vec3 ro = vec3(0.0, 0.0, -2.0);
+      vec3 rd = normalize(vec3(uvs * 1.35, 1.0));
+      // 픽셀마다 출발점을 흩뿌린다. 스텝을 적게 써도 줄무늬가 안 생긴다.
+      float jit = h21(gl_FragCoord.xy + uFrame * 1.618);
+      float t = 1.35 + jit * 0.06;
+      float trans = 1.0;
+      float rot = uWind * 0.9 + uTime * 0.16;
+      float scale = mix(0.22, 1.0, clamp(uExpand, 0.0, 1.6));
+
+      for (int i = 0; i < 30; i++){
+        if (trans < 0.02 || t > 3.1) break;
+        vec3 p = (ro + rd * t) / scale;
+        float den = density(p, rot);
+
+        // 밀도에 따라 보폭을 바꾼다. 빈 공간은 성큼, 짙은 곳은 촘촘히.
+        float step = clamp(0.30 - den * 0.22, 0.045, 0.30);
+
+        if (den > 0.02) {
+          // 자기 그림자: 코어 쪽으로 조금 간 지점과의 밀도 차이가 곧 음영이다.
+          // 이게 없으면 전부 발광체라 납작해 보인다.
+          vec3 toCore = normalize(-p + vec3(0.0, 0.0, 0.001));
+          float dif = clamp((den - density(p + toCore * 0.22, rot)) * 1.9, 0.02, 1.0);
+
+          vec3 lit = ramp(den * 0.9, base) * (0.20 + 1.5 * dif);
+          float a = den * step * 0.5 * uDust;
+          col += lit * a * trans;
+          trans *= 1.0 - a;
+        }
+        t += step;
+      }
+    }
+
+    // ---------- 책 = 밀도 덩어리 ----------
+    int nb = int(uBooks);
+    for (int b = 0; b < 24; b++){
+      if (b >= nb) break;
+      float fb = float(b);
+      float a = fb * 2.39996 + h11(fb + uSeed) * 0.7 + uWind * 0.06;
+      float rr = (0.08 + h11(fb + uSeed + 40.0) * 0.20) * max(uExpand, 0.02);
+      vec2 c = vec2(cos(a), sin(a)) * rr;
+      vec2 q = uvs - c;
+      // 매끈한 원은 포토샵 브러시처럼 보인다. 성운과 같은 접기 연산으로 결을 넣는다.
+      // 크기와 밝기는 uClump로 조절. 결(접기 연산)은 크게 키워도 남게 둔다.
+      float g = exp(-dot(q, q) * mix(460.0, 120.0, uClump));
+      vec3 pp = vec3(q * 26.0 + fb * 5.0, 0.0);
+      float tx = 0.0, zz = 1.0;
+      for (int k = 0; k < 3; k++){
+        tx -= abs(dot(cos(pp), sin(pp.yzx))) * zz;
+        zz *= 0.6; pp = M3 * pp * 1.9;
+      }
+      tx = mix(1.0, clamp(tx * 0.5 + 1.0, 0.0, 1.0), 0.55);
+      col += ramp(0.40 + g * 0.4, base) * g * tx * mix(0.07, 0.20, uClump) * uExpand;
+    }
+
+    // ---------- 메모 = 별 ----------
+    int ns = int(uStars);
+    for (int i = 0; i < 150; i++){
+      if (i >= ns) break;
+      float fi = float(i);
+      float age = h11(fi * 1.7 + uSeed);
+      float a0  = fi * 2.39996 + h11(fi + uSeed + 11.0) * 0.8;
+      float r0  = 0.055 + 0.30 * sqrt(age) * (0.86 + h11(fi + 23.0) * 0.26);
+
+      float r = r0 * uExpand * (1.0 - 0.28 * uSquash);
+      float omega = 1.0 / (0.16 + r * 3.4);
+      float a = a0 + uWind * omega * 0.30 + uTime * 0.05 * omega;
+
+      vec2 sp = vec2(cos(a), sin(a)) * r;
+      vec2 q = uvs - sp;
+      float dd2 = dot(q, q);
+
+      // 밝기 예산. 별 하나의 번짐이 넓으면 40개만 쌓여도 화면이 타서 하얘진다.
+      // 코어는 좁고 밝게, 번짐은 아주 좁게. (측정으로 맞춘 값)
+      float mag = pow(h11(fi + 61.0), 3.0) * 0.9 + 0.22;
+      float core = exp(-dd2 * 90000.0);
+      float halo = 0.000008 / (dd2 + 0.00012);
+      float sp4 = (exp(-abs(q.x) * 300.0 - q.y * q.y * 7000.0)
+                 + exp(-abs(q.y) * 300.0 - q.x * q.x * 7000.0)) * smoothstep(0.75, 1.05, mag);
+
+      float fresh = smoothstep(0.72, 1.0, age);
+      vec3 sc = mix(base, vec3(1.0, 0.97, 0.93), max(fresh * 0.8, uTemp));
+      col += sc * mag * (core * 2.4 + halo + sp4 * 0.10);
+    }
+
+    // ---------- 배경 별 ----------
+    vec2 g2 = uvs * 15.0;
+    vec2 id = floor(g2), gv = fract(g2) - 0.5;
+    float hb = h21(id);
+    if (hb > 0.86){
+      vec2 off = (vec2(h21(id + 3.1), h21(id + 7.7)) - 0.5) * 0.66;
+      float dd = length(gv - off);
+      col += vec3(0.80, 0.85, 1.0) * exp(-dd * dd * 2600.0) * (hb - 0.86) * 2.2;
+    }
+
+    // ---------- 코어 / 플래시 / 충격파 ----------
+    float dc = length(uvs);
+    col += base * (0.016 / (dc * dc * 60.0 + 1.0)) * (0.35 + 0.65 * uExpand);
+    col += vec3(1.0, 0.98, 0.94) * uFlash * (1.35 / (dc * dc * 130.0 + 1.0));
+
+    float rr2 = ringAt(d0, uShockR + 0.011 * uChroma);
+    float bb2 = ringAt(d0, uShockR - 0.011 * uChroma);
+    col += vec3(rr2, ring, bb2) * uShockA * 0.55;
+
+    col += vec3(0.0022, 0.0022, 0.0042);   // #08080E를 선형으로 환산한 값
+    col *= 1.0 - 0.38 * smoothstep(0.42, 1.15, d0);
+    col = aces(col * 0.80);
+    col = pow(col, vec3(0.4545));
+    col += (h21(gl_FragCoord.xy + fract(uTime)) - 0.5) / 255.0;
+
+    // ---------- 잔상: 앞 프레임과 섞는다 ----------
+    // 스텝을 적게 쓴 자리의 노이즈가 시간축에서 평균되고, 빛에 여운이 남는다.
+    vec3 prev = texture(uPrev, gl_FragCoord.xy / uRes).rgb;
+    col = mix(col, max(prev - 0.006, vec3(0.0)), uHistory);
+
+    fragColor = vec4(col, 1.0);
+  }`;
+
+  const FS_PRESENT = `#version 300 es
+  precision highp float;
+  out vec4 fragColor;
+  uniform sampler2D uTex;
+  uniform vec2 uRes;
+  void main(){ fragColor = vec4(texture(uTex, gl_FragCoord.xy / uRes).rgb, 1.0); }`;
+
+  const cv = document.getElementById('gl');
+  const gl = cv.getContext('webgl2', { antialias: false, alpha: false });
+  const emit = document.getElementById('emit');
+
+  if (!gl) {
+    document.querySelector('.stage').innerHTML =
+      '<p style="padding:40px;color:#8A8A96;font-size:13.5px;line-height:1.7">이 브라우저는 WebGL2를 지원하지 않아 미리보기를 띄우지 못한다. 크롬이나 사파리 최신 버전에서 열면 된다</p>';
+    return;
+  }
+
+  function sh(type, src) {
+    const o = gl.createShader(type);
+    gl.shaderSource(o, src); gl.compileShader(o);
+    if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o));
+    return o;
+  }
+  function link(fsSrc) {
+    const p = gl.createProgram();
+    gl.attachShader(p, sh(gl.VERTEX_SHADER, VS));
+    gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    return p;
+  }
+  const prog = link(FS);
+  const progPresent = link(FS_PRESENT);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  [prog, progPresent].forEach(p => {
+    gl.useProgram(p);
+    const l = gl.getAttribLocation(p, 'p');
+    gl.enableVertexAttribArray(l);
+    gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0);
+  });
+
+  const U = {};
+  ['uRes','uTime','uFrame','uExpand','uWind','uFlash','uShockR','uShockA','uTemp','uSquash',
+   'uChroma','uColA','uColB','uColMix','uStars','uBooks','uSeed','uNebula','uHistory','uDust','uWaveN','uClump','uPrev']
+    .forEach(n => U[n] = gl.getUniformLocation(prog, n));
+  const UP = {
+    uTex: gl.getUniformLocation(progPresent, 'uTex'),
+    uRes: gl.getUniformLocation(progPresent, 'uRes')
+  };
+
+  // 앞 프레임을 담을 텍스처 두 장을 번갈아 쓴다.
+  let tex = [null, null], fbo = [null, null], texW = 0, texH = 0, pingpong = 0;
+  function makeTargets(w, h) {
+    for (let i = 0; i < 2; i++) {
+      if (tex[i]) { gl.deleteTexture(tex[i]); gl.deleteFramebuffer(fbo[i]); }
+      const t = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const f = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+      gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      tex[i] = t; fbo[i] = f;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    texW = w; texH = h;
+  }
+
+  // --- 제어 상태 ---
+  const el = id => document.getElementById(id);
+  const S = {
+    ant: el('sAnt'), burst: el('sBurst'), wind: el('sWind'), cool: el('sCool'),
+    amp: el('sAmp'), spd: el('sSpd'), chr: el('sChr'), wav: el('sWav'),
+    memo: el('sMemo'), book: el('sBook'), seed: el('sSeed'), dust: el('sDust'), clump: el('sClump')
+  };
+  const O = {
+    ant: el('oAnt'), burst: el('oBurst'), wind: el('oWind'), cool: el('oCool'),
+    amp: el('oAmp'), spd: el('oSpd'), chr: el('oChr'), wav: el('oWav'),
+    memo: el('oMemo'), book: el('oBook'), seed: el('oSeed'), dust: el('oDust'), clump: el('oClump')
+  };
+  const C = { shock: el('cShock'), settle: el('cSettle'), idle: el('cIdle'), neb: el('cNeb'), hist: el('cHist') };
+
+  let tierIdx = 3;          // 성단
+  let fromIdx = 2;          // 승급 출발 등급
+  let mode = 'idle';        // idle | birth | promote
+  let t0 = 0;
+
+  // 등급 칩
+  const tiersBox = el('tiers');
+  TIERS.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'tier'; b.type = 'button'; b.textContent = t.id;
+    b.setAttribute('aria-pressed', String(i === tierIdx));
+    b.addEventListener('click', () => { tierIdx = i; paintTiers(); });
+    tiersBox.appendChild(b);
+  });
+  function paintTiers() {
+    [...tiersBox.children].forEach((b, i) => {
+      const on = i === tierIdx;
+      b.setAttribute('aria-pressed', String(on));
+      const c = TIERS[i].col;
+      b.style.background = on ? `rgb(${c.map(v => Math.round(v * 255)).join(',')})` : 'transparent';
+      b.style.borderColor = on ? 'transparent' : 'var(--line)';
+    });
+    el('tierRead').textContent = `${TIERS[tierIdx].id} ${TIERS[tierIdx].name}`;
+  }
+
+  // --- 이징 ---
+  const clamp01 = v => Math.min(1, Math.max(0, v));
+  const outExpo = t => t >= 1 ? 1 : 1 - Math.pow(2, -6.2 * t);
+  const inQuad  = t => t * t;
+  // 감쇠 진동: 매 흔들림이 앞것보다 짧고 작아진다
+  const damped  = (t, freq, decay) => Math.exp(-decay * t) * Math.sin(freq * t);
+
+  const PHASES_BIRTH = ['수축', '플래시', '폭발', '감김', '정착'];
+  const PHASES_PROMO = ['수축', '플래시', '팽창', '정착'];
+
+  function timeline(ms) {
+    const ant = +S.ant.value, burst = +S.burst.value, wind = +S.wind.value, cool = +S.cool.value;
+    const spd = +S.spd.value;
+    const amp = (+S.amp.value / 100) * (C.shock.checked ? 1 : 0);
+    const settleOn = C.settle.checked;
+    const t = ms;
+
+    let squash = 0, expand = 1, flash = 0, shockR = -1, shockA = 0, temp = 0, windAcc = 0, colMix = 1;
+
+    if (mode === 'birth') {
+      squash = t < ant ? inQuad(clamp01(t / ant)) : Math.max(0, 1 - clamp01((t - ant) / 90));
+      const bt = clamp01((t - ant) / burst);
+      expand = t < ant ? 0.0001 : outExpo(bt);
+      if (settleOn && t > ant + burst) {
+        expand = 1 + damped((t - ant - burst) / 1000, 17, 5.5) * 0.055;
+      }
+      flash = t < ant ? 0 : Math.max(0, 1 - clamp01((t - ant) / 190));
+      const st = clamp01((t - ant) / spd);
+      shockR = st > 0 && st < 1 ? st * 0.86 : -1;
+      shockA = st > 0 && st < 1 ? amp * Math.pow(1 - st, 1.25) : 0;
+      windAcc = outExpo(clamp01((t - ant) / wind)) * 6.2;
+      temp = 1 - clamp01((t - ant) / cool);
+      colMix = 1;
+    } else if (mode === 'promote') {
+      const a2 = ant * 0.7;
+      squash = t < a2 ? inQuad(clamp01(t / a2)) * 0.6 : Math.max(0, 0.6 - clamp01((t - a2) / 80) * 0.6);
+      expand = 1;
+      if (t > a2) {
+        const p = (t - a2) / 1000;
+        expand = 1 + (settleOn ? damped(p, 13, 4.2) : Math.max(0, 1 - p * 3)) * 0.11;
+      }
+      flash = t < a2 ? 0 : Math.max(0, 1 - clamp01((t - a2) / 150)) * 0.8;
+      const st = clamp01((t - a2) / (spd * 0.85));
+      shockR = st > 0 && st < 1 ? st * 0.86 : -1;
+      shockA = st > 0 && st < 1 ? amp * Math.pow(1 - st, 1.25) * 0.9 : 0;
+      windAcc = outExpo(clamp01((t - a2) / wind)) * 2.0;
+      temp = (1 - clamp01((t - a2) / (cool * 0.7))) * 0.85;
+      colMix = clamp01((t - a2) / (cool * 0.6));
+    } else {
+      colMix = 1;
+    }
+
+    return { squash, expand, flash, shockR, shockA, temp, windAcc, colMix };
+  }
+
+  function totalMs() {
+    if (mode === 'promote') return +S.ant.value * 0.7 + Math.max(+S.cool.value, +S.spd.value, 1100) + 250;
+    return +S.ant.value + Math.max(+S.burst.value + 900, +S.wind.value, +S.cool.value, +S.spd.value) + 250;
+  }
+
+  // 타임라인 막대
+  const tlBox = document.createElement('div');
+  tlBox.className = 'timeline';
+  tlBox.innerHTML = '<div class="tl-track" id="tlTrack"><div class="tl-head" id="tlHead"></div></div>'
+    + '<div class="phase-read"><span class="phase-dot" id="dot"></span><span id="phase">대기</span></div>';
+  document.querySelector('.stage').after(tlBox);
+  const tlTrack = el('tlTrack'), tlHead = el('tlHead');
+
+  function paintTimeline() {
+    [...tlTrack.querySelectorAll('.tl-seg')].forEach(n => n.remove());
+    const total = totalMs();
+    const ant = +S.ant.value, burst = +S.burst.value, wind = +S.wind.value;
+    const segs = mode === 'promote'
+      ? [['수축', ant * 0.7], ['플래시', 150], ['팽창', 520], ['정착', Math.max(120, total - ant * 0.7 - 670)]]
+      : [['수축', ant], ['플래시', 190], ['폭발', burst], ['감김', wind], ['정착', Math.max(120, total - ant - 190 - burst - wind)]];
+    segs.forEach(([label, ms]) => {
+      const d = document.createElement('div');
+      d.className = 'tl-seg';
+      d.style.flexBasis = (ms / total * 100) + '%';
+      d.textContent = ms >= 140 ? `${label} ${Math.round(ms)}` : '';
+      tlTrack.insertBefore(d, tlHead);
+    });
+  }
+
+  function phaseName(ms) {
+    if (mode === 'idle') return '대기';
+    const ant = mode === 'promote' ? +S.ant.value * 0.7 : +S.ant.value;
+    const burst = +S.burst.value, wind = +S.wind.value;
+    const list = mode === 'promote' ? PHASES_PROMO : PHASES_BIRTH;
+    if (ms < ant) return list[0];
+    if (ms < ant + 190) return list[1];
+    if (mode === 'promote') return ms < ant + 670 ? list[2] : list[3];
+    if (ms < ant + burst) return list[2];
+    if (ms < ant + wind) return list[3];
+    return list[4];
+  }
+
+  function syncLabels() {
+    O.ant.value = S.ant.value + ' ms';
+    O.burst.value = S.burst.value + ' ms';
+    O.wind.value = S.wind.value + ' ms';
+    O.cool.value = S.cool.value + ' ms';
+    O.amp.value = (+S.amp.value / 100).toFixed(2);
+    O.spd.value = S.spd.value + ' ms';
+    O.chr.value = (+S.chr.value / 100).toFixed(2);
+    O.wav.value = (+S.wav.value / 10).toFixed(1) + ' 파';
+    O.memo.value = S.memo.value + '개';
+    O.book.value = S.book.value + '권';
+    O.seed.value = S.seed.value;
+    O.dust.value = (+S.dust.value / 100).toFixed(2);
+    O.clump.value = (+S.clump.value / 100).toFixed(2);
+    paintTimeline();
+    writeEmit();
+  }
+
+  function writeEmit() {
+    const g = (k, v) => `  <span class="nm">${k}</span> = ${v};`;
+    emit.innerHTML = [
+      '<span class="cm">// Dart: 시각을 계산해서 uniform으로 넘긴다</span>',
+      'const _orbBirth = _BirthCurve(',
+      g('anticipateMs', S.ant.value),
+      g('burstMs      ', S.burst.value),
+      g('windMs       ', S.wind.value),
+      g('coolMs       ', S.cool.value),
+      g('shockMs      ', S.spd.value),
+      g('shockAmp     ', (+S.amp.value / 100).toFixed(2)),
+      g('chroma       ', (+S.chr.value / 100).toFixed(2)),
+      g('settle       ', C.settle.checked ? 'true' : 'false'),
+      ');',
+      '',
+      '<span class="cm">// orb.frag: 새 uniform 6개만 추가하면 된다</span>',
+      'uniform float uExpand, uWind, uFlash;',
+      'uniform float uShockR, uShockA, uTemp;'
+    ].join('\n');
+  }
+
+  Object.values(S).forEach(s => s.addEventListener('input', syncLabels));
+  Object.values(C).forEach(c => c.addEventListener('change', syncLabels));
+
+  el('fireBirth').addEventListener('click', () => { mode = 'birth'; t0 = performance.now(); paintTimeline(); });
+  el('firePromote').addEventListener('click', () => {
+    fromIdx = Math.max(0, tierIdx - 1);
+    mode = 'promote'; t0 = performance.now(); paintTimeline();
+  });
+
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.15);
+    const w = Math.round(r.width * dpr), h = Math.round(r.width * dpr * 1.478);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  }
+  window.addEventListener('resize', resize);
+
+  const start = performance.now();
+  let frameNo = 0;
+  function frame(now) {
+    resize();
+    const ms = mode === 'idle' ? 0 : now - t0;
+    if (mode !== 'idle' && ms > totalMs()) { mode = 'idle'; }
+
+    const v = timeline(ms);
+    const live = mode !== 'idle';
+    el('dot').classList.toggle('live', live);
+    el('phase').textContent = live ? `${phaseName(ms)} ${(ms / 1000).toFixed(2)}s` : '대기';
+    tlHead.classList.toggle('live', live);
+    if (live) tlHead.style.left = (Math.min(1, ms / totalMs()) * 100) + '%';
+
+    const cA = mode === 'promote' ? TIERS[fromIdx].col : TIERS[tierIdx].col;
+    const cB = TIERS[tierIdx].col;
+
+    if (texW !== cv.width || texH !== cv.height) makeTargets(cv.width, cv.height);
+
+    const src = pingpong, dst = 1 - pingpong;
+    gl.useProgram(prog);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo[dst]);
+    gl.viewport(0, 0, cv.width, cv.height);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex[src]);
+    gl.uniform1i(U.uPrev, 0);
+    // 움직임이 클수록 잔상을 줄인다. 안 그러면 폭발이 뭉개진다.
+    gl.uniform1f(U.uHistory, C.hist.checked ? (live ? 0.30 : 0.62) : 0.0);
+    gl.uniform1f(U.uFrame, frameNo);
+    gl.uniform2f(U.uRes, cv.width, cv.height);
+    gl.uniform1f(U.uTime, C.idle.checked ? (now - start) / 1000 : 0);
+    gl.uniform1f(U.uExpand, v.expand);
+    gl.uniform1f(U.uWind, v.windAcc);
+    gl.uniform1f(U.uFlash, v.flash);
+    gl.uniform1f(U.uShockR, v.shockR);
+    gl.uniform1f(U.uShockA, v.shockA);
+    gl.uniform1f(U.uTemp, v.temp);
+    gl.uniform1f(U.uSquash, v.squash);
+    gl.uniform1f(U.uChroma, +S.chr.value / 100);
+    gl.uniform1f(U.uWaveN, +S.wav.value / 10);
+    gl.uniform3f(U.uColA, cA[0], cA[1], cA[2]);
+    gl.uniform3f(U.uColB, cB[0], cB[1], cB[2]);
+    gl.uniform1f(U.uColMix, v.colMix);
+    gl.uniform1f(U.uStars, +S.memo.value);
+    gl.uniform1f(U.uBooks, +S.book.value);
+    gl.uniform1f(U.uSeed, +S.seed.value);
+    const dustBase = +S.dust.value / 100;
+    // 먼지는 상태가 아니라 사건이다. 터질 때 잠깐 짙어지고 곧 걷힌다.
+    const dustBurst = live ? Math.max(0, 1 - ms / 1400) * 1.1 : 0;
+    gl.uniform1f(U.uDust, dustBase + dustBurst);
+    gl.uniform1f(U.uClump, +S.clump.value / 100);
+    gl.uniform1f(U.uNebula, C.neb.checked ? 1.0 : 0.0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    // 화면에 내보내기
+    gl.useProgram(progPresent);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, cv.width, cv.height);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex[dst]);
+    gl.uniform1i(UP.uTex, 0);
+    gl.uniform2f(UP.uRes, cv.width, cv.height);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    pingpong = dst;
+    frameNo++;
+    requestAnimationFrame(frame);
+  }
+
+  paintTiers();
+  syncLabels();
+  requestAnimationFrame(frame);
+
+  // 처음 열면 한 번은 보여준다 (모션 최소화 설정이면 정지 상태로 둔다)
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setTimeout(() => { mode = 'birth'; t0 = performance.now(); paintTimeline(); }, 420);
+  }
+})();
+</script>
