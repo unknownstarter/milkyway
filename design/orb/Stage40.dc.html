@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #08080E; }
+    a { color: #9DB4FF; } a:hover { color: #C9D6FF; }
+    .mw { font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  </style>
+</helmet>
+
+<div class="mw" style="width: 390px; height: 844px; background: #08080E; position: relative; overflow: hidden; color: #ECECEC;">
+
+  <!-- 배경 별 -->
+  <svg width="390" height="844" style="position: absolute; inset: 0;" aria-hidden="true">
+    <sc-for list="{{bgStars}}" as="s" hint-placeholder-count="40">
+      <circle cx="{{s.x}}" cy="{{s.y}}" r="{{s.r}}" fill="#FFFFFF" opacity="{{s.o}}"></circle>
+    </sc-for>
+  </svg>
+
+  <!-- 앱바 -->
+  <div style="position: relative; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ECECEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.4px; line-height: 1.35;">내 우주</div>
+  </div>
+
+  <!-- 본문 -->
+  <div style="position: relative; display: flex; flex-direction: column; align-items: center; padding: 8px 20px 0;">
+
+    <!-- 오브 -->
+    <svg width="300" height="300" viewBox="0 0 300 300" style="display: block;">
+      <defs>
+        <radialGradient id="core">
+          <stop offset="0%" stop-color="{{accent}}" stop-opacity="0.55"></stop>
+          <stop offset="45%" stop-color="{{accent}}" stop-opacity="0.12"></stop>
+          <stop offset="100%" stop-color="{{accent}}" stop-opacity="0"></stop>
+        </radialGradient>
+        <radialGradient id="neb">
+          <stop offset="0%" stop-color="{{accent}}" stop-opacity="0.30"></stop>
+          <stop offset="100%" stop-color="{{accent}}" stop-opacity="0"></stop>
+        </radialGradient>
+      </defs>
+
+      <!-- 코어: 메모가 없어도 존재하는 최소 빛 -->
+      <circle cx="150" cy="150" r="120" fill="url(#core)"></circle>
+
+      <!-- 책 = 성운 -->
+      <sc-for list="{{nebulae}}" as="n" hint-placeholder-count="3">
+        <circle cx="{{n.x}}" cy="{{n.y}}" r="{{n.r}}" fill="url(#neb)" opacity="{{n.o}}"></circle>
+      </sc-for>
+
+      <!-- 오래된 기록의 궤적 -->
+      <sc-for list="{{trails}}" as="t" hint-placeholder-count="8">
+        <path d="{{t.d}}" fill="none" stroke="{{accent}}" stroke-width="1" stroke-linecap="round" opacity="{{t.o}}"></path>
+      </sc-for>
+
+      <!-- 메모 = 별 -->
+      <sc-for list="{{stars}}" as="s" hint-placeholder-count="12">
+        <circle cx="{{s.x}}" cy="{{s.y}}" r="{{s.halo}}" fill="{{s.color}}" opacity="{{s.haloO}}"></circle>
+        <circle cx="{{s.x}}" cy="{{s.y}}" r="{{s.r}}" fill="{{s.color}}" opacity="{{s.o}}"></circle>
+      </sc-for>
+    </svg>
+
+    <!-- 배지 -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px; padding: 7px 14px; border-radius: 999px; border: 1px solid {{accentBorder}}; background: {{accentChip}};">
+      <div style="width: 7px; height: 7px; border-radius: 999px; background: {{accent}};"></div>
+      <div style="font-size: 12px; font-weight: 700; letter-spacing: 0; line-height: 1.3; color: {{accent}};">{{tierName}} 단계</div>
+    </div>
+
+    <!-- 지금은 X -->
+    <div style="margin-top: 12px; font-size: 32px; font-weight: 800; letter-spacing: -0.96px; line-height: 1.05;">
+      <span style="color: #ECECEC;">지금은 </span><span style="color: {{accent}};">{{tierName}}</span>
+    </div>
+
+    <!-- 스탯 -->
+    <div style="display: flex; align-items: center; width: 100%; margin-top: 20px; padding: 18px 0; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.78px; line-height: 1.05; color: #ECECEC;">{{books}}<span style="font-size: 15px; font-weight: 700; color: #DEDEDE;">권</span></div>
+        <div style="font-size: 12px; color: #838383; line-height: 1.4;">읽은 책</div>
+      </div>
+      <div style="width: 1px; height: 34px; background: rgba(255,255,255,0.09);"></div>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.78px; line-height: 1.05; color: #ECECEC;">{{memos}}<span style="font-size: 15px; font-weight: 700; color: #DEDEDE;">개</span></div>
+        <div style="font-size: 12px; color: #838383; line-height: 1.4;">남긴 메모</div>
+      </div>
+      <div style="width: 1px; height: 34px; background: rgba(255,255,255,0.09);"></div>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.78px; line-height: 1.05; color: {{accent}};">{{topPercent}}<span style="font-size: 15px; font-weight: 700; color: #DEDEDE;">%</span></div>
+        <div style="font-size: 12px; color: #838383; line-height: 1.4;">상위</div>
+      </div>
+      <div style="width: 1px; height: 34px; background: rgba(255,255,255,0.09);"></div>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.78px; line-height: 1.05; color: #ECECEC;">{{streak}}<span style="font-size: 15px; font-weight: 700; color: #DEDEDE;">일</span></div>
+        <div style="font-size: 12px; color: #838383; line-height: 1.4;">연속</div>
+      </div>
+    </div>
+
+    <!-- 진행 -->
+    <div style="width: 100%; margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+      <div style="width: 100%; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden;">
+        <div style="width: {{bandPct}}; height: 8px; border-radius: 999px; background: {{accent}};"></div>
+      </div>
+      <div style="font-size: 14px; color: #838383; letter-spacing: -0.15px;">다음 단계 {{nextName}}까지 <span style="color: {{accent}}; font-weight: 800;">{{pointsToNext}}</span></div>
+    </div>
+  </div>
+
+  <!-- 공유 -->
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 34px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: rgba(72,255,0,0.18); border: 1px solid rgba(72,255,0,0.45);">
+    <div style="font-size: 16px; font-weight: 800; letter-spacing: -0.2px; color: #48FF00;">공유하기</div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "memos": {"editor": "int", "default": 40, "min": 0, "max": 400, "section": "데이터"},
+  "books": {"editor": "int", "default": 9, "min": 0, "max": 120, "section": "데이터"},
+  "seed": {"editor": "int", "default": 41, "min": 1, "max": 999, "section": "데이터"},
+  "trails": {"editor": "boolean", "default": true, "section": "표현"}
+}'>
+class Component extends DCLogic {
+  rng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a += 0x6D2B79F5;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  tierOf(points) {
+    const t = [
+      { lo: 0, name: '작은 성운', color: '#9DB4FF' },
+      { lo: 30, name: '별무리', color: '#A99CFF' },
+      { lo: 90, name: '별자리', color: '#9A8CFF' },
+      { lo: 200, name: '성단', color: '#C48CFF' },
+      { lo: 500, name: '은하', color: '#FF9ECB' },
+      { lo: 1000, name: '대은하', color: '#FFC24D' }
+    ];
+    let i = 0;
+    for (let k = 0; k < t.length; k++) if (points >= t[k].lo) i = k;
+    return { cur: t[i], next: t[i + 1] || null, idx: i, all: t };
+  }
+
+  renderVals() {
+    const memos = Math.max(0, this.props.memos ?? 40);
+    const books = Math.max(0, this.props.books ?? 9);
+    const seed = this.props.seed ?? 41;
+    const trailsOn = this.props.trails ?? true;
+
+    const points = memos * 3 + books;
+    const { cur, next } = this.tierOf(points);
+    const accent = cur.color;
+
+    // 시간축: 몰아 읽은 시기와 쉰 시기가 섞이도록 불규칙하게. 간격이 곧 리듬이 된다.
+    const rt = this.rng(seed * 977 + 13);
+    const raw = [];
+    let acc = 0;
+    for (let i = 0; i < memos; i++) {
+      acc += rt() < 0.28 ? 3 + rt() * 6 : 0.2 + rt() * 0.5; // 가끔 긴 공백
+      raw.push(acc);
+    }
+    const span = acc || 1;
+
+    const R = 118;
+    const cx = 150;
+    const cy = 150;
+    const golden = 2.399963;
+
+    // 책 = 성운. 메모는 자기 책 성운 근처에 모인다.
+    const rn = this.rng(seed * 31 + 5);
+    const nebulae = [];
+    for (let b = 0; b < Math.min(books, 14); b++) {
+      const a = b * golden + rn() * 0.5;
+      const rr = 34 + rn() * 62;
+      nebulae.push({
+        x: +(cx + Math.cos(a) * rr).toFixed(1),
+        y: +(cy + Math.sin(a) * rr).toFixed(1),
+        r: +(26 + rn() * 20).toFixed(1),
+        o: +(0.45 + rn() * 0.35).toFixed(2),
+        angle: a
+      });
+    }
+
+    const rs = this.rng(seed * 101 + 3);
+    const stars = [];
+    const trails = [];
+    for (let i = 0; i < memos; i++) {
+      const t = raw[i] / span;                 // 0 = 가장 오래된, 1 = 가장 최근
+      const anchor = nebulae.length ? nebulae[i % nebulae.length].angle : i * golden;
+      const a = anchor + (rs() - 0.5) * 0.9 + i * 0.13;
+      const rr = R * (0.16 + 0.84 * Math.sqrt(t)) * (0.86 + rs() * 0.24);
+      const x = +(cx + Math.cos(a) * rr).toFixed(1);
+      const y = +(cy + Math.sin(a) * rr).toFixed(1);
+      const fresh = t > 0.82;                  // 최근 것은 또렷하게
+      stars.push({
+        x: x, y: y,
+        r: +((fresh ? 2.1 : 1.3) + rs() * 0.7).toFixed(2),
+        o: +(0.5 + t * 0.5).toFixed(2),
+        halo: +((fresh ? 6.5 : 3.4) + rs() * 1.5).toFixed(2),
+        haloO: +(0.08 + t * 0.12).toFixed(2),
+        color: fresh ? '#FFFFFF' : accent
+      });
+      // 오래된 기록일수록 긴 궤적 (장노출)
+      if (trailsOn && t < 0.72 && memos > 6) {
+        const len = 0.10 + (0.72 - t) * 0.5;
+        const x2 = +(cx + Math.cos(a - len) * rr).toFixed(1);
+        const y2 = +(cy + Math.sin(a - len) * rr).toFixed(1);
+        trails.push({
+          d: 'M ' + x2 + ' ' + y2 + ' A ' + rr.toFixed(1) + ' ' + rr.toFixed(1) + ' 0 0 1 ' + x + ' ' + y,
+          o: +(0.05 + (0.72 - t) * 0.18).toFixed(2)
+        });
+      }
+    }
+
+    const rb = this.rng(seed + 991);
+    const bgStars = [];
+    for (let i = 0; i < 46; i++) {
+      bgStars.push({
+        x: +(rb() * 390).toFixed(1),
+        y: +(rb() * 844).toFixed(1),
+        r: +(0.5 + rb() * 0.9).toFixed(2),
+        o: +(0.06 + rb() * 0.16).toFixed(2)
+      });
+    }
+
+    const band = next ? Math.max(0.04, Math.min(1, (points - cur.lo) / (next.lo - cur.lo))) : 1;
+
+    return {
+      accent: accent,
+      accentChip: 'rgba(255,255,255,0.06)',
+      accentBorder: 'rgba(255,255,255,0.22)',
+      tierName: cur.name,
+      nextName: next ? next.name : '',
+      pointsToNext: next ? next.lo - points : 0,
+      bandPct: (band * 100).toFixed(1) + '%',
+      memos: memos,
+      books: books,
+      topPercent: memos >= 100 ? 4 : memos >= 30 ? 12 : memos >= 8 ? 31 : 62,
+      streak: memos >= 100 ? 21 : memos >= 30 ? 9 : memos >= 8 ? 3 : 1,
+      stars: stars,
+      trails: trails,
+      nebulae: nebulae,
+      bgStars: bgStars
+    };
+  }
+}
+</script>
+</body>
+</html>
