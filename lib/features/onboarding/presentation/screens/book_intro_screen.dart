@@ -106,7 +106,7 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
           ).createShader(bounds);
         },
         child: Image.asset(
-          'assets/images/stars_bg.png',
+          'assets/images/stars_bg.webp',
           width: MediaQuery.of(context).size.width * 0.8,
           height: MediaQuery.of(context).size.width * 0.8,
           fit: BoxFit.cover,
