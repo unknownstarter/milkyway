@@ -43,6 +43,13 @@ const PUBLIC_ORIGIN_FALLBACK = 'https://mymilkyway.xyz';
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
+/// 받침에 따라 이/가 를 고른다. "별무리이 됐어요" 같은 게 나오면 안 된다.
+const iga = (word: string) => {
+  const c = word.charCodeAt(word.length - 1);
+  const hasJong = c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0;
+  return hasJong ? '이' : '가';
+};
+
 const num = (v: unknown, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : d;
@@ -102,17 +109,6 @@ Deno.serve(async (req) => {
 
   const isWrapped = !!payload && payload.kind === 'wrapped';
   const period = isWrapped ? String(payload!.period ?? '') : '';
-  const title = isWrapped
-    ? (period ? `${period} 은하 회고` : '나의 은하 회고')
-    : `${tierName} 단계의 우주를 가지고 있어요`;
-  const desc = isWrapped
-    ? '한 달 동안 멈춘 순간들'
-    : '지금 책 메모하고 우주 만들기';
-  // OG 썸네일: 회고는 책 표지, 오브는 티어 카드(og/{tier}.jpg).
-  // 예전엔 og:image가 맨 구슬 사진이라 카톡 미리보기에 보라색 공만 떴다.
-  let ogImg = supabase.storage.from('share_cards')
-    .getPublicUrl(`og/${tier}.jpg`).data.publicUrl;
-  if (isWrapped && payload && payload.cover_url) ogImg = String(payload.cover_url);
 
   // 스탯 스냅샷(오브 공유에만 실린다). 구버전 링크는 payload가 없어 이 블록을 건너뛴다.
   const hasStats = !!payload && payload.kind === 'orb';
@@ -122,6 +118,25 @@ Deno.serve(async (req) => {
   const streakDays = hasStats ? num(payload!.streak_days) : 0;
   const pointsToNext = hasStats && payload!.points_to_next != null
     ? num(payload!.points_to_next) : null;
+
+  // 친구가 카톡에서 받는 카드다. 단계만 알리는 상태 보고("성단 단계의 우주를
+  // 가지고 있어요")는 아무 감흥이 없어서, 숫자로 변화를 보여주는 쪽으로 바꿨다.
+  // 스탯이 없는 구버전 링크는 숫자 없이 같은 구조로 폴백.
+  const title = isWrapped
+    ? (period ? `${period}, 멈춘 순간들이 은하가 됐어요` : '멈춘 순간들이 은하가 됐어요')
+    : hasStats
+      ? `메모 ${memos}개가 모여 ${tierName}${iga(tierName)} 됐어요`
+      : `책 읽다 멈춘 순간이 ${tierName}${iga(tierName)} 됐어요`;
+  const desc = isWrapped
+    ? '한 달 동안 멈춘 자리마다 별 하나 - 내 우주도 만들어보기'
+    : '멈춰서 남긴 한 줄이 별이 되는 곳 - 내 우주도 만들어보기';
+
+  // OG 썸네일: 회고는 책 표지, 오브는 티어 카드(og/{tier}.jpg).
+  // 예전엔 og:image가 맨 구슬 사진이라 카톡 미리보기에 보라색 공만 떴다.
+  let ogImg = supabase.storage.from('share_cards')
+    .getPublicUrl(`og/${tier}.jpg`).data.publicUrl;
+  if (isWrapped && payload && payload.cover_url) ogImg = String(payload.cover_url);
+
 
   const idx = TIERS.indexOf(tier as typeof TIERS[number]);
   const nextTier = idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
