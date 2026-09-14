@@ -65,11 +65,11 @@ marketing/.cache_og/
 # ── 생성물은 추적하지 않는다 (정본 = 생성기 스크립트) ──────────────
 # marketing/ 의 이미지는 generate_*.py 로 언제든 다시 굽는다.
 # 광고 소재를 v3, v4... 로 돌릴 때마다 리포가 부풀던 문제.
-marketing/*.png
-marketing/*.jpg
-marketing/*.jpeg
-marketing/*.gif
-marketing/*.webp
+marketing/**/*.png
+marketing/**/*.jpg
+marketing/**/*.jpeg
+marketing/**/*.gif
+marketing/**/*.webp
 marketing/.cache_og/
 marketing/_*.html
 
