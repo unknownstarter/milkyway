@@ -9,11 +9,8 @@ compatibility_date = "2026-09-01"
 [vars]
 SUPABASE_URL = "https://hyjgfgzexvxhgfmqgiqu.supabase.co"
 
-# mymilkyway.xyz/s/* 만 이 워커가 받는다. 나머지 경로는 건드리지 않음.
+# 도메인 전체를 워커가 받는다. /s/{code}는 랜딩, 나머지는 안내 페이지.
+# (경로를 /s/*로 좁히면 나머지 경로가 DNS 플레이스홀더(100::)로 빠져 에러가 난다)
 [[routes]]
-pattern = "mymilkyway.xyz/s/*"
-zone_name = "mymilkyway.xyz"
-
-[[routes]]
-pattern = "mymilkyway.xyz/healthz"
+pattern = "mymilkyway.xyz/*"
 zone_name = "mymilkyway.xyz"
