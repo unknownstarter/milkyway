@@ -9,12 +9,8 @@
 // 되돌린다. **이 함수를 supabase.co 주소로 직접 열면 여전히 깨진다. 정상이다.**
 //
 // 공개 접근 필요 -> 배포 시 `--no-verify-jwt` (JWT 없이 크롤러/브라우저 접근).
-// 동작:
-//   - 크롤러(카톡/페북/X): JS 미실행 -> OG 메타만 읽어 미리보기.
-//   - 실유저 모바일: 본문을 먼저 그린 뒤 앱 열기 시도. 미설치면 스토어로 폴백.
-//   - 인앱 브라우저(카톡/인스타/라인 등): 커스텀 스킴 자동 이동이 차단돼 화면이 죽으므로
-//     자동 이동을 하지 않고 버튼 탭(사용자 제스처)으로만 연다.
-// 디퍼드 딥링크(미설치->설치후 카드)는 미채택 -> 지문(IP/UA) 수집 안 함.
+// 랜딩은 앱의 '내 우주' 화면을 최대한 그대로 옮긴다(별 배경 + 오브 + 배지 + 헤드라인 +
+// 스탯 4칸 + 진행바). 숫자는 발행 시 share_cards.payload에 실어둔 스냅샷을 쓴다.
 // 상세: docs/design/07-DEEP_LINK.md
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -25,25 +21,64 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+const TIERS = ['t1', 't2', 't3', 't4', 't5', 't6'] as const;
 const TIER_KO: Record<string, string> = {
   t1: '작은 성운', t2: '별무리', t3: '별자리', t4: '성단', t5: '은하', t6: '대은하',
 };
+// lib/features/orb/presentation/widgets/orb_palette.dart 와 동일해야 한다.
+const TIER_ACCENT: Record<string, string> = {
+  t1: '#9DB4FF', t2: '#A99CFF', t3: '#9A8CFF',
+  t4: '#C48CFF', t5: '#FF9ECB', t6: '#FFC24D',
+};
+// lib/features/orb/domain/orb_tier.dart 의 lo 값과 동일해야 한다.
+const TIER_LO: Record<string, number> = {
+  t1: 0, t2: 30, t3: 90, t4: 200, t5: 500, t6: 1000,
+};
+
 const APP_STORE = 'https://apps.apple.com/kr/app/id6741465148';
 const ANDROID_PACKAGE = 'com.whatif.milkyway.android';
 const PLAY_BASE = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
-// 워커가 x-public-origin을 못 넘긴 경우의 폴백(og:url용).
 const PUBLIC_ORIGIN_FALLBACK = 'https://mymilkyway.xyz';
 
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
+const num = (v: unknown, d = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+
+/// 코드에서 결정적으로 별 배경을 만든다(새로고침해도 같은 하늘).
+function starField(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  const rnd = () => {
+    h ^= h << 13; h >>>= 0;
+    h ^= h >> 17;
+    h ^= h << 5; h >>>= 0;
+    return h / 4294967296;
+  };
+  let out = '';
+  for (let i = 0; i < 90; i++) {
+    const x = (rnd() * 100).toFixed(2);
+    const y = (rnd() * 100).toFixed(2);
+    const s = (rnd() * 1.6 + 0.6).toFixed(2);
+    const o = (rnd() * 0.55 + 0.15).toFixed(2);
+    out += `<i style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o}"></i>`;
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const seg = url.pathname.split('/').filter(Boolean);
-  const code = seg[seg.length - 1]; // 마지막 세그먼트 = 코드
+  const code = seg[seg.length - 1];
   const origin = req.headers.get('x-public-origin') || PUBLIC_ORIGIN_FALLBACK;
 
-  let tierName = '나만의';
+  let tier = 't1';
   let img = '';
   let payload: Record<string, unknown> | null = null;
   const hasCode = !!code && code !== 's';
@@ -54,13 +89,15 @@ Deno.serve(async (req) => {
       .eq('code', code)
       .maybeSingle();
     if (data) {
-      tierName = TIER_KO[data.tier as string] ?? '나만의';
-      img = supabase.storage.from('share_cards').getPublicUrl(data.image_path as string).data.publicUrl;
+      tier = TIERS.includes(data.tier as typeof TIERS[number]) ? (data.tier as string) : 't1';
+      img = supabase.storage.from('share_cards')
+        .getPublicUrl(data.image_path as string).data.publicUrl;
       payload = (data.payload as Record<string, unknown> | null) ?? null;
     }
   }
+  const tierName = TIER_KO[tier];
+  const accent = TIER_ACCENT[tier];
 
-  // 공유 종류별 OG. 회고(wrapped)면 회고 문구, 아니면 오브 티어 문구.
   const isWrapped = !!payload && payload.kind === 'wrapped';
   const period = isWrapped ? String(payload!.period ?? '') : '';
   const title = isWrapped
@@ -69,17 +106,54 @@ Deno.serve(async (req) => {
   const desc = isWrapped
     ? '한 달 동안 멈춘 순간들'
     : '지금 책 메모하고 우주 만들기';
-  // 회고면 OG 썸네일 = 책 표지(payload.cover_url). 없으면 위에서 잡은 정적 오브 이미지 폴백.
-  if (isWrapped && payload && payload.cover_url) {
-    img = String(payload.cover_url);
+  if (isWrapped && payload && payload.cover_url) img = String(payload.cover_url);
+
+  // 스탯 스냅샷(오브 공유에만 실린다). 구버전 링크는 payload가 없어 이 블록을 건너뛴다.
+  const hasStats = !!payload && payload.kind === 'orb';
+  const books = hasStats ? num(payload!.books) : 0;
+  const memos = hasStats ? num(payload!.memos) : 0;
+  const topPercent = hasStats && payload!.top_percent != null ? num(payload!.top_percent) : null;
+  const streakDays = hasStats ? num(payload!.streak_days) : 0;
+  const pointsToNext = hasStats && payload!.points_to_next != null
+    ? num(payload!.points_to_next) : null;
+
+  const idx = TIERS.indexOf(tier as typeof TIERS[number]);
+  const nextTier = idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
+  // 앱의 진행바와 같은 계산: 현재 구간에서 얼마나 왔나.
+  let band = 1;
+  if (hasStats && nextTier) {
+    const pts = memos * 3 + books;
+    const lo = TIER_LO[tier];
+    const hi = TIER_LO[nextTier];
+    band = Math.min(1, Math.max(0.04, (pts - lo) / (hi - lo)));
   }
 
   const pageUrl = `${origin}/s/${hasCode ? code : ''}`;
   const iosScheme = hasCode ? `milkyway://card/${code}` : 'milkyway://';
-  // 안드로이드는 intent:// 가 인앱 브라우저에서도 상대적으로 잘 열리고,
-  // 미설치 시 browser_fallback_url로 알아서 스토어에 떨군다.
   const andIntent = `intent://card/${hasCode ? code : ''}#Intent;scheme=milkyway;` +
     `package=${ANDROID_PACKAGE};S.browser_fallback_url=${encodeURIComponent(PLAY_BASE)};end`;
+
+  const statCell = (value: string, unit: string, label: string, color: string) =>
+    `<div class="cell"><div class="v" style="color:${color}">${esc(value)}<span class="u">${esc(unit)}</span></div>
+     <div class="l">${esc(label)}</div></div>`;
+
+  const body = isWrapped
+    ? `${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}">` : ''}
+       <h1>${esc(title)}</h1><p class="sub">${esc(desc)}</p>`
+    : `<div class="orbwrap">${img ? `<img class="orb" src="${esc(img)}" alt="${esc(tierName)} 오브">` : ''}</div>
+       <div class="badge" style="color:${accent};border-color:${accent}80;background:${accent}22">
+         <span class="dot" style="background:${accent}"></span>${esc(tierName)} 단계</div>
+       <h1>지금은 <b style="color:${accent}">${esc(tierName)}</b></h1>
+       ${hasStats ? `<div class="stats">
+         ${statCell(String(books), '권', '읽은 책', '#ECECEC')}<div class="div"></div>
+         ${statCell(String(memos), '개', '남긴 메모', '#ECECEC')}<div class="div"></div>
+         ${statCell(topPercent === null ? '-' : String(topPercent), '%', '상위', accent)}<div class="div"></div>
+         ${statCell(String(streakDays), '일', '연속', '#ECECEC')}
+       </div>
+       <div class="bar"><span style="width:${(band * 100).toFixed(1)}%;background:${accent}"></span></div>
+       <p class="next">${nextTier && pointsToNext !== null
+        ? `다음 단계 ${esc(TIER_KO[nextTier])}까지 <b style="color:${accent}">${pointsToNext}</b>`
+        : '가장 깊은 우주에 도달'}</p>` : `<p class="sub">${esc(desc)}</p>`}`;
 
   const html = `<!doctype html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -94,33 +168,61 @@ Deno.serve(async (req) => {
 <meta property="og:description" content="${esc(desc)}">
 ${img ? `<meta property="og:image" content="${esc(img)}">
 <meta property="og:image:secure_url" content="${esc(img)}">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="800">
 <meta property="og:image:alt" content="${esc(title)}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 ${img ? `<meta name="twitter:image" content="${esc(img)}">` : ''}
 <style>
-  body{margin:0;background:#0a0a10;color:#fff;min-height:100vh;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:20px;padding:40px 24px;box-sizing:border-box;
-    font-family:-apple-system,'Apple SD Gothic Neo','Pretendard',sans-serif;text-align:center}
-  img.card{width:min(260px,70vw);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .wm{font-weight:800;letter-spacing:.2em;font-size:14px;color:#B9B9C6}
-  h1{font-size:20px;font-weight:700;margin:0;line-height:1.45;letter-spacing:-.02em}
-  p.sub{margin:0;font-size:14px;color:#9A9AA8}
-  .open{display:inline-block;padding:15px 30px;border-radius:999px;background:#8A7CFF;color:#fff;
+  *{box-sizing:border-box}
+  body{margin:0;background:#08080E;color:#ECECEC;min-height:100vh;
+    font-family:-apple-system,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;
+    display:flex;flex-direction:column;align-items:center;position:relative;overflow-x:hidden}
+  .sky{position:fixed;inset:0;pointer-events:none}
+  .sky i{position:absolute;background:#fff;border-radius:50%}
+  main{position:relative;width:100%;max-width:420px;padding:28px 20px 40px;text-align:center}
+  .wm{font-weight:800;letter-spacing:.2em;font-size:12px;color:#8A8A98;margin-bottom:18px}
+  .orbwrap{display:flex;justify-content:center}
+  /* 오브 jpg는 배경이 투명이 아니라서 그냥 얹으면 사각 테두리가 보인다.
+     원형 마스크로 가장자리를 페이드아웃시켜 배경에 녹인다.
+     (screen 블렌드는 jpg 배경이 순수 검정이 아니라 오히려 더 밝아진다) */
+  .orb{width:min(330px,80vw);height:auto;display:block;
+    -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 60%,transparent 72%);
+    mask-image:radial-gradient(circle at 50% 50%,#000 60%,transparent 72%)}
+  .cover{width:min(240px,62vw);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .badge{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:6px 14px;
+    border-radius:999px;border:1px solid;font-size:13px;font-weight:700}
+  .dot{width:7px;height:7px;border-radius:50%}
+  h1{margin:12px 0 0;font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+  h1 b{font-weight:800}
+  p.sub{margin:10px 0 0;color:#9A9AA8;font-size:14px}
+  .stats{display:flex;align-items:center;margin-top:20px;padding:16px 4px;border-radius:18px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .cell{flex:1}
+  .v{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+  .v .u{font-size:13px;font-weight:700;color:#B9B9C6;margin-left:2px}
+  .l{margin-top:6px;font-size:12px;color:#8A8A98}
+  .div{width:1px;height:32px;background:rgba(255,255,255,.08)}
+  .bar{margin-top:16px;height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .bar span{display:block;height:100%;border-radius:999px}
+  .next{margin:12px 0 0;font-size:13px;color:#9A9AA8}
+  .open{display:block;margin-top:26px;padding:16px;border-radius:16px;background:#8A7CFF;color:#fff;
     text-decoration:none;font-weight:800;font-size:16px}
-  .hint{font-size:13px;color:#8A8A98;line-height:1.6;max-width:300px;display:none}
-  .st{display:flex;gap:18px;font-size:13px}
+  .hint{display:none;margin-top:12px;font-size:12.5px;color:#8A8A98;line-height:1.6}
+  .st{display:flex;gap:18px;justify-content:center;margin-top:18px;font-size:13px}
   .st a{color:#8A7CFF;text-decoration:none;font-weight:700}
 </style></head>
 <body>
-${img ? `<img class="card" src="${esc(img)}" alt="${esc(title)}">` : ''}
-<div class="wm">MILKYWAY</div>
-<h1>${esc(title)}</h1>
-<p class="sub">${esc(desc)}</p>
-<a class="open" id="open" href="${esc(iosScheme)}">앱에서 열기</a>
-<div class="hint" id="hint">카카오톡 안에서는 앱이 바로 안 열릴 수 있어요<br>오른쪽 아래 메뉴에서 다른 브라우저로 열어주세요</div>
-<div class="st"><a href="${esc(APP_STORE)}">App Store</a><a href="${esc(PLAY_BASE)}">Google Play</a></div>
+<div class="sky">${starField(hasCode ? code : 'milkyway')}</div>
+<main>
+  <div class="wm">MILKYWAY</div>
+  ${body}
+  <a class="open" id="open" href="${esc(iosScheme)}">앱에서 열기</a>
+  <div class="hint" id="hint">카카오톡 안에서는 앱이 바로 안 열릴 수 있어요<br>오른쪽 아래 메뉴에서 다른 브라우저로 열어주세요</div>
+  <div class="st"><a href="${esc(APP_STORE)}">App Store</a><a href="${esc(PLAY_BASE)}">Google Play</a></div>
+</main>
 <script>
   (function () {
     var ua = navigator.userAgent || '';
@@ -138,10 +240,8 @@ ${img ? `<img class="card" src="${esc(img)}" alt="${esc(title)}">` : ''}
       document.getElementById('hint').style.display = 'block';
       return; // 본문은 그대로 보여준다. 여는 건 사용자가 버튼을 눌렀을 때만.
     }
-    if (!isIOS && !isAnd) return; // 데스크톱은 스토어 링크만 보여주면 된다.
+    if (!isIOS && !isAnd) return;
 
-    // 일반 모바일 브라우저: 본문을 그린 뒤 한 박자 늦게 앱 열기 시도.
-    // 앱이 열리면 페이지가 백그라운드로 가므로 스토어 이동을 취소한다.
     setTimeout(function () {
       var store = isIOS ? ${JSON.stringify(APP_STORE)} : ${JSON.stringify(PLAY_BASE)};
       var t = Date.now();
@@ -159,8 +259,6 @@ ${img ? `<img class="card" src="${esc(img)}" alt="${esc(title)}">` : ''}
 
   return new Response(html, {
     headers: {
-      // supabase.co 직접 접근이면 플랫폼이 text/plain으로 강등한다(어쩔 수 없음).
-      // 워커를 거치면 워커가 이 값으로 되돌려준다.
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'public, max-age=300',
     },
