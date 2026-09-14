@@ -55,7 +55,19 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
     try {
       // 이미지 생성/업로드 없음. 링크만 발행 -> OG 썸네일은 정적 오브 이미지가 동적 반영.
       final repo = ref.read(shareRepositoryProvider);
-      final link = await repo.publish(tier: data.tier);
+      // 랜딩 페이지가 앱 화면과 같은 숫자를 보여주려면 스냅샷이 필요하다.
+      // (이미지는 여전히 안 만든다 - 값만 실어 보낸다)
+      final link = await repo.publish(
+        tier: data.tier,
+        payload: {
+          'kind': 'orb',
+          'books': data.books,
+          'memos': data.memos,
+          if (data.topPercent != null) 'top_percent': data.topPercent,
+          'streak_days': data.streakDays,
+          if (data.pointsToNext != null) 'points_to_next': data.pointsToNext,
+        },
+      );
       await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('share_completed', {'tier': data.tier.name});
       if (mounted) showAppSnackBar(context, AppL10n.of(context).orbShareLinkCopied);
