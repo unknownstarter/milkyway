@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밤의 사서 — 메모 직후 모먼트 (재설계)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080e;
+  --text:#ECECEC; --dim:#838383; --faint:#565660; --bright:#DEDEDE;
+  --accent:#48FF00; --accent-soft:rgba(72,255,0,.12);
+  --purple:#8B7BE5;              /* 코스믹 보라 — 텍스트로만, 박스 배경 금지 */
+  --line:rgba(255,255,255,.07);
+  --sans:'Pretendard',-apple-system,sans-serif;
+  --serif:'Noto Serif KR','AppleMyungjo','Apple SD Gothic Neo',serif;
+  --px:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+body{background:#000;display:flex;justify-content:center;padding:32px;gap:32px;flex-wrap:wrap;font-family:var(--sans);}
+.phone{width:390px;min-height:844px;background:var(--bg);color:var(--text);position:relative;overflow:hidden;border-radius:40px;}
+
+/* 밤하늘: 여백이 곧 콘텐츠. 성운은 아주 낮게 깔고 별은 드문드문(5/15/40 룰의 15) */
+.sky{position:absolute;inset:0;pointer-events:none;
+  background:
+   radial-gradient(80% 50% at 78% 8%, rgba(139,123,229,.10), transparent 60%),
+   radial-gradient(70% 45% at 15% 82%, rgba(72,255,0,.035), transparent 60%);}
+.stars{position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background-image:
+   radial-gradient(1px 1px at 44px 120px,rgba(255,255,255,.35),transparent),
+   radial-gradient(1px 1px at 300px 90px,rgba(255,255,255,.3),transparent),
+   radial-gradient(1.2px 1.2px at 340px 300px,rgba(255,255,255,.28),transparent),
+   radial-gradient(1px 1px at 60px 480px,rgba(255,255,255,.22),transparent),
+   radial-gradient(1px 1px at 330px 560px,rgba(255,255,255,.25),transparent),
+   radial-gradient(1px 1px at 200px 700px,rgba(255,255,255,.2),transparent);}
+
+.wrap{position:relative;z-index:2;padding:0 var(--px);}
+
+/* ── 1. 사서 발화 — 화자가 먼저 등장 ── */
+.speaker{display:flex;align-items:center;gap:11px;padding-top:64px;margin-bottom:30px;}
+.orb{width:26px;height:26px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:radial-gradient(circle at 35% 30%, #d6cfff, #8B7BE5 42%, #43308f 78%, #1a1240);
+  box-shadow:0 0 16px rgba(139,123,229,.55), inset -2px -2px 5px rgba(0,0,0,.4);}
+.orb::after{content:"";position:absolute;inset:-6px;border-radius:50%;
+  border:1px solid rgba(139,123,229,.18);}
+.speaker .who{font-size:12.5px;color:var(--dim);letter-spacing:-.2px;}
+.speaker .who b{color:var(--bright);font-weight:600;}
+
+/* ── 2. 사서의 말 — 세리프, 화면에서 가장 인간적인 목소리 ── */
+.saidhead{font-family:var(--serif);font-size:20px;line-height:1.55;color:var(--text);
+  letter-spacing:-.3px;word-break:keep-all;margin-bottom:34px;}
+.saidhead em{font-style:normal;color:var(--bright);}
+
+/* ── 3. 인과의 실: 내 문장 → (실) → 독자 → (실) → 책 ── */
+/* 박스 없음. 좌측 세로 실(rail) 하나가 세 요소를 꿰맨다 */
+.thread{position:relative;padding-left:26px;}
+/* 실은 책 노드의 점까지만 닿고 멈춘다 — 표지 옆을 지나가지 않게 */
+.thread::before{content:"";position:absolute;left:5px;top:8px;height:calc(100% - 172px);width:1px;
+  background:linear-gradient(180deg, rgba(139,123,229,.5), rgba(72,255,0,.45));}
+.node{position:relative;margin-bottom:26px;}
+.node::before{content:"";position:absolute;left:-24px;top:5px;width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:1.5px solid var(--purple);}
+.node.book::before{border-color:var(--accent);box-shadow:0 0 8px rgba(72,255,0,.4);}
+.node .lbl{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin-bottom:8px;}
+
+/* 내 문장 — 인용, 배경 없음 */
+.mine{font-family:var(--serif);font-size:15px;line-height:1.6;color:var(--dim);
+  word-break:keep-all;padding-left:12px;border-left:2px solid rgba(255,255,255,.09);}
+/* 독자 문장 — 같은 지점에서 멈춘 사람. 보라는 텍스트에만 */
+.reader .rq{font-family:var(--serif);font-size:15px;line-height:1.6;color:var(--text);
+  word-break:keep-all;padding-left:12px;border-left:2px solid rgba(139,123,229,.5);}
+.reader .rby{font-size:11.5px;color:var(--faint);margin-top:9px;padding-left:12px;}
+.reader .rby b{color:var(--purple);font-weight:600;}
+
+/* ── 4. 책 — 유일한 주인공. 진짜 표지 이미지 + 발광 ── */
+.book .cover-row{display:flex;gap:16px;align-items:flex-start;}
+.cover{width:92px;height:136px;border-radius:6px;flex:0 0 auto;overflow:hidden;position:relative;
+  box-shadow:0 10px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);}
+.cover img{width:100%;height:100%;object-fit:cover;display:block;}
+/* 주인공만 갖는 은은한 상단 하이라이트(발광) */
+.book .cover::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(160deg, rgba(255,255,255,.12), transparent 45%);}
+/* 표지 로드 실패 시 — 텍스트가 아니라 '책의 물성'을 흉내낸 조판 폴백 */
+.fb-title{display:none;}
+.cover-fb{background:linear-gradient(150deg,#20222c,#14151b);}
+.cover-fb .fb-title{display:block;position:absolute;left:12px;right:12px;top:16px;
+  font-family:var(--serif);font-size:14px;line-height:1.5;color:#c9c4d8;letter-spacing:-.3px;}
+.cover-fb::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(139,123,229,.4);}
+.book .meta{padding-top:4px;}
+.book .bt{font-size:16.5px;font-weight:700;color:var(--bright);letter-spacing:-.3px;line-height:1.35;word-break:keep-all;}
+.book .ba{font-size:12.5px;color:var(--dim);margin-top:6px;}
+.book .why{font-size:12.5px;color:var(--dim);line-height:1.6;margin-top:14px;word-break:keep-all;}
+
+/* ── 5. 행동 — 주 액션 하나만 채우고, 보조는 텍스트 ── */
+.actions{margin-top:40px;display:flex;flex-direction:column;align-items:center;gap:18px;padding-bottom:60px;}
+/* 초록은 채우지 않는다 — 테두리+텍스트로만. 밤을 밝히지 않게(§10) */
+.primary{width:100%;height:52px;border-radius:14px;
+  background:var(--accent-soft);border:1px solid rgba(72,255,0,.45);
+  color:var(--accent);font-size:15px;font-weight:600;letter-spacing:-.2px;font-family:var(--sans);}
+.secondary{background:none;border:none;color:var(--faint);font-size:13px;font-family:var(--sans);letter-spacing:-.2px;}
+
+/* 라벨 색: alt A 비교용 라벨 */
+.tag{position:absolute;top:14px;left:16px;font-size:10px;letter-spacing:1px;color:var(--faint);z-index:5;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ 재설계: 메모 직후 모먼트 ═══════════ -->
+<div class="phone">
+  <div class="sky"></div><div class="stars"></div>
+  <span class="tag">재설계 — 메모 직후</span>
+  <div class="wrap">
+
+    <!-- 1. 화자 먼저 -->
+    <div class="speaker">
+      <div class="orb"></div>
+      <div class="who"><b>사서</b> 가 방금 읽었어</div>
+    </div>
+
+    <!-- 2. 사서의 말 (세리프 히어로) -->
+    <p class="saidhead">
+      네가 멈춘 그 문장에서<br>
+      다른 사람도 오래 머물렀어.<br>
+      <em>그이가 다음에 펼친 책</em>을 놓고 갈게
+    </p>
+
+    <!-- 3. 인과의 실 -->
+    <div class="thread">
+
+      <div class="node mine-node">
+        <div class="lbl">네 문장</div>
+        <p class="mine">잊는다는 건 결국 다시 만나기 위한 준비 같은 것이었다</p>
+      </div>
+
+      <div class="node reader">
+        <div class="lbl">같은 곳에 머문 독자</div>
+        <p class="rq">나는 여기서 책장을 덮고 한참을 창밖만 봤다</p>
+        <p class="rby">읽은 사람 <b>무명의 독자</b> / 이 문장 뒤 이 책으로</p>
+      </div>
+
+      <div class="node book">
+        <div class="lbl">그이가 펼친 한 권</div>
+        <div class="cover-row">
+          <div class="cover">
+            <img src="https://image.aladin.co.kr/product/29612/54/cover500/k782831649_1.jpg" alt="표지"
+                 onerror="this.style.display='none';this.parentNode.classList.add('cover-fb');">
+            <span class="fb-title">여름은<br>오래 그곳에<br>남아</span>
+          </div>
+          <div class="meta">
+            <div class="bt">여름은 오래 그곳에 남아</div>
+            <div class="ba">마쓰이에 마사시</div>
+            <p class="why">머무름을 아는 사람들이 오래 곁에 두는 책이야</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 5. 단일 주 액션 -->
+    <div class="actions">
+      <button class="primary">서재에 놓아두기</button>
+      <button class="secondary">다음 밤에</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -128,7 +128,7 @@ html,body{{width:{STAGE}px;height:{STAGE}px;background:transparent;overflow:hidd
 .rim{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;
  background:radial-gradient(ellipse 60% 40% at 74% 82%, rgba({t['aura']},{t['rim_a']}), rgba(0,0,0,0) 55%);mix-blend-mode:screen}}
 .edge{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;
- box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), inset 0 6px 18px rgba(255,255,255,.14)}}
+ box-shadow:inset 0 0 {30*f:.0f}px {10*f:.0f}px rgba(0,0,0,.55), inset 0 {3*f:.0f}px {9*f:.0f}px rgba(255,255,255,.06)}}
 .sheen{{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;opacity:.10;mix-blend-mode:screen;
  background:conic-gradient(from 210deg, #7a5cff, #ff6bd0, #ffd06b, #6bf0ff, #7a5cff)}}
 </style></head><body>
