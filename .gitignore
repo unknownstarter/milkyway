@@ -57,3 +57,7 @@ android/app/*.keystore
 
 # 로컬 핸드오프 노트 (커밋 X)
 /handoff/
+
+# OG 카드는 생성물. 정본은 generate_og_cards.py 와 Storage(share_cards/og/).
+marketing/og_t*.jpg
+marketing/.cache_og/
