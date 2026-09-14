@@ -48,7 +48,7 @@ class AuthBackgroundLayout extends StatelessWidget {
                       width: screenSize.width,
                       height: screenSize.height * 0.4,
                       child: Image.asset(
-                        'assets/images/nebula_bg.png',
+                        'assets/images/nebula_bg.webp',
                         fit: BoxFit.cover,
                       ),
                     ),
