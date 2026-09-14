@@ -122,11 +122,15 @@ Deno.serve(async (req) => {
   // 친구가 카톡에서 받는 카드다. 단계만 알리는 상태 보고("성단 단계의 우주를
   // 가지고 있어요")는 아무 감흥이 없어서, 숫자로 변화를 보여주는 쪽으로 바꿨다.
   // 스탯이 없는 구버전 링크는 숫자 없이 같은 구조로 폴백.
+  // 백분위가 제일 세게 꽂힌다(자랑). 없으면 메모 수, 그것도 없으면 단계만.
+  // 상위 N%는 익명 백분위라 '인기 메모 랭킹' 영구금지에 걸리지 않는다(VISION v3 §6.2).
   const title = isWrapped
     ? (period ? `${period}, 멈춘 순간들이 은하가 됐어요` : '멈춘 순간들이 은하가 됐어요')
-    : hasStats
-      ? `메모 ${memos}개가 모여 ${tierName}${iga(tierName)} 됐어요`
-      : `책 읽다 멈춘 순간이 ${tierName}${iga(tierName)} 됐어요`;
+    : hasStats && topPercent !== null && topPercent > 0
+      ? `상위 ${topPercent}%, ${tierName}까지 왔어요`
+      : hasStats
+        ? `메모 ${memos}개가 모여 ${tierName}${iga(tierName)} 됐어요`
+        : `책 읽다 멈춘 순간이 ${tierName}${iga(tierName)} 됐어요`;
   const desc = isWrapped
     ? '한 달 동안 멈춘 자리마다 별 하나 - 내 우주도 만들어보기'
     : '멈춰서 남긴 한 줄이 별이 되는 곳 - 내 우주도 만들어보기';
