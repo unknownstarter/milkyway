@@ -79,7 +79,9 @@ Deno.serve(async (req) => {
   const origin = req.headers.get('x-public-origin') || PUBLIC_ORIGIN_FALLBACK;
 
   let tier = 't1';
-  let img = '';
+  // 페이지 본문에 쓰는 오브(투명 배경 아님 -> CSS 마스크로 처리)와
+  // OG 썸네일(단계명/워드마크가 얹힌 1200x630 카드)은 다른 이미지다.
+  let orbImg = '';
   let payload: Record<string, unknown> | null = null;
   const hasCode = !!code && code !== 's';
   if (hasCode) {
@@ -90,7 +92,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (data) {
       tier = TIERS.includes(data.tier as typeof TIERS[number]) ? (data.tier as string) : 't1';
-      img = supabase.storage.from('share_cards')
+      orbImg = supabase.storage.from('share_cards')
         .getPublicUrl(data.image_path as string).data.publicUrl;
       payload = (data.payload as Record<string, unknown> | null) ?? null;
     }
@@ -106,7 +108,11 @@ Deno.serve(async (req) => {
   const desc = isWrapped
     ? '한 달 동안 멈춘 순간들'
     : '지금 책 메모하고 우주 만들기';
-  if (isWrapped && payload && payload.cover_url) img = String(payload.cover_url);
+  // OG 썸네일: 회고는 책 표지, 오브는 티어 카드(og/{tier}.jpg).
+  // 예전엔 og:image가 맨 구슬 사진이라 카톡 미리보기에 보라색 공만 떴다.
+  let ogImg = supabase.storage.from('share_cards')
+    .getPublicUrl(`og/${tier}.jpg`).data.publicUrl;
+  if (isWrapped && payload && payload.cover_url) ogImg = String(payload.cover_url);
 
   // 스탯 스냅샷(오브 공유에만 실린다). 구버전 링크는 payload가 없어 이 블록을 건너뛴다.
   const hasStats = !!payload && payload.kind === 'orb';
@@ -138,9 +144,9 @@ Deno.serve(async (req) => {
      <div class="l">${esc(label)}</div></div>`;
 
   const body = isWrapped
-    ? `${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}">` : ''}
+    ? `${ogImg ? `<img class="cover" src="${esc(ogImg)}" alt="${esc(title)}">` : ''}
        <h1>${esc(title)}</h1><p class="sub">${esc(desc)}</p>`
-    : `<div class="orbwrap">${img ? `<img class="orb" src="${esc(img)}" alt="${esc(tierName)} 오브">` : ''}</div>
+    : `<div class="orbwrap">${orbImg ? `<img class="orb" src="${esc(orbImg)}" alt="${esc(tierName)} 오브">` : ''}</div>
        <div class="badge" style="color:${accent};border-color:${accent}80;background:${accent}22">
          <span class="dot" style="background:${accent}"></span>${esc(tierName)} 단계</div>
        <h1>지금은 <b style="color:${accent}">${esc(tierName)}</b></h1>
@@ -166,15 +172,15 @@ Deno.serve(async (req) => {
 <meta property="og:url" content="${esc(pageUrl)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-${img ? `<meta property="og:image" content="${esc(img)}">
-<meta property="og:image:secure_url" content="${esc(img)}">
-<meta property="og:image:width" content="800">
-<meta property="og:image:height" content="800">
+${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">
+<meta property="og:image:secure_url" content="${esc(ogImg)}">
+${isWrapped ? '' : `<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">`}
 <meta property="og:image:alt" content="${esc(title)}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
-${img ? `<meta name="twitter:image" content="${esc(img)}">` : ''}
+${ogImg ? `<meta name="twitter:image" content="${esc(ogImg)}">` : ''}
 <style>
   *{box-sizing:border-box}
   body{margin:0;background:#08080E;color:#ECECEC;min-height:100vh;
