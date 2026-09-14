@@ -22,6 +22,25 @@ const STRIP = [
   'content-disposition',
 ];
 
+const APP_STORE = 'https://apps.apple.com/kr/app/id6741465148';
+const PLAY = 'https://play.google.com/store/apps/details?id=com.whatif.milkyway.android';
+
+const HOME_HTML = `<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>milkyway</title>
+<meta name="description" content="책을 멈춘 순간, 하나의 우주가 열리는 곳">
+<style>body{margin:0;min-height:100vh;background:#0a0a10;color:#fff;display:flex;flex-direction:column;
+align-items:center;justify-content:center;gap:18px;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;
+text-align:center;padding:40px 24px}
+.wm{font-weight:800;letter-spacing:.2em;font-size:15px}
+p{margin:0;color:#9A9AA8;font-size:14px;line-height:1.6}
+.st{display:flex;gap:18px;font-size:14px}.st a{color:#8A7CFF;text-decoration:none;font-weight:700}</style>
+</head><body>
+<div class="wm">MILKYWAY</div>
+<p>책을 멈춘 순간, 하나의 우주가 열리는 곳</p>
+<div class="st"><a href="${APP_STORE}">App Store</a><a href="${PLAY}">Google Play</a></div>
+</body></html>`;
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -35,8 +54,12 @@ export default {
 
     const m = url.pathname.match(/^\/s\/([A-Za-z0-9_-]{1,32})\/?$/);
     if (!m) {
-      // 공유 링크가 아닌 경로는 홈으로. (추후 랜딩 페이지가 생기면 여기를 바꾼다)
-      return Response.redirect('https://apps.apple.com/kr/app/id6741465148', 302);
+      // 공유 링크가 아닌 경로(루트 포함). 스토어로 바로 튕기면 데스크톱에서 뜬금없으니
+      // 최소 안내만 보여준다. 추후 소개 페이지가 생기면 여기를 바꾼다.
+      return new Response(HOME_HTML, {
+        status: url.pathname === '/' ? 200 : 404,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      });
     }
     const code = m[1];
 
