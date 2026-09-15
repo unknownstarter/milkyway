@@ -1411,4 +1411,32 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get errServer => 'Server error';
+
+  @override
+  String get universeTitle => 'My universe';
+
+  @override
+  String get universeEmptyBooksTitle => 'No stars yet';
+
+  @override
+  String get universeEmptyBooksBody => 'Save a book and one star lights up';
+
+  @override
+  String get universeEmptyBooksCta => 'Find a book';
+
+  @override
+  String get universeEmptyNotesTitle => 'Your stars are still dim';
+
+  @override
+  String get universeEmptyNotesBody =>
+      'Leave a note and that book\'s star brightens';
+
+  @override
+  String get universeEmptyNotesCta => 'Write a note';
+
+  @override
+  String get homeUniverseTitle => 'See it as a galaxy';
+
+  @override
+  String get homeUniverseBody => 'Each book is a star, each note its light';
 }

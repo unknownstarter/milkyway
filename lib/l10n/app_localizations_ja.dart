@@ -1387,4 +1387,31 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get errServer => 'サーバーエラーが発生しました';
+
+  @override
+  String get universeTitle => '私の宇宙';
+
+  @override
+  String get universeEmptyBooksTitle => 'まだ星がありません';
+
+  @override
+  String get universeEmptyBooksBody => '本を追加すると星がひとつ灯ります';
+
+  @override
+  String get universeEmptyBooksCta => '本を探す';
+
+  @override
+  String get universeEmptyNotesTitle => '星がまだ薄いです';
+
+  @override
+  String get universeEmptyNotesBody => 'メモを残すと、その本の星が明るくなります';
+
+  @override
+  String get universeEmptyNotesCta => 'メモを書く';
+
+  @override
+  String get homeUniverseTitle => '銀河で見る';
+
+  @override
+  String get homeUniverseBody => '本が星に、メモが星の光になります';
 }

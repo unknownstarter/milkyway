@@ -28,6 +28,7 @@ class AppRoutes {
   static const calendar = '/calendar';
   static const constellation = '/constellation';
   static const myOrb = '/my-orb';
+  static const universe = '/universe';
   static const wrapped = '/wrapped';
   static const sharedCard = '/card';
 
@@ -63,6 +64,7 @@ class AppRoutes {
   static const calendarName = 'calendar';
   static const constellationName = 'constellation';
   static const myOrbName = 'myOrb';
+  static const universeName = 'universe';
   static const wrappedName = 'wrapped';
   static const sharedCardName = 'sharedCard';
 }
