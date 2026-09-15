@@ -154,6 +154,7 @@ flutter:
     - assets/images/orb/
     # - assets/icons/
     - assets/fonts/PaytoneOne-Regular.ttf
+    - assets/fonts/PressStart2P-Regular.ttf
     - assets/images/logo.png
     - assets/images/logo_horizontal.png
     - assets/images/google_logo.png
@@ -164,6 +165,11 @@ flutter:
     - family: PaytoneOne
       fonts:
         - asset: assets/fonts/PaytoneOne-Regular.ttf
+    # 나의 우주(은하 뷰)의 픽셀 감성. 라틴 전용이라 115KB.
+    # 한글은 이 폰트에 없으므로 숫자/영문에만 쓴다.
+    - family: PressStart2P
+      fonts:
+        - asset: assets/fonts/PressStart2P-Regular.ttf
 
 flutter_launcher_icons:
   android: true

@@ -19,6 +19,7 @@ import '../../domain/universe_layout.dart';
 import '../painters/galaxy_painter.dart';
 import '../painters/glow_sprites.dart';
 import '../providers/universe_providers.dart';
+import '../widgets/universe_memo_card.dart';
 
 /// 나의 우주 - 서재를 은하로 보는 탐험 화면.
 ///
@@ -46,6 +47,13 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
   List<ProjectedStar> _projected = const [];
   final Map<String, double> _labelOpacity = {};
   String? _focusedId;
+
+  /// 카메라 다이브 목표. 매 틱 여기로 부드럽게 간다. 도착하면 null.
+  GalaxyCamera? _camTarget;
+
+  /// 탭 리플(중심, 0~1 진행).
+  Offset? _rippleAt;
+  double _rippleT = 1;
 
   // 배경 별먼지는 고정 풀에서 앞에서부터 잘라 쓴다(메모가 수천 개여도 안 무너지게).
   late final List<Offset> _dustPool = _makeDust(620);
@@ -77,6 +85,21 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
     _spinVel *= 0.92;
     final spin = _cam.spin + (_spinVel + auto) * dt;
     _cam = _cam.copyWith(spin: spin);
+
+    // 카메라 다이브. 목표로 부드럽게 수렴한다.
+    final tgt = _camTarget;
+    if (tgt != null) {
+      const k = 0.12;
+      final ns = _cam.scale + (tgt.scale - _cam.scale) * k;
+      final np = Offset.lerp(_cam.pan, tgt.pan, k)!;
+      _cam = _cam.copyWith(scale: ns, pan: np);
+      if ((tgt.scale - ns).abs() < 0.005 && (tgt.pan - np).distance < 1) {
+        _camTarget = null;
+      }
+    }
+
+    // 탭 리플 0.85초.
+    if (_rippleT < 1) _rippleT = (_rippleT + dt / 0.85).clamp(0.0, 1.0);
 
     // 라벨 페이드는 _updateLabels 가 페인트 때마다 목표치로 민다.
     _frame.value++;
@@ -122,7 +145,10 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
     }
   }
 
-  void _onScaleStart(ScaleStartDetails d) => _spinVel = 0;
+  void _onScaleStart(ScaleStartDetails d) {
+    _spinVel = 0;
+    _camTarget = null; // 손이 개입하면 자동 이동은 그만둔다.
+  }
 
   void _onScaleUpdate(ScaleUpdateDetails d, Size size) {
     final dx = d.focalPointDelta.dx;
@@ -142,7 +168,11 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
   }
 
   /// 별 탭 - 히트 영역은 시각적 크기보다 크게(최소 44pt).
-  void _onTapUp(TapUpDetails d) {
+  /// 촘촘한 구간에서는 가장 가까운 별을 고른다.
+  void _onTapUp(TapUpDetails d, Size size) {
+    _rippleAt = d.localPosition;
+    _rippleT = 0;
+
     ProjectedStar? best;
     var bestDist = double.infinity;
     for (final p in _projected) {
@@ -153,14 +183,32 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
         bestDist = dist;
       }
     }
+
     if (best == null) {
-      if (_focusedId != null) setState(() => _focusedId = null);
+      // 빈 곳을 누르면 카드를 닫고 전체 보기로 돌아간다.
+      if (_focusedId != null) {
+        setState(() => _focusedId = null);
+        _camTarget = _cam.copyWith(scale: 1, pan: Offset.zero);
+      }
       return;
     }
+
     setState(() => _focusedId = best!.star.id);
+    _dive(best, size);
     ref.read(analyticsProvider).logEvent('universe_star_tap', {
       'notes': best.star.notes,
     });
+  }
+
+  /// 별로 카메라를 끌고 간다. 카드가 아래를 덮으므로 별은 상단 38% 자리에 둔다.
+  void _dive(ProjectedStar p, Size size) {
+    final targetScale =
+        (_cam.scale * 1.7).clamp(1.4, GalaxyCamera.maxScale).toDouble();
+    final desired = Offset(size.width / 2, size.height * 0.38);
+    // 투영이 pan 에 선형이라, pan=0 으로 한 번 투영해 필요한 이동량을 바로 구한다.
+    final probe = _cam.copyWith(scale: targetScale, pan: Offset.zero);
+    final at = projectWorld(p.star.x, p.star.y, probe, size);
+    _camTarget = _cam.copyWith(scale: targetScale, pan: desired - at);
   }
 
   @override
@@ -198,7 +246,7 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
               behavior: HitTestBehavior.opaque,
               onScaleStart: _onScaleStart,
               onScaleUpdate: (d) => _onScaleUpdate(d, size),
-              onTapUp: _onTapUp,
+              onTapUp: (d) => _onTapUp(d, size),
               child: CustomPaint(
                 painter: GalaxyPainter(
                   layout: layout,
@@ -206,6 +254,9 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
                   glow: _glow,
                   labelOpacity: _labelOpacity,
                   focusedId: _focusedId,
+                  ripple: _rippleT < 1 && _rippleAt != null
+                      ? (_rippleAt!, _rippleT)
+                      : null,
                   dust: _dustPool.take(layout.dust).toList(),
                   repaint: _frame,
                   onProjected: (p) {
@@ -223,7 +274,8 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
             top: glassTopPadding(context),
             child: _hud(l10n, layout),
           ),
-          if (layout.phase != UniversePhase.ready)
+          if (_focusedId != null) _memoCard(layout),
+          if (layout.phase != UniversePhase.ready && _focusedId == null)
             Positioned(
               left: AppSpacing.lg,
               right: AppSpacing.lg,
@@ -233,6 +285,36 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
         ],
       );
     });
+  }
+
+  Widget _memoCard(UniverseLayout layout) {
+    final star = layout.stars.where((s) => s.id == _focusedId).firstOrNull;
+    if (star == null) return const SizedBox.shrink();
+    final memos = ref.watch(universeBookMemosProvider(star.id));
+    return Positioned(
+      left: AppSpacing.lg,
+      right: AppSpacing.lg,
+      bottom: AppSpacing.xl + MediaQuery.of(context).padding.bottom,
+      child: UniverseMemoCard(
+        title: star.title.isEmpty ? '-' : star.title,
+        author: star.author,
+        notes: star.notes,
+        colorIndex: star.colorIndex,
+        memos: memos.asData?.value ?? const [],
+        onClose: () {
+          setState(() => _focusedId = null);
+          _camTarget = _cam.copyWith(scale: 1, pan: Offset.zero);
+        },
+        onOpenMemo: (m) => context.pushNamed(
+          AppRoutes.memoDetailName,
+          pathParameters: {'id': m.id},
+        ),
+        onWrite: () => context.pushNamed(
+          AppRoutes.memoCreateName,
+          queryParameters: {'bookId': star.id},
+        ),
+      ),
+    );
   }
 
   Widget _hud(AppL10n l10n, UniverseLayout layout) {
@@ -248,11 +330,12 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
 
     return Column(
       children: [
-        Text('MY UNIVERSE',
-            style: AppTypography.caption.copyWith(
-              color: const Color(0xFF7FE9FF),
-              letterSpacing: 4,
-              fontWeight: FontWeight.w800,
+        const Text('MY UNIVERSE',
+            style: TextStyle(
+              fontFamily: 'PressStart2P',
+              fontSize: 11,
+              color: Color(0xFF7FE9FF),
+              letterSpacing: 3,
             )),
         const SizedBox(height: 12),
         Container(
@@ -295,8 +378,9 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
         children: [
           Text(value,
               style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 26,
+                // 숫자는 픽셀 폰트. 한글은 이 폰트에 없으니 라벨은 앱 폰트로 둔다.
+                fontFamily: 'PressStart2P',
+                fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 shadows: [

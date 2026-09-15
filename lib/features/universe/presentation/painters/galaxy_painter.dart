@@ -42,6 +42,22 @@ class GalaxyCamera {
   static const double maxScale = 2.5;
 }
 
+/// 디자인 좌표계 1080 폭 기준 -> 화면 픽셀 환산 단위.
+double universeUnit(Size size, double scale) => (size.width / kDesignWidth) * scale;
+
+/// 월드(중심 기준) -> 화면. 페인터와 카메라 다이브 계산이 **같은 식**을 써야
+/// 별을 원하는 자리에 정확히 놓을 수 있다.
+Offset projectWorld(double wx, double wy, GalaxyCamera cam, Size size) {
+  final c = math.cos(cam.spin), s = math.sin(cam.spin);
+  final rx = wx * c - wy * s;
+  final ry = wx * s + wy * c;
+  final unit = universeUnit(size, cam.scale);
+  return Offset(
+    size.width / 2 + cam.pan.dx + rx * unit,
+    size.height / 2 + cam.pan.dy + ry * math.cos(cam.tilt) * unit,
+  );
+}
+
 /// 별 하나의 화면 좌표. 히트 테스트와 라벨 배치가 같은 값을 쓴다.
 class ProjectedStar {
   final PlacedStar star;
@@ -65,6 +81,9 @@ class GalaxyPainter extends CustomPainter {
 
   final String? focusedId;
 
+  /// 탭 리플. (중심, 0~1 진행). 끝나면 null.
+  final (Offset, double)? ripple;
+
   /// 배경 별먼지(고정 풀). 화면이 한 번 만들어 넘긴다.
   final List<Offset> dust;
 
@@ -78,31 +97,19 @@ class GalaxyPainter extends CustomPainter {
     required this.dust,
     this.glow,
     this.focusedId,
+    this.ripple,
     this.onProjected,
     required Listenable repaint,
   }) : super(repaint: repaint);
 
   Color _paletteColor(int i) => Color(kUniversePalette[i % kUniversePalette.length]);
 
-  /// 월드(디자인 좌표계 중심 기준) -> 화면.
-  Offset _project(double wx, double wy, Size size, double unit) {
-    final c = math.cos(camera.spin), s = math.sin(camera.spin);
-    final rx = wx * c - wy * s;
-    final ry = wx * s + wy * c;
-    // 원반을 눕힌다. tilt 가 클수록 y 가 납작해진다.
-    final fy = ry * math.cos(camera.tilt);
-    return Offset(
-      size.width / 2 + camera.pan.dx + rx * unit,
-      size.height / 2 + camera.pan.dy + fy * unit,
-    );
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = const Color(kUniverseBg));
 
     // 디자인 좌표(1080 기준)를 화면 폭에 맞춘 단위. 여기에 줌을 곱한다.
-    final unit = (size.width / kDesignWidth) * camera.scale;
+    final unit = universeUnit(size, camera.scale);
     final center = Offset(size.width / 2 + camera.pan.dx, size.height / 2 + camera.pan.dy);
 
     _paintNebula(canvas, size, center, unit);
@@ -110,7 +117,7 @@ class GalaxyPainter extends CustomPainter {
 
     final projected = <ProjectedStar>[];
     for (final st in layout.stars) {
-      final p = _project(st.x, st.y, size, unit);
+      final p = projectWorld(st.x, st.y, camera, size);
       // 크기도 디자인 좌표(1080 기준)에서 재고 unit 으로 환산한다.
       // 화면 px 로 두면 기기마다 별 크기가 달라진다.
       final designSize = st.named ? 40.0 : 5.0 + (st.notes / 6).clamp(0, 5);
@@ -132,6 +139,7 @@ class GalaxyPainter extends CustomPainter {
     }
 
     _paintCore(canvas, center, unit);
+    _paintRipple(canvas);
     _paintLabels(canvas, size, projected);
   }
 
@@ -239,6 +247,21 @@ class GalaxyPainter extends CustomPainter {
     canvas.drawRect(
       Rect.fromLTWH(rect.left + w * 0.2, rect.top, w * 0.1, h),
       Paint()..color = c.withValues(alpha: 0.7),
+    );
+  }
+
+  /// 탭한 자리에서 퍼지는 파문. 어디를 눌렀는지 알려주는 최소 피드백.
+  void _paintRipple(Canvas canvas) {
+    final r = ripple;
+    if (r == null) return;
+    final (at, t) = r;
+    canvas.drawCircle(
+      at,
+      18 + t * 46,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2 * (1 - t)
+        ..color = _paletteColor(0).withValues(alpha: (1 - t) * 0.55),
     );
   }
 
