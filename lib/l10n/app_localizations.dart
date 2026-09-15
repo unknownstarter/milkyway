@@ -2686,6 +2686,60 @@ abstract class AppL10n {
   /// In ko, this message translates to:
   /// **'서버 오류가 발생했습니다'**
   String get errServer;
+
+  /// No description provided for @universeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'나의 우주'**
+  String get universeTitle;
+
+  /// No description provided for @universeEmptyBooksTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 별이 없어요'**
+  String get universeEmptyBooksTitle;
+
+  /// No description provided for @universeEmptyBooksBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'책을 담으면 별 하나가 켜져요'**
+  String get universeEmptyBooksBody;
+
+  /// No description provided for @universeEmptyBooksCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'책 찾아보기'**
+  String get universeEmptyBooksCta;
+
+  /// No description provided for @universeEmptyNotesTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'별이 아직 흐려요'**
+  String get universeEmptyNotesTitle;
+
+  /// No description provided for @universeEmptyNotesBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모를 남기면 그 책의 별이 밝아져요'**
+  String get universeEmptyNotesBody;
+
+  /// No description provided for @universeEmptyNotesCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모 남기기'**
+  String get universeEmptyNotesCta;
+
+  /// No description provided for @homeUniverseTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'은하로 보기'**
+  String get homeUniverseTitle;
+
+  /// No description provided for @homeUniverseBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'책 한 권이 별 하나, 메모가 별빛이 돼요'**
+  String get homeUniverseBody;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

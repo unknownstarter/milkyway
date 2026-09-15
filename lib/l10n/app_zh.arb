@@ -430,5 +430,14 @@
   "errDeleteFailed": "删除失败",
   "errSaveFailed": "保存失败",
   "errAuthRequired": "需要登录",
-  "errServer": "服务器出错"
+  "errServer": "服务器出错",
+  "universeTitle": "我的宇宙",
+  "universeEmptyBooksTitle": "还没有星星",
+  "universeEmptyBooksBody": "收藏一本书就会亮起一颗星",
+  "universeEmptyBooksCta": "找本书",
+  "universeEmptyNotesTitle": "星星还很暗",
+  "universeEmptyNotesBody": "写下笔记，那本书的星就会变亮",
+  "universeEmptyNotesCta": "写笔记",
+  "homeUniverseTitle": "以银河查看",
+  "homeUniverseBody": "一本书是一颗星，笔记是星光"
 }

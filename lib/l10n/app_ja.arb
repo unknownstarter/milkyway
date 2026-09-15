@@ -430,5 +430,14 @@
   "errDeleteFailed": "削除に失敗しました",
   "errSaveFailed": "保存に失敗しました",
   "errAuthRequired": "認証が必要です",
-  "errServer": "サーバーエラーが発生しました"
+  "errServer": "サーバーエラーが発生しました",
+  "universeTitle": "私の宇宙",
+  "universeEmptyBooksTitle": "まだ星がありません",
+  "universeEmptyBooksBody": "本を追加すると星がひとつ灯ります",
+  "universeEmptyBooksCta": "本を探す",
+  "universeEmptyNotesTitle": "星がまだ薄いです",
+  "universeEmptyNotesBody": "メモを残すと、その本の星が明るくなります",
+  "universeEmptyNotesCta": "メモを書く",
+  "homeUniverseTitle": "銀河で見る",
+  "homeUniverseBody": "本が星に、メモが星の光になります"
 }

@@ -315,6 +315,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// 별자리(사유의 커넥톰) 진입: 메모가 어느 정도 쌓여 연결이 생길 때 노출.
   /// 메모탭 앱바에도 진입점이 있지만 홈에서도 바로 들어가게.
+  /// 은하로 보기(실험). 기존 '내 우주'와 공존하는 새 진입점.
+  /// 책이 하나도 없으면 홈의 빈 상태(책 담기 유도)와 경쟁하므로 숨긴다.
+  Widget _universeSection() {
+    final books = ref.watch(profileStatsProvider).asData?.value.savedBooks;
+    if (books == null || books < 1) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BannerBar(
+        icon: Icons.auto_awesome_outlined,
+        tint: const Color(0xFF7FE9FF),
+        title: AppL10n.of(context).homeUniverseTitle,
+        subtitle: AppL10n.of(context).homeUniverseBody,
+        onTap: () {
+          ref.read(analyticsProvider).logEvent('universe_entry_tap', {'books': books});
+          context.pushNamed(AppRoutes.universeName);
+        },
+      ),
+    );
+  }
+
   Widget _constellationSection() {
     final memos = ref.watch(profileStatsProvider).asData?.value.memos;
     if (memos == null || memos < 3) return const SizedBox.shrink();
@@ -492,6 +512,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _readPrompt(),
               const SizedBox(height: 14),
               _orbSection(),
+              const SizedBox(height: 14),
+              _universeSection(),
               const SizedBox(height: 14),
               _wrappedSection(),
               const SizedBox(height: 14),

@@ -430,5 +430,14 @@
   "errDeleteFailed": "Could not delete",
   "errSaveFailed": "Could not save",
   "errAuthRequired": "Sign-in required",
-  "errServer": "Server error"
+  "errServer": "Server error",
+  "universeTitle": "My universe",
+  "universeEmptyBooksTitle": "No stars yet",
+  "universeEmptyBooksBody": "Save a book and one star lights up",
+  "universeEmptyBooksCta": "Find a book",
+  "universeEmptyNotesTitle": "Your stars are still dim",
+  "universeEmptyNotesBody": "Leave a note and that book's star brightens",
+  "universeEmptyNotesCta": "Write a note",
+  "homeUniverseTitle": "See it as a galaxy",
+  "homeUniverseBody": "Each book is a star, each note its light"
 }

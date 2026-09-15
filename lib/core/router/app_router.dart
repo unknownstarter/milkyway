@@ -17,6 +17,7 @@ import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
 import '../../features/orb/presentation/screens/my_orb_screen.dart';
+import '../../features/universe/presentation/screens/universe_screen.dart';
 import '../../features/wrapped/presentation/screens/wrapped_screen.dart';
 import '../../features/share_landing/presentation/screens/shared_card_screen.dart';
 import '../../features/memos/domain/models/memo.dart';
@@ -257,6 +258,13 @@ final router = GoRouter(
       path: AppRoutes.myOrb,
       name: AppRoutes.myOrbName,
       builder: (context, state) => const MyOrbScreen(),
+    ),
+
+    // 나의 우주(책 은하). 기존 내 우주와 공존하는 실험 화면.
+    GoRoute(
+      path: AppRoutes.universe,
+      name: AppRoutes.universeName,
+      builder: (context, state) => const UniverseScreen(),
     ),
 
     // 은하 회고(월간) — 홈에서 진입

@@ -1389,4 +1389,31 @@ class AppL10nKo extends AppL10n {
 
   @override
   String get errServer => '서버 오류가 발생했습니다';
+
+  @override
+  String get universeTitle => '나의 우주';
+
+  @override
+  String get universeEmptyBooksTitle => '아직 별이 없어요';
+
+  @override
+  String get universeEmptyBooksBody => '책을 담으면 별 하나가 켜져요';
+
+  @override
+  String get universeEmptyBooksCta => '책 찾아보기';
+
+  @override
+  String get universeEmptyNotesTitle => '별이 아직 흐려요';
+
+  @override
+  String get universeEmptyNotesBody => '메모를 남기면 그 책의 별이 밝아져요';
+
+  @override
+  String get universeEmptyNotesCta => '메모 남기기';
+
+  @override
+  String get homeUniverseTitle => '은하로 보기';
+
+  @override
+  String get homeUniverseBody => '책 한 권이 별 하나, 메모가 별빛이 돼요';
 }

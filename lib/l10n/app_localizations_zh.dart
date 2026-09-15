@@ -1385,4 +1385,31 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get errServer => '服务器出错';
+
+  @override
+  String get universeTitle => '我的宇宙';
+
+  @override
+  String get universeEmptyBooksTitle => '还没有星星';
+
+  @override
+  String get universeEmptyBooksBody => '收藏一本书就会亮起一颗星';
+
+  @override
+  String get universeEmptyBooksCta => '找本书';
+
+  @override
+  String get universeEmptyNotesTitle => '星星还很暗';
+
+  @override
+  String get universeEmptyNotesBody => '写下笔记，那本书的星就会变亮';
+
+  @override
+  String get universeEmptyNotesCta => '写笔记';
+
+  @override
+  String get homeUniverseTitle => '以银河查看';
+
+  @override
+  String get homeUniverseBody => '一本书是一颗星，笔记是星光';
 }
