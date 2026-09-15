@@ -42,19 +42,30 @@ class GalaxyCamera {
   static const double maxScale = 2.5;
 }
 
+/// 은하가 커지면 카메라를 뒤로 뺀다(핸드오프 카메라 절의 fit).
+/// 이게 없으면 서재가 커질수록 별이 화면 밖으로, HUD 위로 올라간다.
+double universeFit(double maxRadius) =>
+    math.min(1.0, 520 / math.max(maxRadius, 1));
+
 /// 디자인 좌표계 1080 폭 기준 -> 화면 픽셀 환산 단위.
-double universeUnit(Size size, double scale) => (size.width / kDesignWidth) * scale;
+double universeUnit(Size size, double scale, double maxRadius) =>
+    (size.width / kDesignWidth) * scale * universeFit(maxRadius);
 
 /// 월드(중심 기준) -> 화면. 페인터와 카메라 다이브 계산이 **같은 식**을 써야
 /// 별을 원하는 자리에 정확히 놓을 수 있다.
-Offset projectWorld(double wx, double wy, GalaxyCamera cam, Size size) {
+Offset projectWorld(
+    double wx, double wy, GalaxyCamera cam, Size size, double maxRadius,
+    {double topInset = 0}) {
   final c = math.cos(cam.spin), s = math.sin(cam.spin);
   final rx = wx * c - wy * s;
   final ry = wx * s + wy * c;
-  final unit = universeUnit(size, cam.scale);
+  final unit = universeUnit(size, cam.scale, maxRadius);
+  // HUD 아래 남는 공간의 한가운데를 은하 중심으로 삼는다. 화면 정중앙에 두면
+  // 서재가 커질 때 위쪽 별이 HUD 텍스트를 침범한다.
+  final cy = topInset + (size.height - topInset) / 2;
   return Offset(
     size.width / 2 + cam.pan.dx + rx * unit,
-    size.height / 2 + cam.pan.dy + ry * math.cos(cam.tilt) * unit,
+    cy + cam.pan.dy + ry * math.cos(cam.tilt) * unit,
   );
 }
 
@@ -81,6 +92,12 @@ class GalaxyPainter extends CustomPainter {
 
   final String? focusedId;
 
+  /// HUD 가 차지하는 상단 높이. 은하 중심을 그 아래로 내린다.
+  final double topInset;
+
+  /// 상시 애니메이션 시계(초). 깜빡임/드리프트/부유에 쓴다.
+  final double clock;
+
   /// 탭 리플. (중심, 0~1 진행). 끝나면 null.
   final (Offset, double)? ripple;
 
@@ -98,6 +115,8 @@ class GalaxyPainter extends CustomPainter {
     this.glow,
     this.focusedId,
     this.ripple,
+    this.topInset = 0,
+    this.clock = 0,
     this.onProjected,
     required Listenable repaint,
   }) : super(repaint: repaint);
@@ -109,19 +128,27 @@ class GalaxyPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, Paint()..color = const Color(kUniverseBg));
 
     // 디자인 좌표(1080 기준)를 화면 폭에 맞춘 단위. 여기에 줌을 곱한다.
-    final unit = universeUnit(size, camera.scale);
-    final center = Offset(size.width / 2 + camera.pan.dx, size.height / 2 + camera.pan.dy);
+    final unit = universeUnit(size, camera.scale, layout.maxRadius);
+    final cy = topInset + (size.height - topInset) / 2;
+    final center = Offset(size.width / 2 + camera.pan.dx, cy + camera.pan.dy);
 
     _paintNebula(canvas, size, center, unit);
     _paintDust(canvas, size);
 
     final projected = <ProjectedStar>[];
     for (final st in layout.stars) {
-      final p = projectWorld(st.x, st.y, camera, size);
+      // 별 드리프트: 반경에 1 + 0.035*sin. 미세하게 숨쉬듯 움직인다.
+      final phase = st.angle * 3.7 + st.radius * 0.01;
+      final drift = 1 + 0.035 * math.sin(clock * 0.5 + phase);
+      final p = projectWorld(
+          st.x * drift, st.y * drift, camera, size, layout.maxRadius,
+          topInset: topInset);
       // 크기도 디자인 좌표(1080 기준)에서 재고 unit 으로 환산한다.
       // 화면 px 로 두면 기기마다 별 크기가 달라진다.
       final designSize = st.named ? 40.0 : 5.0 + (st.notes / 6).clamp(0, 5);
-      final px = designSize * unit * st.depth;
+      // 별 깜빡임: 0.72 + 0.28*sin.
+      final twinkle = 0.72 + 0.28 * math.sin(clock * 2.4 + phase);
+      final px = designSize * unit * st.depth * (st.named ? 1.0 : twinkle);
       projected.add(ProjectedStar(st, p, math.max(px, st.named ? 9.0 : 1.6)));
     }
     onProjected?.call(projected);

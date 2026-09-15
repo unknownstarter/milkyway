@@ -37,7 +37,8 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
   late final Ticker _ticker;
   final ValueNotifier<int> _frame = ValueNotifier(0);
 
-  GalaxyCamera _cam = const GalaxyCamera();
+  // 디자인 와이드샷 기울기 56도.
+  GalaxyCamera _cam = const GalaxyCamera(tilt: 0.977);
   GlowSprites? _glow;
 
   // 관성. 손을 떼면 감쇠하다가 자동 회전으로 돌아간다.
@@ -54,6 +55,12 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
   /// 탭 리플(중심, 0~1 진행).
   Offset? _rippleAt;
   double _rippleT = 1;
+
+  /// 상시 애니메이션 시계(초).
+  double _clock = 0;
+
+  /// HUD 가 차지하는 상단 높이. 은하를 그 아래로 내려 글자를 안 침범하게 한다.
+  double _topInset = 0;
 
   // 배경 별먼지는 고정 풀에서 앞에서부터 잘라 쓴다(메모가 수천 개여도 안 무너지게).
   late final List<Offset> _dustPool = _makeDust(620);
@@ -79,12 +86,16 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
     final t = elapsed.inMicroseconds / 1e6;
     final dt = _lastTick == 0 ? 1 / 60 : (t - _lastTick).clamp(0.0, 0.05);
     _lastTick = t;
+    _clock = t;
 
-    // 관성 감쇠 후 자동 회전(0.6도/s)으로 복귀.
-    const auto = 0.6 * math.pi / 180;
-    _spinVel *= 0.92;
-    final spin = _cam.spin + (_spinVel + auto) * dt;
-    _cam = _cam.copyWith(spin: spin);
+    // 손을 뗀 뒤 관성만 감쇠시키고 **멈춘다**.
+    // 핸드오프에는 자동 회전 0.6도/s 가 있지만, 늘 돌면 별이 고정되지 않아
+    // 어디를 눌러야 할지 모르겠다는 피드백이 나왔다. 움직임은 아래 sin 기반
+    // 미세 드리프트(반경 3.5%)가 담당한다.
+    if (_spinVel.abs() > 0.0001) {
+      _spinVel *= 0.92;
+      _cam = _cam.copyWith(spin: _cam.spin + _spinVel * dt);
+    }
 
     // 카메라 다이브. 목표로 부드럽게 수렴한다.
     final tgt = _camTarget;
@@ -200,6 +211,8 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
     });
   }
 
+  double _maxRadius = 300;
+
   /// 별로 카메라를 끌고 간다. 카드가 아래를 덮으므로 별은 상단 38% 자리에 둔다.
   void _dive(ProjectedStar p, Size size) {
     final targetScale =
@@ -207,7 +220,8 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
     final desired = Offset(size.width / 2, size.height * 0.38);
     // 투영이 pan 에 선형이라, pan=0 으로 한 번 투영해 필요한 이동량을 바로 구한다.
     final probe = _cam.copyWith(scale: targetScale, pan: Offset.zero);
-    final at = projectWorld(p.star.x, p.star.y, probe, size);
+    final at = projectWorld(p.star.x, p.star.y, probe, size, _maxRadius,
+        topInset: _topInset);
     _camTarget = _cam.copyWith(scale: targetScale, pan: desired - at);
   }
 
@@ -237,6 +251,7 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
   }
 
   Widget _body(AppL10n l10n, UniverseLayout layout) {
+    _maxRadius = layout.maxRadius;
     return LayoutBuilder(builder: (context, c) {
       final size = Size(c.maxWidth, c.maxHeight);
       return Stack(
@@ -257,6 +272,8 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
                   ripple: _rippleT < 1 && _rippleAt != null
                       ? (_rippleAt!, _rippleT)
                       : null,
+                  topInset: _topInset,
+                  clock: _clock,
                   dust: _dustPool.take(layout.dust).toList(),
                   repaint: _frame,
                   onProjected: (p) {
@@ -272,7 +289,17 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
             left: 0,
             right: 0,
             top: glassTopPadding(context),
-            child: _hud(l10n, layout),
+            // HUD 실제 높이를 재서 은하 중심을 그 아래로 내린다.
+            child: _MeasureHeight(
+              onHeight: (h) {
+                final inset = glassTopPadding(context) + h + 12;
+                if ((inset - _topInset).abs() > 0.5) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => setState(() => _topInset = inset));
+                }
+              },
+              child: _hud(l10n, layout),
+            ),
           ),
           if (_focusedId != null) _memoCard(layout),
           if (layout.phase != UniversePhase.ready && _focusedId == null)
@@ -465,4 +492,37 @@ class _UniverseScreenState extends ConsumerState<UniverseScreen>
           ),
         ),
       );
+}
+
+
+/// 자식의 실제 높이를 알려준다. HUD 높이는 언어/글자 크기에 따라 달라지므로
+/// 상수로 박으면 어딘가에서 반드시 어긋난다.
+class _MeasureHeight extends StatefulWidget {
+  final Widget child;
+  final void Function(double) onHeight;
+  const _MeasureHeight({required this.child, required this.onHeight});
+
+  @override
+  State<_MeasureHeight> createState() => _MeasureHeightState();
+}
+
+class _MeasureHeightState extends State<_MeasureHeight> {
+  final _key = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _report());
+  }
+
+  void _report() {
+    final box = _key.currentContext?.findRenderObject() as RenderBox?;
+    if (box != null) widget.onHeight(box.size.height);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _report());
+    return KeyedSubtree(key: _key, child: widget.child);
+  }
 }

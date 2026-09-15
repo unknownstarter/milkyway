@@ -41,12 +41,19 @@ class LabelCandidate {
   });
 }
 
+/// 와이드샷 경계. 이보다 멀리서 보면 라벨을 **아예 걷는다**.
+///
+/// 핸드오프 "라벨 가시성(중요)" 절의 규칙이다. 기울어진 와이드샷에서는 라벨이
+/// 반드시 겹치므로, 와이드샷은 **형태를 보는 샷**, 당겨본 화면은 **정보를 읽는
+/// 샷**으로 역할을 나눈다. 겹침 회피로 몇 개 살려봐야 읽히지도 않고 지저분하다.
+const double kLabelWideShotScale = 1.15;
+
 /// 줌 배율 -> 라벨 허용 개수.
-/// 0.5배에서 3개, 1배에서 7개, 2.5배에서 19개. 상한 24는 화면에 물리적으로
-/// 들어가는 한계에 가깝다(어차피 충돌 회피에서 더 걸러진다).
+/// 와이드샷에서는 0. 경계를 넘으면 당길수록 늘어난다(상한 24).
 int labelBudget(double scale) {
-  final n = (3 + 8 * (scale - 0.5)).round();
-  return n.clamp(3, 24);
+  if (scale < kLabelWideShotScale) return 0;
+  final n = (2 + 12 * (scale - kLabelWideShotScale)).round();
+  return n.clamp(1, 24);
 }
 
 /// 지금 그릴 라벨을 고른다. 반환 순서 = 그리는 순서.

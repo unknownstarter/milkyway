@@ -12,14 +12,18 @@ void main() {
           id: id, screenX: x, screenY: y, width: 120, height: 40, notes: notes);
 
   group('labelBudget', () {
-    test('줌이 클수록 더 많이 허용한다', () {
-      expect(labelBudget(0.5), 3);
-      expect(labelBudget(1.0), 7);
-      expect(labelBudget(2.5), 19);
+    test('와이드샷에서는 라벨을 아예 걷는다 - 형태를 보는 샷', () {
+      expect(labelBudget(0.5), 0);
+      expect(labelBudget(1.0), 0);
+      expect(labelBudget(kLabelWideShotScale - 0.01), 0);
     });
 
-    test('상하한이 있다', () {
-      expect(labelBudget(0.1), 3);
+    test('당겨보면 라벨이 나온다 - 정보를 읽는 샷', () {
+      expect(labelBudget(kLabelWideShotScale), greaterThan(0));
+      expect(labelBudget(2.5), greaterThan(labelBudget(1.5)));
+    });
+
+    test('상한이 있다', () {
       expect(labelBudget(10), 24);
     });
 
@@ -46,7 +50,7 @@ void main() {
     test('벌어져 있으면 예산까지 산다', () {
       final picked = pickLabels(
         [c('a', 80, 100), c('b', 300, 300), c('d', 100, 600)],
-        scale: 1.0,
+        scale: 1.6,
         viewport: viewport,
       );
       expect(picked.length, 3);
@@ -57,7 +61,7 @@ void main() {
         for (var i = 0; i < 20; i++)
           c('b$i', 30.0 + (i % 5) * 85, 60.0 + (i ~/ 5) * 180, notes: 20 - i),
       ];
-      final few = pickLabels(cands, scale: 0.5, viewport: viewport);
+      final few = pickLabels(cands, scale: 1.3, viewport: viewport);
       final many = pickLabels(cands, scale: 2.5, viewport: viewport);
       expect(few.length, lessThan(many.length));
       // 축소 상태에서 살아남은 건 메모 많은 쪽이어야 한다.
@@ -78,6 +82,7 @@ void main() {
         for (var i = 0; i < 30; i++) c('b$i', 200, 400, notes: 30 - i),
         c('focus', 202, 401, notes: 0),
       ];
+      // 와이드샷(라벨 0개)이어도 포커스는 살아야 한다.
       final picked =
           pickLabels(cands, scale: 0.5, viewport: viewport, focusedId: 'focus');
       expect(picked.first, 'focus');
@@ -98,13 +103,13 @@ void main() {
         c('zz', 80, 100, notes: 5),
         c('aa', 300, 300, notes: 5),
       ];
-      expect(pickLabels(cands, scale: 1, viewport: viewport),
-          pickLabels(cands, scale: 1, viewport: viewport));
-      expect(pickLabels(cands, scale: 1, viewport: viewport).first, 'aa');
+      expect(pickLabels(cands, scale: 1.6, viewport: viewport),
+          pickLabels(cands, scale: 1.6, viewport: viewport));
+      expect(pickLabels(cands, scale: 1.6, viewport: viewport).first, 'aa');
     });
 
     test('후보가 없으면 빈 목록', () {
-      expect(pickLabels(const [], scale: 1, viewport: viewport), isEmpty);
+      expect(pickLabels(const [], scale: 1.6, viewport: viewport), isEmpty);
     });
   });
 }
