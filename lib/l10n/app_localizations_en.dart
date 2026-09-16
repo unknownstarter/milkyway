@@ -1411,4 +1411,10 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get errServer => 'Server error';
+
+  @override
+  String get shareConnectionThen => 'THEN';
+
+  @override
+  String get shareConnectionNow => 'NOW';
 }

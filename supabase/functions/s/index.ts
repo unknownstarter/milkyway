@@ -142,6 +142,20 @@ Deno.serve(async (req) => {
   if (isWrapped && payload && payload.cover_url) ogImg = String(payload.cover_url);
 
 
+  // '그때 -> 지금' 연결. 오브만 덩그러니 있으면 모르는 사람이 반응할 이유가 없다.
+  // 발행 시점에 **두 메모가 둘 다 공개일 때만** 실리므로 여기서는 그대로 쓴다.
+  const conn = (payload?.connection ?? null) as Record<string, unknown> | null;
+  const connPast = conn ? String(conn.past ?? '').trim() : '';
+  const connNow = conn ? String(conn.now ?? '').trim() : '';
+  const connWhy = conn ? String(conn.rationale ?? '').trim() : '';
+  const hasConn = connPast !== '' && connNow !== '';
+  const dateOf = (v: unknown) => {
+    const d = typeof v === 'string' ? new Date(v) : null;
+    if (!d || isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.` +
+      `${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   const idx = TIERS.indexOf(tier as typeof TIERS[number]);
   const nextTier = idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
   // 앱의 진행바와 같은 계산: 현재 구간에서 얼마나 왔나.
@@ -165,7 +179,22 @@ Deno.serve(async (req) => {
   const body = isWrapped
     ? `${ogImg ? `<img class="cover" src="${esc(ogImg)}" alt="${esc(title)}">` : ''}
        <h1>${esc(title)}</h1><p class="sub">${esc(desc)}</p>`
-    : `<div class="orbwrap">${orbImg ? `<img class="orb" src="${esc(orbImg)}" alt="${esc(tierName)} 오브">` : ''}</div>
+    : `<div class="orbwrap">${orbImg ? `<img class="orb${hasConn ? ' small' : ''}" src="${esc(orbImg)}" alt="${esc(tierName)} 오브">` : ''}</div>
+       ${hasConn ? `<div class="conn">
+         <div class="q dim">
+           <div class="lab">그때 <span class="d">${esc(dateOf(conn!.past_date))}</span></div>
+           <p>${esc(connPast)}</p>
+         </div>
+         <div class="arrow"><span style="background:${accent}66"></span>
+           <i style="color:${accent}">&#8595;</i>
+           <span style="background:${accent}22"></span></div>
+         <div class="q">
+           <div class="lab" style="color:${accent}">지금 <span class="d">${esc(dateOf(conn!.now_date))}</span></div>
+           <p>${esc(connNow)}</p>
+         </div>
+         ${connWhy ? `<div class="why"><b style="background:${accent}"></b>
+           <span style="color:${accent}">${esc(connWhy)}</span></div>` : ''}
+       </div>` : ''}
        <div class="badge" style="color:${accent};border-color:${accent}80;background:${accent}22">
          <span class="dot" style="background:${accent}"></span>${esc(tierName)} 단계</div>
        <h1>지금은 <b style="color:${accent}">${esc(tierName)}</b></h1>
@@ -217,6 +246,20 @@ ${ogImg ? `<meta name="twitter:image" content="${esc(ogImg)}">` : ''}
     -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 60%,transparent 72%);
     mask-image:radial-gradient(circle at 50% 50%,#000 60%,transparent 72%)}
   .cover{width:min(240px,62vw);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .orb.small{width:min(150px,40vw)}
+  .conn{margin-top:18px;padding:18px;border-radius:18px;text-align:left;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .conn .lab{font-size:12px;font-weight:800;color:#8A8A98}
+  .conn .lab .d{font-weight:500;color:#71717F;margin-left:4px}
+  .conn p{margin:6px 0 0;font-size:15px;line-height:1.6;color:#ECECEC}
+  .conn .q.dim p{color:#9A9AA8}
+  .conn .arrow{display:flex;align-items:center;gap:8px;margin:14px 0}
+  .conn .arrow span{height:1px;display:block}
+  .conn .arrow span:first-child{width:18px}
+  .conn .arrow span:last-child{flex:1}
+  .conn .arrow i{font-style:normal;font-size:13px}
+  .conn .why{display:flex;gap:8px;margin-top:16px;font-size:13.5px;line-height:1.6}
+  .conn .why b{width:6px;height:6px;border-radius:50%;margin-top:7px;flex:none}
   .badge{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:6px 14px;
     border-radius:999px;border:1px solid;font-size:13px;font-weight:700}
   .dot{width:7px;height:7px;border-radius:50%}

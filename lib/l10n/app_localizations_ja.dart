@@ -1387,4 +1387,10 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get errServer => 'サーバーエラーが発生しました';
+
+  @override
+  String get shareConnectionThen => 'あの頃';
+
+  @override
+  String get shareConnectionNow => 'いま';
 }

@@ -1389,4 +1389,10 @@ class AppL10nKo extends AppL10n {
 
   @override
   String get errServer => '서버 오류가 발생했습니다';
+
+  @override
+  String get shareConnectionThen => '그때';
+
+  @override
+  String get shareConnectionNow => '지금';
 }

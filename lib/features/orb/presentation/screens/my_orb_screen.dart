@@ -55,6 +55,23 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
     try {
       // 이미지 생성/업로드 없음. 링크만 발행 -> OG 썸네일은 정적 오브 이미지가 동적 반영.
       final repo = ref.read(shareRepositoryProvider);
+      // 링크를 받은 사람에게 보여줄 '그때 -> 지금' 연결. 오브만 덩그러니 있으면
+      // 모르는 사람이 반응할 이유가 없다. milkyway 는 멈춘 순간이 전부니까.
+      //
+      // 다만 별자리 RPC 는 내 화면용이라 비공개 메모도 준다. 링크는 누구나 열 수
+      // 있으므로 **두 메모가 둘 다 공개일 때만** 문장을 싣는다.
+      Map<String, dynamic>? connection;
+      final c = data.connection;
+      if (c != null && await repo.bothPublic(c.pastId, c.nowId)) {
+        connection = {
+          'past': c.pastPreview,
+          'now': c.nowPreview,
+          'past_date': c.pastDate.toIso8601String(),
+          'now_date': c.nowDate.toIso8601String(),
+          if (c.rationale != null) 'rationale': c.rationale,
+        };
+      }
+
       // 랜딩 페이지가 앱 화면과 같은 숫자를 보여주려면 스냅샷이 필요하다.
       // (이미지는 여전히 안 만든다 - 값만 실어 보낸다)
       final link = await repo.publish(
@@ -66,8 +83,13 @@ class _MyOrbScreenState extends ConsumerState<MyOrbScreen> {
           if (data.topPercent != null) 'top_percent': data.topPercent,
           'streak_days': data.streakDays,
           if (data.pointsToNext != null) 'points_to_next': data.pointsToNext,
+          if (connection != null) 'connection': connection,
         },
       );
+      analytics.logEvent('share_connection', {
+        'has_connection': connection != null,
+        'had_candidate': c != null,
+      });
       await Clipboard.setData(ClipboardData(text: link));
       analytics.logEvent('share_completed', {'tier': data.tier.name});
       if (mounted) showAppSnackBar(context, AppL10n.of(context).orbShareLinkCopied);

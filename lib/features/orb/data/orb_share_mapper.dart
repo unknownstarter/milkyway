@@ -27,6 +27,8 @@ OrbConnection? pickOrbConnection(Constellation con) {
   final now = a.createdAt.isBefore(b.createdAt) ? b : a;
 
   return OrbConnection(
+    pastId: past.id,
+    nowId: now.id,
     pastPreview: past.preview,
     nowPreview: now.preview,
     pastDate: past.createdAt,

@@ -430,5 +430,7 @@
   "errDeleteFailed": "Could not delete",
   "errSaveFailed": "Could not save",
   "errAuthRequired": "Sign-in required",
-  "errServer": "Server error"
+  "errServer": "Server error",
+  "shareConnectionThen": "THEN",
+  "shareConnectionNow": "NOW"
 }

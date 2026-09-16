@@ -1385,4 +1385,10 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get errServer => '服务器出错';
+
+  @override
+  String get shareConnectionThen => '那时';
+
+  @override
+  String get shareConnectionNow => '现在';
 }

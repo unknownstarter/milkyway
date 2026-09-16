@@ -3,6 +3,11 @@ import '../../constellation/data/models/constellation.dart' show RelType;
 
 /// 공유 카드 연결 블록(그때 -> 지금 + Lyra 근거). constellation 최강 엣지에서 도출.
 class OrbConnection {
+  /// 메모 id. 공유 payload 에 실을지 판단하려면 공개 여부를 확인해야 해서 필요하다.
+  /// (별자리 RPC 는 내 화면용이라 비공개 메모도 그대로 준다)
+  final String pastId;
+  final String nowId;
+
   final String pastPreview;
   final String nowPreview;
   final DateTime pastDate;
@@ -11,6 +16,8 @@ class OrbConnection {
   final String? rationale;
 
   const OrbConnection({
+    required this.pastId,
+    required this.nowId,
     required this.pastPreview,
     required this.nowPreview,
     required this.pastDate,

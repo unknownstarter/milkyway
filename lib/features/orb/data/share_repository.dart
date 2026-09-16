@@ -48,6 +48,20 @@ class ShareRepository {
     return '$base/s/$code';
   }
 
+  /// 연결 블록을 공유 payload 에 실어도 되는지 확인한다.
+  ///
+  /// 별자리 RPC(get_constellation)는 **내 화면용이라 비공개 메모도 그대로 준다.**
+  /// 공유 링크는 링크만 있으면 누구나 열 수 있으므로, 두 메모가 **둘 다 공개**일
+  /// 때만 문장을 싣는다. 하나라도 비공개면 통째로 뺀다.
+  Future<bool> bothPublic(String memoIdA, String memoIdB) async {
+    final rows = await _client
+        .from('memos')
+        .select('id, visibility')
+        .inFilter('id', [memoIdA, memoIdB]);
+    if (rows.length != 2) return false;
+    return rows.every((r) => r['visibility'] == 'public');
+  }
+
   /// 6자 base62 숏튼 코드.
   String _genCode() {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

@@ -727,5 +727,7 @@
   "errDeleteFailed": "삭제에 실패했습니다",
   "errSaveFailed": "저장에 실패했습니다",
   "errAuthRequired": "인증이 필요합니다",
-  "errServer": "서버 오류가 발생했습니다"
+  "errServer": "서버 오류가 발생했습니다",
+  "shareConnectionThen": "그때",
+  "shareConnectionNow": "지금"
 }

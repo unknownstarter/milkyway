@@ -430,5 +430,7 @@
   "errDeleteFailed": "删除失败",
   "errSaveFailed": "保存失败",
   "errAuthRequired": "需要登录",
-  "errServer": "服务器出错"
+  "errServer": "服务器出错",
+  "shareConnectionThen": "那时",
+  "shareConnectionNow": "现在"
 }

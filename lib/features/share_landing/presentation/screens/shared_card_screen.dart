@@ -9,7 +9,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../orb/domain/orb_tier.dart';
+import '../../../orb/presentation/widgets/orb_palette.dart';
 import '../providers/shared_card_provider.dart';
+import '../widgets/connection_block.dart';
 
 /// 공유 카드 랜딩(딥링크 도착지). 설치+로그인+온보딩 완료 유저가 공유 링크를
 /// 눌렀을 때 그 카드를 보여준다. 뒤로가기는 항상 홈으로.
@@ -58,20 +61,48 @@ class SharedCardScreen extends ConsumerWidget {
   }
 
   Widget _content(BuildContext context, SharedCard card) {
+    final tier = OrbTier.values.firstWhere(
+      (t) => t.name == card.tier,
+      orElse: () => OrbTier.t1,
+    );
+    final accent = orbAccentOf(tier);
+    // 문장이 실려 있으면 그게 주인공이다. 오브는 옆으로 물러난다.
+    // 오브만 덩그러니 있으면 모르는 사람이 반응할 이유가 없다.
+    final connection = ConnectionBlock.fromPayload(card.payload, accent);
+
     return Column(
       children: [
         Expanded(
-          child: Center(
-            child: SizedBox(
-              // 회고=책 표지(3:4), 오브=정사각.
-              width: card.isWrapped ? 300 : 320,
-              height: card.isWrapped ? 400 : 320,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.modal),
-                child: CachedImage(url: card.imageUrl, fit: BoxFit.cover),
-              ),
-            ),
-          ),
+          child: connection == null
+              ? Center(
+                  child: SizedBox(
+                    // 회고=책 표지(3:4), 오브=정사각.
+                    width: card.isWrapped ? 300 : 320,
+                    height: card.isWrapped ? 400 : 320,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadius.modal),
+                      child: CachedImage(url: card.imageUrl, fit: BoxFit.cover),
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: 140,
+                        height: 140,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.modal),
+                          child: CachedImage(url: card.imageUrl, fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      connection,
+                    ],
+                  ),
+                ),
         ),
         Padding(
           padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg,

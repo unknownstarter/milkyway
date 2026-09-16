@@ -430,5 +430,7 @@
   "errDeleteFailed": "削除に失敗しました",
   "errSaveFailed": "保存に失敗しました",
   "errAuthRequired": "認証が必要です",
-  "errServer": "サーバーエラーが発生しました"
+  "errServer": "サーバーエラーが発生しました",
+  "shareConnectionThen": "あの頃",
+  "shareConnectionNow": "いま"
 }
