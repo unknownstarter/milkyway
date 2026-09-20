@@ -187,20 +187,41 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             ],
           ),
         ),
-        // 하단 고정 메모하기 버튼 (하단 네비게이션바 영역에 플로팅)
+        // 하단 고정 메모하기 버튼.
+        //
+        // 배경 없이 버튼만 띄우면 스크롤 위치에 따라 카드(Lyra 물음 등) 한가운데에
+        // 얹혀서 '떠 있는 버튼'이 아니라 '잘못 놓인 요소'로 보인다. 아래로 갈수록
+        // 배경색이 차오르는 스크림을 깔아 하단 바로 읽히게 한다.
         Positioned(
           left: 0,
           right: 0,
           bottom: 0,
-          child: SafeArea(
-            top: false,
-            bottom: false, // SafeArea를 false로 하여 하단까지 확장
-            // 배경 없이 버튼만 플로팅(단색 pill이라 콘텐츠 위에서도 또렷).
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                  20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
-              child: _buildAddMemoButton(book),
+          child: IgnorePointer(
+            ignoring: true,
+            child: Container(
+              height: 41 + 24 + MediaQuery.of(context).padding.bottom + 28,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  // 버튼이 놓이는 구간은 **완전 불투명**이어야 한다. 90%로 두면
+                  // 뒤 카드의 테두리 선이 비쳐서 '카드 안에 버튼이 박힌' 모양이 된다.
+                  // 위 30%만 그라데이션으로 부드럽게 잇는다.
+                  colors: [Color(0x00181818), Color(0xFF181818), Color(0xFF181818)],
+                  stops: [0.0, 0.30, 1.0],
+                ),
+              ),
             ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+                20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
+            child: _buildAddMemoButton(book),
           ),
         ),
       ],

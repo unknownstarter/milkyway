@@ -206,8 +206,8 @@
   "commentSectionTitle": "Comments",
   "commentSectionTitleCount": "Comments {count}",
   "commentEmpty": "Be the first to comment",
-  "shareLandingCta": "You can build your own universe too",
-  "shareLandingCtaButton": "Make mine",
+  "shareLandingCta": "You can keep moments like this too",
+  "shareLandingCtaButton": "Start my universe",
   "shareLandingErrorTitle": "Could not load the card",
   "shareLandingErrorBody": "The link may have expired or the card was deleted",
   "shareLandingGoHome": "Go home",
@@ -430,5 +430,7 @@
   "errDeleteFailed": "Could not delete",
   "errSaveFailed": "Could not save",
   "errAuthRequired": "Sign-in required",
-  "errServer": "Server error"
+  "errServer": "Server error",
+  "shareConnectionThen": "THEN",
+  "shareConnectionNow": "NOW"
 }

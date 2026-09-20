@@ -206,8 +206,8 @@
   "commentSectionTitle": "コメント",
   "commentSectionTitleCount": "コメント{count}",
   "commentEmpty": "最初のコメントを残してみて",
-  "shareLandingCta": "自分の宇宙も作れます",
-  "shareLandingCtaButton": "自分も作る",
+  "shareLandingCta": "こういう瞬間は、自分でも残せます",
+  "shareLandingCtaButton": "自分の宇宙をつくる",
   "shareLandingErrorTitle": "カードを読み込めませんでした",
   "shareLandingErrorBody": "リンクの期限切れか、削除されたカードかもしれません",
   "shareLandingGoHome": "ホームへ",
@@ -430,5 +430,7 @@
   "errDeleteFailed": "削除に失敗しました",
   "errSaveFailed": "保存に失敗しました",
   "errAuthRequired": "認証が必要です",
-  "errServer": "サーバーエラーが発生しました"
+  "errServer": "サーバーエラーが発生しました",
+  "shareConnectionThen": "あの頃",
+  "shareConnectionNow": "いま"
 }

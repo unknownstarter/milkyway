@@ -1340,13 +1340,13 @@ abstract class AppL10n {
   /// No description provided for @shareLandingCta.
   ///
   /// In ko, this message translates to:
-  /// **'나도 내 우주를 만들 수 있어요'**
+  /// **'나도 이런 순간을 남길 수 있어요'**
   String get shareLandingCta;
 
   /// No description provided for @shareLandingCtaButton.
   ///
   /// In ko, this message translates to:
-  /// **'나도 만들기'**
+  /// **'내 우주 만들기'**
   String get shareLandingCtaButton;
 
   /// No description provided for @shareLandingErrorTitle.
@@ -2686,6 +2686,18 @@ abstract class AppL10n {
   /// In ko, this message translates to:
   /// **'서버 오류가 발생했습니다'**
   String get errServer;
+
+  /// No description provided for @shareConnectionThen.
+  ///
+  /// In ko, this message translates to:
+  /// **'그때'**
+  String get shareConnectionThen;
+
+  /// No description provided for @shareConnectionNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금'**
+  String get shareConnectionNow;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

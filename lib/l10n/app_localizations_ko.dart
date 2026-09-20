@@ -668,10 +668,10 @@ class AppL10nKo extends AppL10n {
   String get commentEmpty => '첫 댓글을 남겨봐';
 
   @override
-  String get shareLandingCta => '나도 내 우주를 만들 수 있어요';
+  String get shareLandingCta => '나도 이런 순간을 남길 수 있어요';
 
   @override
-  String get shareLandingCtaButton => '나도 만들기';
+  String get shareLandingCtaButton => '내 우주 만들기';
 
   @override
   String get shareLandingErrorTitle => '카드를 불러오지 못했어요';
@@ -1389,4 +1389,10 @@ class AppL10nKo extends AppL10n {
 
   @override
   String get errServer => '서버 오류가 발생했습니다';
+
+  @override
+  String get shareConnectionThen => '그때';
+
+  @override
+  String get shareConnectionNow => '지금';
 }
