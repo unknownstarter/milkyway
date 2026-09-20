@@ -681,10 +681,10 @@ class AppL10nEn extends AppL10n {
   String get commentEmpty => 'Be the first to comment';
 
   @override
-  String get shareLandingCta => 'You can build your own universe too';
+  String get shareLandingCta => 'You can keep moments like this too';
 
   @override
-  String get shareLandingCtaButton => 'Make mine';
+  String get shareLandingCtaButton => 'Start my universe';
 
   @override
   String get shareLandingErrorTitle => 'Could not load the card';

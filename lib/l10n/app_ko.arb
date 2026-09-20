@@ -339,8 +339,8 @@
     }
   },
   "commentEmpty": "첫 댓글을 남겨봐",
-  "shareLandingCta": "나도 내 우주를 만들 수 있어요",
-  "shareLandingCtaButton": "나도 만들기",
+  "shareLandingCta": "나도 이런 순간을 남길 수 있어요",
+  "shareLandingCtaButton": "내 우주 만들기",
   "shareLandingErrorTitle": "카드를 불러오지 못했어요",
   "shareLandingErrorBody": "링크가 만료되었거나 삭제된 카드일 수 있어요",
   "shareLandingGoHome": "홈으로",

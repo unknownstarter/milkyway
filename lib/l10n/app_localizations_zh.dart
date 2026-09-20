@@ -665,10 +665,10 @@ class AppL10nZh extends AppL10n {
   String get commentEmpty => '来写第一条评论';
 
   @override
-  String get shareLandingCta => '你也能有自己的宇宙';
+  String get shareLandingCta => '这样的瞬间，你也可以留下';
 
   @override
-  String get shareLandingCtaButton => '我也来做一个';
+  String get shareLandingCtaButton => '开始我的宇宙';
 
   @override
   String get shareLandingErrorTitle => '卡片加载失败';

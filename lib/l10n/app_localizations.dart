@@ -1340,13 +1340,13 @@ abstract class AppL10n {
   /// No description provided for @shareLandingCta.
   ///
   /// In ko, this message translates to:
-  /// **'나도 내 우주를 만들 수 있어요'**
+  /// **'나도 이런 순간을 남길 수 있어요'**
   String get shareLandingCta;
 
   /// No description provided for @shareLandingCtaButton.
   ///
   /// In ko, this message translates to:
-  /// **'나도 만들기'**
+  /// **'내 우주 만들기'**
   String get shareLandingCtaButton;
 
   /// No description provided for @shareLandingErrorTitle.

@@ -667,10 +667,10 @@ class AppL10nJa extends AppL10n {
   String get commentEmpty => '最初のコメントを残してみて';
 
   @override
-  String get shareLandingCta => '自分の宇宙も作れます';
+  String get shareLandingCta => 'こういう瞬間は、自分でも残せます';
 
   @override
-  String get shareLandingCtaButton => '自分も作る';
+  String get shareLandingCtaButton => '自分の宇宙をつくる';
 
   @override
   String get shareLandingErrorTitle => 'カードを読み込めませんでした';
