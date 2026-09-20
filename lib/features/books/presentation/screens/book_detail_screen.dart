@@ -204,8 +204,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x00181818), Color(0xE6181818), Color(0xFF181818)],
-                  stops: [0.0, 0.45, 1.0],
+                  // 버튼이 놓이는 구간은 **완전 불투명**이어야 한다. 90%로 두면
+                  // 뒤 카드의 테두리 선이 비쳐서 '카드 안에 버튼이 박힌' 모양이 된다.
+                  // 위 30%만 그라데이션으로 부드럽게 잇는다.
+                  colors: [Color(0x00181818), Color(0xFF181818), Color(0xFF181818)],
+                  stops: [0.0, 0.30, 1.0],
                 ),
               ),
             ),
