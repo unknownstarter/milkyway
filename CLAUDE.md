@@ -1,21 +1,46 @@
 # Milkyway — Claude Code 가이드
 
-## 진실의 원천
-**`docs/VISION_v3.md`** — 모든 작업의 기준. 출시 이후이므로 **코드가 우선, 문서가 따라간다**.
-문서가 코드와 어긋나면 문서를 고칠 것. (`VISION_v2.md`는 기록 보존)
+## 진실의 원천 (2문서 체제 - 2026-09-24 재정리)
+출시 이후이므로 **코드가 우선, 문서가 따라간다**. 문서가 코드와 어긋나면 문서를 고칠 것.
+
+| 문서 | 무엇의 정본인가 | 충돌 시 |
+|---|---|---|
+| **`docs/PRD_v2.md`** | **제품 정의 · BM · 가격 · AI/검색 아키텍처 · MVP 우선순위 · 비용 원칙** | 이쪽이 우선 |
+| **`docs/VISION_v3.md`** | **톤 · Lyra(사서) 인격 · IA · 영구 금지(§6.2) · 페르소나** | 톤/금지 사항은 이쪽이 우선 |
+
+- PRD v2가 Milkyway를 **Personal Reading Intelligence**(남긴 생각을 다시 찾고 연결하고 활용)로 재정의했다. 제품 방향 질문은 여기서 답을 찾는다.
+- VISION v3 §6 BM "재설계 대기"는 **해소됨**. BM 정본은 PRD v2 §7 (Free + Milkyway+ 월 9,900원).
+- `VISION_v2.md` · `docs/PRD.md`(v1.0)는 기록 보존. 정본 아님.
 
 ## 새 세션 시작 시 읽기 순서 (필수)
-1. **`docs/VISION_v3.md`** — 비전·코어 가치·Lyra(사서)·IA·BM·로드맵
-2. **`REFACTORING_RULES.md`** — 절대 변경 금지 영역 (DB 스키마·OAuth·validation 등)
-3. **`BUSINESS_LOGIC_POLICY.md`** — 회원/책/메모 정책, RLS, 에러 처리
-4. **`DATABASE_SCHEMA.md`** — 6개 테이블 + ERD + Storage bucket
-5. **`docs/PRD.md`** — v1.0 기록 보존. v3와 충돌 시 v3 우선
+1. **`docs/PRD_v2.md`** — 제품 정의·BM·Free/Paid 경계·검색 구조·MVP 우선순위
+2. **`docs/VISION_v3.md`** — 톤·Lyra·IA·영구 금지
+3. **`REFACTORING_RULES.md`** — 절대 변경 금지 영역 (DB 스키마·OAuth·validation 등)
+4. **`BUSINESS_LOGIC_POLICY.md`** — 회원/책/메모 정책, RLS, 에러 처리
+5. **`DATABASE_SCHEMA.md`** — 6개 테이블 + ERD + Storage bucket
 6. **`.claude/agents/`** — 전문 직군 페르소나. 필요 시점에 선택 호출
 
 작업 시작 전 체크:
-- [ ] VISION v3 해당 절 읽었나
-- [ ] 영구 금지 항목(§6.2) 위반 없나
-- [ ] 현재 단계 확인 (현재: **0.2.8+97 심사 대기**. §7 로드맵은 실제 버전과 어긋나 재기준화 필요)
+- [ ] PRD v2 해당 절 읽었나 (제품/BM/비용) + VISION v3 톤·금지 위반 없나
+- [ ] PRD v2 §36 Engineering Principle 7문항 통과하나 (특히 "LLM이 반드시 필요한가")
+- [ ] 현재 단계 확인 (아래 참조)
+
+## 현재 단계 (2026-09-24)
+**0.2.11+100 스토어 배포 완료.** 다음 사이클 = PRD v2 MVP 1순위 착수.
+
+| 순서 | 일감 | 과금 |
+|---|---|---|
+| 1 | **메모 키워드 검색** (현재 앱에 내 메모를 찾는 검색이 아예 없음) | 무료 |
+| 2 | **의미 검색** (쿼리 임베딩 → 벡터 검색. LLM 불필요) | Milkyway+ |
+| 3 | **Lyra 대화형 검색 (RAG)** - 2번 위에 얹는다 | Milkyway+ |
+| 4 | **인앱결제 + 페이월** (`subscriptions` · `ai_usage` 테이블 신규) | - |
+
+**이미 깔려 있는 인프라 (신규 제작 금지, 재사용할 것):**
+- `memo_embeddings` (pgvector 1024차원 + HNSW) · `memo_edges` · `match_memos` / `get_constellation` RPC
+  → `supabase/migrations/20260822152417_connectome_schema.sql`
+- `connect-memo` 엣지 함수 = 메모 저장 시 Voyage 임베딩 자동 생성 + 연결 판정 (작동 중)
+- Related Thoughts(PRD v2 2순위)는 **별자리 기능으로 이미 출시됨** (`lib/features/constellation/`)
+- 주의: `match_memos`는 **메모→메모**용이다. 검색은 **쿼리→메모** RPC가 별도로 필요.
 
 ## 작업 태도 (필수)
 **시도도 안 해보고 "안 된다"고 단정 금지.** 어떻게든 방법을 찾아 목표를 달성할 것.
