@@ -12,6 +12,7 @@ import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../domain/models/memo.dart';
 import '../providers/memo_provider.dart';
+import '../memo_l10n.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// 메모 탭 = 피드. 내 메모 / 공개(타 유저 포함) 세그먼트 + 쓰기 진입.
@@ -76,6 +77,12 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       appBar: glassAppBar(
         title: const Text('Memos', style: AppTypography.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search,
+                size: 22, color: AppColors.textSecondary),
+            tooltip: l10n.memoSearchTooltip,
+            onPressed: () => context.pushNamed(AppRoutes.memoSearchName),
+          ),
           IconButton(
             icon: const Icon(Icons.hub_outlined,
                 size: 20, color: AppColors.textSecondary),
@@ -176,7 +183,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       content: memo.content,
       authorName: memo.userNickname ?? l10n.memoAuthorFallback,
       authorImageUrl: memo.userAvatarUrl,
-      dateText: _relativeDate(l10n, date),
+      dateText: memoRelativeDate(l10n, date),
       edited: edited,
       showMineTag: _segment == 1 && memo.userId == Supabase.instance.client.auth.currentUser?.id,
       bookTitle: memo.bookTitle,
@@ -195,14 +202,4 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
     );
   }
 
-  static String _relativeDate(AppL10n l, DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return l.memoTimeJustNow;
-    if (diff.inMinutes < 60) return l.memoTimeMinutesAgo(diff.inMinutes);
-    if (diff.inHours < 24) return l.memoTimeHoursAgo(diff.inHours);
-    if (diff.inDays < 7) return l.memoTimeDaysAgo(diff.inDays);
-    final m = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    return '${dt.year}.$m.$d';
-  }
 }

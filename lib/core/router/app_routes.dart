@@ -23,6 +23,7 @@ class AppRoutes {
   static const memoDetail = '/memos/detail';
   static const memoCreate = '/memos/create';
   static const memoEdit = '/memos/edit';
+  static const memoSearch = '/memos/search';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const calendar = '/calendar';
@@ -58,6 +59,7 @@ class AppRoutes {
   static const memoDetailName = 'memo-detail';
   static const memoCreateName = 'memo-create';
   static const memoEditName = 'memo-edit';
+  static const memoSearchName = 'memo-search';
   static const profileName = 'profile';
   static const profileEditName = 'profile-edit';
   static const calendarName = 'calendar';

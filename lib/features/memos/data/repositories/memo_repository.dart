@@ -9,6 +9,16 @@ import 'dart:developer';
 import '../../../../core/utils/retry_helper.dart';
 import '../../../../core/utils/response_cache.dart';
 
+/// ILIKE 검색어의 메타문자를 이스케이프한다.
+///
+/// 안 하면 '%' 한 글자만 쳐도 전체 메모가 쏟아지고, '_'는 아무 글자나
+/// 매칭한다. PostgreSQL ILIKE의 기본 이스케이프 문자는 백슬래시라
+/// 백슬래시 자신을 먼저 두 배로 늘려야 한다(순서 중요).
+String escapeIlikePattern(String raw) => raw
+    .replaceAll(r'\', r'\\')
+    .replaceAll('%', r'\%')
+    .replaceAll('_', r'\_');
+
 class MemoRepository {
   final SupabaseClient _client;
 
@@ -458,6 +468,44 @@ class MemoRepository {
     final response = await query
         .order('created_at', ascending: false)
         .limit(limit)
+        .range(offset, offset + limit - 1);
+
+    return response.map((json) => Memo.fromJson(json)).toList();
+  }
+
+  /// 내 메모 키워드 검색 (무료 기능 - PRD v2 §8 Free).
+  ///
+  /// 한국어는 교착어라 PostgreSQL FTS(to_tsvector)를 못 쓴다. "리더십에"를
+  /// 한 토큰으로 보기 때문에 "리더십"으로 검색해도 안 걸린다. 형태소 분석기
+  /// (mecab)는 Supabase에 설치할 수 없다. 그래서 부분일치(ILIKE)로 간다.
+  /// 메모 200개 규모에선 인덱스 없이도 충분하다.
+  Future<List<Memo>> searchMyMemos({
+    required String query,
+    required int limit,
+    required int offset,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final escaped = escapeIlikePattern(trimmed);
+
+    final response = await _client.from('memos').select('''
+      *,
+      comment_count,
+      lyra_question,
+      books (
+        id,
+        title,
+        author,
+        cover_url
+      ),
+      users!user_id (
+        nickname,
+        picture_url
+      )
+    ''').eq('user_id', _client.auth.currentUser!.id).ilike(
+        'content', '%$escaped%')
+        .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
 
     return response.map((json) => Memo.fromJson(json)).toList();

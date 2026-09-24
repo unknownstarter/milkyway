@@ -43,3 +43,16 @@ String memoVisibilityFilterLabel(AppL10n l, MemoVisibilityFilter f) {
       return l.memoFilterPrivate;
   }
 }
+
+/// 메모 카드에 쓰는 상대 시각. 7일이 넘으면 절대 날짜로 떨어진다.
+/// 메모 목록과 메모 검색이 같은 표기를 쓰도록 여기로 모았다.
+String memoRelativeDate(AppL10n l, DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 1) return l.memoTimeJustNow;
+  if (diff.inMinutes < 60) return l.memoTimeMinutesAgo(diff.inMinutes);
+  if (diff.inHours < 24) return l.memoTimeHoursAgo(diff.inHours);
+  if (diff.inDays < 7) return l.memoTimeDaysAgo(diff.inDays);
+  final m = dt.month.toString().padLeft(2, '0');
+  final d = dt.day.toString().padLeft(2, '0');
+  return '${dt.year}.$m.$d';
+}

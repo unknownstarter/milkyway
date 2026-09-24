@@ -24,6 +24,7 @@ import '../../features/books/presentation/screens/book_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_detail_screen.dart';
 import '../../features/memos/presentation/screens/memo_create_screen.dart';
 import '../../features/memos/presentation/screens/memo_edit_screen.dart';
+import '../../features/memos/presentation/screens/memo_search_screen.dart';
 import 'main_shell.dart';
 import 'app_routes.dart';
 
@@ -284,6 +285,13 @@ final router = GoRouter(
       ),
     ),
     
+    // 메모 검색 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)
+    GoRoute(
+      path: AppRoutes.memoSearch,
+      name: AppRoutes.memoSearchName,
+      builder: (context, state) => const MemoSearchScreen(),
+    ),
+
     // 메모 편집 화면 (ShellRoute 밖 - 하단 네비게이션바 없음)
     GoRoute(
       path: '${AppRoutes.memoEdit}/:id',
