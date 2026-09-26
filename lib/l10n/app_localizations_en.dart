@@ -1034,6 +1034,21 @@ class AppL10nEn extends AppL10n {
   String get memoConstellationTooltip => 'Constellation';
 
   @override
+  String get memoSearchTooltip => 'Search memos';
+
+  @override
+  String get memoSearchHint => 'Search my memos';
+
+  @override
+  String get memoSearchPrompt => 'Type a word to search the memos you wrote';
+
+  @override
+  String get memoSearchEmpty => 'No memos found';
+
+  @override
+  String get memoSearchFailed => 'Could not search';
+
+  @override
   String get memoSegmentMine => 'Mine';
 
   @override

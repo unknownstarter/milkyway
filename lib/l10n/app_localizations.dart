@@ -1985,6 +1985,36 @@ abstract class AppL10n {
   /// **'별자리'**
   String get memoConstellationTooltip;
 
+  /// No description provided for @memoSearchTooltip.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모 검색'**
+  String get memoSearchTooltip;
+
+  /// No description provided for @memoSearchHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 메모에서 찾기'**
+  String get memoSearchHint;
+
+  /// No description provided for @memoSearchPrompt.
+  ///
+  /// In ko, this message translates to:
+  /// **'단어를 입력하면 내가 남긴 메모에서 찾아요'**
+  String get memoSearchPrompt;
+
+  /// No description provided for @memoSearchEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'찾는 메모가 없어요'**
+  String get memoSearchEmpty;
+
+  /// No description provided for @memoSearchFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색하지 못했어요'**
+  String get memoSearchFailed;
+
   /// No description provided for @memoSegmentMine.
   ///
   /// In ko, this message translates to:

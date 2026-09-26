@@ -1016,6 +1016,21 @@ class AppL10nKo extends AppL10n {
   String get memoConstellationTooltip => '별자리';
 
   @override
+  String get memoSearchTooltip => '메모 검색';
+
+  @override
+  String get memoSearchHint => '내 메모에서 찾기';
+
+  @override
+  String get memoSearchPrompt => '단어를 입력하면 내가 남긴 메모에서 찾아요';
+
+  @override
+  String get memoSearchEmpty => '찾는 메모가 없어요';
+
+  @override
+  String get memoSearchFailed => '검색하지 못했어요';
+
+  @override
   String get memoSegmentMine => '내 메모';
 
   @override

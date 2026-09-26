@@ -1015,6 +1015,21 @@ class AppL10nJa extends AppL10n {
   String get memoConstellationTooltip => '星座';
 
   @override
+  String get memoSearchTooltip => 'メモを検索';
+
+  @override
+  String get memoSearchHint => '自分のメモから探す';
+
+  @override
+  String get memoSearchPrompt => '言葉を入力すると自分が残したメモから探します';
+
+  @override
+  String get memoSearchEmpty => '見つかるメモがありません';
+
+  @override
+  String get memoSearchFailed => '検索できませんでした';
+
+  @override
   String get memoSegmentMine => '自分のメモ';
 
   @override

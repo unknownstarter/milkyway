@@ -1013,6 +1013,21 @@ class AppL10nZh extends AppL10n {
   String get memoConstellationTooltip => '星座';
 
   @override
+  String get memoSearchTooltip => '搜索笔记';
+
+  @override
+  String get memoSearchHint => '在我的笔记中查找';
+
+  @override
+  String get memoSearchPrompt => '输入词语就能在自己写下的笔记中查找';
+
+  @override
+  String get memoSearchEmpty => '没有找到笔记';
+
+  @override
+  String get memoSearchFailed => '无法搜索';
+
+  @override
   String get memoSegmentMine => '我的笔记';
 
   @override
