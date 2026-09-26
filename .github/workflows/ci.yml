@@ -22,7 +22,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          # ios/ci_scripts/ci_post_clone.sh 와 같은 값을 유지할 것.
+          # 로컬 전역 Flutter 와 같은 값을 유지할 것.
           # 어긋나면 CI 와 로컬이 다른 SDK 로 돌아 문제가 조용해진다.
           flutter-version: '3.47.5'
           channel: stable

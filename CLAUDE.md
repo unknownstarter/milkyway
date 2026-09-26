@@ -188,7 +188,8 @@ git config core.hooksPath scripts/git-hooks
 | `.github/workflows/ci.yml` | 같은 둘 | PR/main push. **머지를 막는 진짜 게이트** |
 
 훅은 `--no-verify` 로 우회되고 머신당 수동 설치라 믿을 수 없다. 그래서 진짜 게이트는 CI 쪽이다.
-CI 의 Flutter 버전은 `ios/ci_scripts/ci_post_clone.sh` 와 **같은 값을 유지**할 것. 어긋나면 문제가 조용해진다.
+CI 의 Flutter 버전(`.github/workflows/ci.yml`)은 로컬 전역 Flutter 와 같은 값을 유지할 것. 어긋나면 문제가 조용해진다.
+배포는 로컬 `flutter build ipa` + `scripts/upload_testflight.sh`(altool) 경로다. Xcode Cloud 는 쓰지 않는다.
 
 ## 자주 쓰는 명령
 - `flutter run` · `flutter test` · `flutter analyze`
