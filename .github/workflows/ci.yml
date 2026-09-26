@@ -43,3 +43,18 @@ jobs:
       - run: flutter analyze --no-fatal-infos
 
       - run: flutter test
+
+      # 디자인 시스템 우회 감시.
+      # ScaffoldMessenger.showSnackBar 를 화면에서 직접 부르면 기본값이 하단 고정이라
+      # 하단 액션바("메모하기" 등)를 덮는다. 실제로 그렇게 터진 적이 있다.
+      # 스낵바는 lib/core/presentation/widgets/design/app_snackbar.dart 만 만든다.
+      - name: 스낵바 디자인 시스템 우회 검사
+        run: |
+          HITS=$(grep -rn "showSnackBar" lib/ --include="*.dart" \
+                 | grep -v "design/app_snackbar.dart" || true)
+          if [ -n "$HITS" ]; then
+            echo "::error::showSnackBar 직접 호출이 있습니다. showAppSnackBar / showAppPillSnackBar 를 쓰세요."
+            echo "$HITS"
+            exit 1
+          fi
+          echo "스낵바 규칙 OK"

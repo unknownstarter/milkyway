@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -84,15 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             // 에러 메시지를 표시하지 않음 (정상적인 로그아웃/탈퇴 상황)
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppL10n.of(context).authSignInFailed,
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF242424),
-            ),
-          );
+          showAppSnackBar(context, AppL10n.of(context).authSignInFailed);
         },
       );
     });

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
@@ -542,15 +543,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppL10n.of(context).profileEditPickImageError('$e'),
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF242424),
-          ),
-        );
+        showAppSnackBar(
+            context, AppL10n.of(context).profileEditPickImageError('$e'));
       }
     }
   }
