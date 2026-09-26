@@ -8,6 +8,11 @@
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
 analyzer:
+  errors:
+    # supabase_flutter 의 signInWithIdToken 은 experimental 로 표시돼 있지만
+    # Google/Apple 로그인의 유일한 경로다. 대체 API 가 없어 경고를 끈다.
+    # supabase_flutter 가 stable 로 승격하면 이 줄을 지울 것.
+    experimental_member_use: ignore
   exclude:
     - build/**
     - android/**

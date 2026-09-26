@@ -99,6 +99,21 @@ lib/
 사용자 노출 카피 금지: em dash `—`, en dash `–`, 중간점 `·`, 곡선따옴표 `" " ' '`, 단일 말줄임 `…`. 짧은 구분자는 ` - ` 또는 `/`. 짧은 UI 문구(타이틀/라벨/CTA/안내/빈상태/토스트)는 끝 마침표 금지(문단형 본문은 예외). 카피는 `humanizer` 스킬로 윤문. 상세: `docs/design/01-DESIGN_PHILOSOPHY.md` 원칙 6.
 > **개정 2026-08-17**: 이모지 허용(적당히). Lyra 톤 = 친근·위트(고상/겉멋 폐기). 위 영구금지의 "이모지"는 무효화. 단 AI 금지 기호는 이모지와 무관하게 절대 유지. "당신" 호칭 금지 유지.
 
+## 게이트 (설치 필수)
+**새 맥에서 클론했으면 이 한 줄을 먼저 칠 것.** 안 치면 pre-push 훅이 조용히 꺼진 채로 개발된다.
+
+```bash
+git config core.hooksPath scripts/git-hooks
+```
+
+| 게이트 | 무엇을 | 언제 |
+|---|---|---|
+| `scripts/git-hooks/pre-push` | `flutter analyze` + `flutter test` (전체 8초) | 푸시 전. 빠른 피드백용 |
+| `.github/workflows/ci.yml` | 같은 둘 | PR/main push. **머지를 막는 진짜 게이트** |
+
+훅은 `--no-verify` 로 우회되고 머신당 수동 설치라 믿을 수 없다. 그래서 진짜 게이트는 CI 쪽이다.
+CI 의 Flutter 버전은 `ios/ci_scripts/ci_post_clone.sh` 와 **같은 값을 유지**할 것. 어긋나면 문제가 조용해진다.
+
 ## 자주 쓰는 명령
 - `flutter run` · `flutter test` · `flutter analyze`
 - `flutter build apk` · `flutter build ios`

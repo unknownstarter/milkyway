@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/providers/analytics_provider.dart';
-import '../../../../core/providers/locale_controller.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
