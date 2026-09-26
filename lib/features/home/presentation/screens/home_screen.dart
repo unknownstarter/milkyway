@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -120,14 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.surfaceMuted,
-            content: Text(AppL10n.of(context).homeSaveBookError,
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textPrimary)),
-          ),
-        );
+        showAppSnackBar(context, AppL10n.of(context).homeSaveBookError);
       }
     }
   }

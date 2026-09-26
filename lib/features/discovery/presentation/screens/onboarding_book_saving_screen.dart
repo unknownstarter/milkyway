@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -68,14 +69,7 @@ class _OnboardingBookSavingScreenState
       if (mounted) _complete(selected.length);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.surfaceMuted,
-            content: Text(AppL10n.of(context).discoverySaveError,
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textPrimary)),
-          ),
-        );
+        showAppSnackBar(context, AppL10n.of(context).discoverySaveError);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
