@@ -1,0 +1,45 @@
+name: CI
+
+# 진짜 게이트는 여기다. pre-push 훅은 --no-verify 로 우회되고, 훅 설치는
+# 머신당 수동이라 새 기계에서는 조용히 꺼진 채로 개발된다. 그래서 훅은
+# 빠른 피드백용이고 머지를 막는 건 이 워크플로다.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # ios/ci_scripts/ci_post_clone.sh 와 같은 값을 유지할 것.
+          # 어긋나면 CI 와 로컬이 다른 SDK 로 돌아 문제가 조용해진다.
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+
+      - run: flutter --version
+
+      - run: flutter pub get
+
+      # .env 는 시크릿이라 커밋하지 않는다. pubspec 에 에셋으로 선언돼 있어서
+      # 없으면 빌드가 죽는다. analyze/test 에는 실제 값이 필요 없으므로
+      # 형식만 맞는 더미를 만든다. 실제 빌드는 이 워크플로에서 하지 않는다.
+      - name: .env 더미 생성 (analyze/test 용)
+        run: cp .env.example .env
+
+      # --no-fatal-infos: 에러와 경고는 막고 info 는 통과시킨다.
+      # info 정리가 끝나면 이 플래그를 떼서 게이트를 조인다.
+      - run: flutter analyze --no-fatal-infos
+
+      - run: flutter test

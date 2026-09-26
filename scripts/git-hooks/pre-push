@@ -1,0 +1,22 @@
+#!/bin/sh
+# 푸시 전에 analyze + test 를 돌린다. 전체 8초 남짓이라 체감이 거의 없다.
+#
+# 설치 (머신당 1회):
+#   git config core.hooksPath scripts/git-hooks
+# 한 번만 건너뛰기:
+#   git push --no-verify
+#
+# 이 훅은 빠른 피드백용이다. 머지를 막는 진짜 게이트는 .github/workflows/ci.yml 이다.
+
+set -e
+
+echo "[pre-push] flutter analyze"
+# --no-fatal-infos: 에러와 경고는 막고 info 는 통과시킨다.
+# info 128개(withOpacity deprecated 등)를 정리하는 건 별건이다.
+# 정리가 끝나면 이 플래그를 떼서 게이트를 한 칸 조인다.
+flutter analyze --no-fatal-infos
+
+echo "[pre-push] flutter test"
+flutter test
+
+echo "[pre-push] 통과"
