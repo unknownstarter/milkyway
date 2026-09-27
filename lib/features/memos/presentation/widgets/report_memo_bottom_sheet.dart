@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/memo.dart';
 import '../../domain/models/report_reason.dart';
@@ -239,19 +240,7 @@ class _ReportMemoBottomSheetState
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppL10n.of(context).reportSubmitted,
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'Pretendard',
-              ),
-            ),
-            backgroundColor: const Color(0xFF242424),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        showAppSnackBar(context, AppL10n.of(context).reportSubmitted);
       }
     } catch (e) {
       developer.log('신고 실패: $e');
@@ -260,19 +249,7 @@ class _ReportMemoBottomSheetState
             ? AppL10n.of(context).reportAlreadyReported
             : AppL10n.of(context).reportFailed;
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              errorMessage,
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'Pretendard',
-              ),
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        showAppSnackBar(context, errorMessage);
       }
     } finally {
       if (mounted) {

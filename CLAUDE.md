@@ -130,6 +130,19 @@ lib/
 - 파일 길이 300줄 초과 시 분할 검토. 한 위젯에 비즈니스 로직 X
 - **이미지(표지·메모사진·프로필) 올리거나 불러올 땐 `Image.network` 직접 금지.** 표시는 `CachedImage`, 업로드/변환/재호스팅은 정해진 모듈만 사용. 규격(cacheWidth·WebP·버킷·폴백)은 `docs/DEVELOPER_RULES.md` §🖼️ 이미지 업로드/표시 프로토콜 참조
 
+## 디자인 시스템 - 우회 금지
+`lib/core/presentation/widgets/design/` 에 있는 것은 **반드시 재사용**한다. 화면에서 다시 만들지 않는다.
+
+| 하지 말 것 | 대신 | 왜 |
+|---|---|---|
+| `ScaffoldMessenger.showSnackBar` 직접 호출 | `showAppSnackBar` / `showAppPillSnackBar` | 기본값이 하단 고정이라 하단 액션바("메모하기")를 덮는다. ScaffoldMessenger 는 전역이라 **화면 전환을 따라가서 도착 화면의 버튼을 가린다** |
+| `Image.network` | `CachedImage` | 아래 이미지 프로토콜 참조 |
+| 색상 하드코딩 (`Color(0xFF242424)`) | `AppColors` 토큰 | 같은 값이라도 토큰으로. 바꿀 때 한 곳만 고친다 |
+
+**스낵바는 CI 가 막는다.** `.github/workflows/ci.yml` 의 "스낵바 디자인 시스템 우회 검사" 단계가
+`design/app_snackbar.dart` 밖의 `showSnackBar` 를 찾으면 빌드를 실패시킨다.
+변형이 필요하면 화면에서 만들지 말고 **`app_snackbar.dart` 에 이름 붙여 추가**할 것.
+
 ## 전문 직군 에이전트
 `.claude/agents/<name>.md` 정의. 필요 시 `Agent(subagent_type: "<name>")` 호출:
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -30,7 +31,6 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
-    final messenger = ScaffoldMessenger.of(context);
     final l10n = AppL10n.of(context);
     final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
     try {
@@ -65,19 +65,11 @@ class _FeedbackModalState extends ConsumerState<FeedbackModal> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      messenger.showSnackBar(SnackBar(
-        content: Text(l10n.profileFeedbackThanks,
-            style: const TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF242424),
-      ));
+      showAppSnackBar(context, l10n.profileFeedbackThanks);
     } catch (_) {
       if (!mounted) return;
       setState(() => _sending = false);
-      messenger.showSnackBar(SnackBar(
-        content: Text(l10n.profileFeedbackError,
-            style: const TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF242424),
-      ));
+      showAppSnackBar(context, l10n.profileFeedbackError);
     }
   }
 

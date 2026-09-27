@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:go_router/go_router.dart';
@@ -376,15 +377,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
         if (hasConnection) {
           // 이미 연결된 책
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  AppL10n.of(context).bookAlreadyAdded,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                backgroundColor: const Color(0xFF242424),
-              ),
-            );
+            showAppSnackBar(context, AppL10n.of(context).bookAlreadyAdded);
           }
         } else {
           // 책은 있지만 사용자와 연결되지 않은 경우
@@ -406,15 +399,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
     try {
       await ref.read(bookRegisterProvider.notifier).connectExistingBook(bookId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppL10n.of(context).bookAdded,
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF242424),
-          ),
-        );
+        showAppSnackBar(context, AppL10n.of(context).bookAdded);
         // 책 상세 페이지로 이동 (등록 플래그 및 온보딩 플래그 포함)
         context.pushNamed(
           AppRoutes.bookDetailName,
@@ -438,15 +423,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       final book = await ref.read(bookRegisterProvider.notifier).registerBook(naverBook);
       if (mounted) {
         if (book != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppL10n.of(context).bookAddedNew,
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF242424),
-            ),
-          );
+          showAppSnackBar(context, AppL10n.of(context).bookAddedNew);
           // 책 상세 페이지로 이동 (등록 플래그 및 온보딩 플래그 포함)
           context.pushNamed(
             AppRoutes.bookDetailName,
@@ -457,15 +434,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
             },
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppL10n.of(context).bookAddFailed,
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF242424),
-            ),
-          );
+          showAppSnackBar(context, AppL10n.of(context).bookAddFailed);
         }
       }
     } catch (e) {

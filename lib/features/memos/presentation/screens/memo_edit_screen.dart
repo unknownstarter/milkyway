@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -458,13 +459,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
           );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppL10n.of(context).memoUpdated,
-                style: const TextStyle(color: Colors.white)),
-            backgroundColor: AppColors.surfaceMuted,
-          ),
-        );
+        showAppSnackBar(context, AppL10n.of(context).memoUpdated);
         context.pop();
       }
     } catch (e) {

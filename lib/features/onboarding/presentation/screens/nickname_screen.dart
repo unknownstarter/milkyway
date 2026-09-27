@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -415,15 +416,8 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppL10n.of(context).onboardingNicknameSaveError('$e'),
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: AppColors.surfaceMuted,
-          ),
-        );
+        showAppSnackBar(
+            context, AppL10n.of(context).onboardingNicknameSaveError('$e'));
       }
     } finally {
       if (mounted) {

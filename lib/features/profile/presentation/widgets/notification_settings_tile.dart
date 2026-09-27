@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -102,12 +103,8 @@ class _NotificationSettingsTileState
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppL10n.of(context).profileNotificationSaveFailed),
-            backgroundColor: const Color(0xFF242424),
-          ),
-        );
+        showAppSnackBar(
+            context, AppL10n.of(context).profileNotificationSaveFailed);
       }
     }
   }

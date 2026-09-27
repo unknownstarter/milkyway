@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -201,24 +202,8 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
     }
   }
 
-  /// 칩 형태의 짧은 토스트(플로팅 pill, 1.4초, 겹치면 즉시 교체).
-  void _toast(String msg) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(msg,
-            textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(color: AppColors.textPrimary)),
-        backgroundColor: AppColors.surfaceElevated,
-        behavior: SnackBarBehavior.floating,
-        shape: const StadiumBorder(),
-        elevation: 0,
-        duration: const Duration(milliseconds: 800),
-        margin: const EdgeInsets.only(left: 44, right: 44, bottom: 90),
-      ),
-    );
-  }
+  /// 알약형 짧은 토스트. 디자인 시스템 경유(위치·여백 규칙은 app_snackbar 가 정한다).
+  void _toast(String msg) => showAppPillSnackBar(context, msg);
 
   @override
   Widget build(BuildContext context) {
