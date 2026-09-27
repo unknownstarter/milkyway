@@ -5,10 +5,13 @@ import 'package:whatif_milkyway_app/features/memos/domain/models/memo.dart';
 import 'package:whatif_milkyway_app/features/memos/domain/models/memo_visibility.dart';
 import 'package:whatif_milkyway_app/features/memos/presentation/providers/memo_search_provider.dart';
 
-// 메모 키워드 검색(무료). 두 가지가 중요하다.
+// 메모 검색. 네 가지가 중요하다.
 // 1) ILIKE 메타문자를 안 막으면 '%' 한 글자로 남의 전체 메모가 아니라
 //    내 전체 메모가 쏟아진다. 검색이 아니라 사고다.
 // 2) 디바운스/페이지네이션이 어긋나면 같은 메모가 두 번 붙거나 검색이 안 끝난다.
+// 3) 의미 검색(§10)이 키워드 결과를 망치면 안 된다. 임베딩 왕복은 느리고 실패할 수
+//    있는데, 그 실패가 이미 떠 있는 공짜 키워드 결과를 지우면 손해만 남는다.
+// 4) 키워드와 의미가 같은 메모를 잡으면 한 번만 보여야 한다.
 
 Memo _memo(String id, String content) => Memo(
       id: id,
@@ -30,6 +33,11 @@ class _FakeMemoRepository implements MemoRepository {
   final List<String> receivedQueries = [];
   int callCount = 0;
 
+  /// 의미 검색이 돌려줄 메모. [semanticError]가 있으면 그걸 던진다.
+  List<Memo> semanticResults = const <Memo>[];
+  Object? semanticError;
+  final List<String> semanticQueries = [];
+
   @override
   Future<List<Memo>> searchMyMemos({
     required String query,
@@ -39,6 +47,16 @@ class _FakeMemoRepository implements MemoRepository {
     callCount++;
     receivedQueries.add(query);
     return pages[offset] ?? const <Memo>[];
+  }
+
+  @override
+  Future<List<Memo>> searchMyMemosSemantic({
+    required String query,
+    int limit = 20,
+  }) async {
+    semanticQueries.add(query);
+    if (semanticError != null) throw semanticError!;
+    return semanticResults;
   }
 
   @override
@@ -71,12 +89,15 @@ void main() {
 
   group('MemoSearchNotifier', () {
     late List<({String query, int count})> logged;
+    late List<({String query, int count})> semanticLogged;
 
     MemoSearchNotifier build(_FakeMemoRepository repo) {
       logged = [];
+      semanticLogged = [];
       return MemoSearchNotifier(
         repository: repo,
         onSearched: (q, c) => logged.add((query: q, count: c)),
+        onSemanticSearched: (q, c) => semanticLogged.add((query: q, count: c)),
         debounce: const Duration(milliseconds: 10),
       );
     }
@@ -180,6 +201,119 @@ void main() {
       expect(n.state.results, isA<AsyncError<List<Memo>>>());
       n.dispose();
     });
+
+    test('늦게 온 이전 검색 응답이 최신 결과를 덮지 않는다', () async {
+      final repo = _SlowFirstRepository();
+      final n = MemoSearchNotifier(
+        repository: repo,
+        onSearched: (_, __) {},
+        debounce: const Duration(milliseconds: 10),
+      );
+
+      final stale = n.search('옛');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await n.search('새');
+      expect(n.state.results.value!.single.id, 'fresh');
+
+      await stale;
+      expect(n.state.results.value!.single.id, 'fresh');
+      n.dispose();
+    });
+  });
+
+  group('의미 검색', () {
+    late List<({String query, int count})> semanticLogged;
+
+    MemoSearchNotifier build(_FakeMemoRepository repo) {
+      semanticLogged = [];
+      return MemoSearchNotifier(
+        repository: repo,
+        onSearched: (_, __) {},
+        onSemanticSearched: (q, c) => semanticLogged.add((query: q, count: c)),
+        debounce: const Duration(milliseconds: 10),
+      );
+    }
+
+    test('키워드에 이미 잡힌 메모는 의미 섹션에서 빠진다', () async {
+      final repo = _FakeMemoRepository({
+        0: [_memo('1', '고독에 대하여')],
+      })
+        ..semanticResults = [_memo('1', '고독에 대하여'), _memo('2', '혼자 있는 시간')];
+      final n = build(repo);
+      await n.search('고독');
+
+      expect(n.state.semanticResults.value, hasLength(2));
+      expect(n.state.semanticOnly.value!.map((m) => m.id), ['2']);
+      n.dispose();
+    });
+
+    test('더 불러오기로 키워드에 들어온 메모도 의미 섹션에서 사라진다', () async {
+      final full = List.generate(20, (i) => _memo('p1-$i', 'a'));
+      final repo = _FakeMemoRepository({
+        0: full,
+        20: [_memo('겹침', 'b')],
+      })
+        ..semanticResults = [_memo('겹침', 'b'), _memo('단독', 'c')];
+      final n = build(repo);
+      await n.search('전략');
+      expect(n.state.semanticOnly.value!.map((m) => m.id), ['겹침', '단독']);
+
+      await n.loadMore();
+      expect(n.state.semanticOnly.value!.map((m) => m.id), ['단독']);
+      n.dispose();
+    });
+
+    test('한 글자 검색어는 임베딩을 부르지 않는다 - 왕복만 낭비다', () async {
+      final repo = _FakeMemoRepository({
+        0: [_memo('1', 'a')],
+      });
+      final n = build(repo);
+      await n.search('책');
+
+      expect(repo.semanticQueries, isEmpty);
+      expect(n.state.semanticResults.value, isEmpty);
+      n.dispose();
+    });
+
+    test('의미 검색이 실패해도 키워드 결과는 남는다', () async {
+      final repo = _FakeMemoRepository({
+        0: [_memo('1', 'a')],
+      })
+        ..semanticError = Exception('voyage down');
+      final n = build(repo);
+      await n.search('전략');
+
+      expect(n.state.results.value, hasLength(1));
+      expect(n.state.semanticResults, isA<AsyncError<List<Memo>>>());
+      n.dispose();
+    });
+
+    test('analytics 에는 중복 제거 후 실제로 보이는 수가 실린다', () async {
+      final repo = _FakeMemoRepository({
+        0: [_memo('1', 'a')],
+      })
+        ..semanticResults = [_memo('1', 'a'), _memo('2', 'b')];
+      final n = build(repo);
+      await n.search('전략');
+
+      expect(semanticLogged.single.count, 1);
+      n.dispose();
+    });
+
+    test('입력을 지우면 의미 결과도 같이 비워진다', () async {
+      final repo = _FakeMemoRepository({
+        0: [_memo('1', 'a')],
+      })
+        ..semanticResults = [_memo('2', 'b')];
+      final n = build(repo);
+      await n.search('전략');
+      expect(n.state.semanticOnly.value, hasLength(1));
+
+      n.clear();
+      expect(n.state.semanticResults.value, isEmpty);
+      expect(n.state.isIdle, isTrue);
+      n.dispose();
+    });
   });
 }
 
@@ -191,6 +325,43 @@ class _ThrowingRepository implements MemoRepository {
     required int offset,
   }) async =>
       throw Exception('network down');
+
+  @override
+  Future<List<Memo>> searchMyMemosSemantic({
+    required String query,
+    int limit = 20,
+  }) async =>
+      throw Exception('network down');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      super.noSuchMethod(invocation);
+}
+
+/// 첫 검색만 느리게 답하는 저장소. 검색 세대 가드 확인용.
+class _SlowFirstRepository implements MemoRepository {
+  int calls = 0;
+
+  @override
+  Future<List<Memo>> searchMyMemos({
+    required String query,
+    required int limit,
+    required int offset,
+  }) async {
+    calls++;
+    if (calls == 1) {
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      return [_memo('stale', '옛 결과')];
+    }
+    return [_memo('fresh', '새 결과')];
+  }
+
+  @override
+  Future<List<Memo>> searchMyMemosSemantic({
+    required String query,
+    int limit = 20,
+  }) async =>
+      const <Memo>[];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

@@ -2015,6 +2015,12 @@ abstract class AppL10n {
   /// **'검색하지 못했어요'**
   String get memoSearchFailed;
 
+  /// No description provided for @memoSearchSemanticTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'단어는 다르지만 비슷한 생각'**
+  String get memoSearchSemanticTitle;
+
   /// No description provided for @memoSegmentMine.
   ///
   /// In ko, this message translates to:

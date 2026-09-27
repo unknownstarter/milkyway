@@ -1030,6 +1030,9 @@ class AppL10nJa extends AppL10n {
   String get memoSearchFailed => '検索できませんでした';
 
   @override
+  String get memoSearchSemanticTitle => '言葉は違うけれど似ている考え';
+
+  @override
   String get memoSegmentMine => '自分のメモ';
 
   @override

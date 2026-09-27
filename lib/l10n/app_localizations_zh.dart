@@ -1028,6 +1028,9 @@ class AppL10nZh extends AppL10n {
   String get memoSearchFailed => '无法搜索';
 
   @override
+  String get memoSearchSemanticTitle => '用词不同，想法相似';
+
+  @override
   String get memoSegmentMine => '我的笔记';
 
   @override

@@ -1530,11 +1530,14 @@ Milkyway의 제품 방향을 결정할 때 가장 중요한 문장은 다음이�
 | §24 note_embeddings | **이름이 다를 뿐 존재.** 실제 테이블명은 `memo_embeddings` |
 | §29 P2 Related Thoughts | **출시됨.** `memo_edges` + `get_constellation` + 별자리 화면 |
 | 임베딩 생성 파이프라인 | **작동 중.** `connect-memo` 엣지 함수가 메모 저장 시 자동 생성 |
-| §29 P1 Semantic Search | **미구현.** `match_memos`는 메모→메모용이라 검색에 못 쓴다 |
-| 키워드 검색 (§8 Free) | **미구현.** 내 메모를 찾는 검색이 앱에 아예 없다 |
+| §29 P1 Semantic Search | **구현됨(2026-09-27).** `search_memos_by_embedding` RPC + `search-memos-semantic` 엣지 함수. `match_memos`는 메모→메모용이라 따로 만들었다 |
+| 키워드 검색 (§8 Free) | **구현됨(2026-09-24).** `memo_search_screen` |
 | §24 subscriptions / ai_usage | **미구현.** 결제 코드 흔적 0 |
 
 실측 (2026-09-24): 메모 195개 중 임베딩 154개(79%), 엣지 28개. **미임베딩 41개 백필 필요.**
+
+실측 (2026-09-27): 임베딩 가능한 메모 192개 중 155개(81%). **미임베딩 37개는 여전히 백필 대기.**
+의미 검색은 임베딩이 없는 메모를 아예 못 찾는다. 백필 전에는 5개 중 1개가 검색에서 빠진다.
 
 ## 39.2 결정 - 유료 기능은 "검색 먼저, 라이라는 그 위에"
 

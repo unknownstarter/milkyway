@@ -1049,6 +1049,9 @@ class AppL10nEn extends AppL10n {
   String get memoSearchFailed => 'Could not search';
 
   @override
+  String get memoSearchSemanticTitle => 'Different words, similar thoughts';
+
+  @override
   String get memoSegmentMine => 'Mine';
 
   @override

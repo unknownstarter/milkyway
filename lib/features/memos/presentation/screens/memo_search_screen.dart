@@ -14,9 +14,11 @@ import '../../domain/models/memo.dart';
 import '../memo_l10n.dart';
 import '../providers/memo_search_provider.dart';
 
-/// 내 메모 키워드 검색. 무료 기능(PRD v2 §8 Free).
+/// 내 메모 검색. 키워드는 무료(PRD v2 §8 Free), 의미 검색은 그 위에 얹었다(§10).
 ///
-/// 의미 검색(Milkyway+)은 이 화면 위에 얹는다. 지금은 부분일치만 한다.
+/// 한 화면에 둘을 섞지 않고 위아래로 나눈다. 위는 내가 쓴 단어가 실제로 들어 있는
+/// 메모, 아래는 단어는 달라도 뜻이 가까운 메모다. 섞으면 왜 이게 걸렸는지 설명이
+/// 안 되고, 나중에 의미 검색만 유료로 잠글 때 잘라낼 경계도 사라진다.
 class MemoSearchScreen extends ConsumerStatefulWidget {
   const MemoSearchScreen({super.key});
 
@@ -50,11 +52,18 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
     }
   }
 
-  void _openDetail(Memo memo) => context.pushNamed(
-        AppRoutes.memoDetailName,
-        pathParameters: {'id': memo.id},
-        extra: memo,
-      );
+  void _openDetail(Memo memo, {required bool fromSemantic}) {
+    if (fromSemantic) {
+      ref.read(analyticsProvider).logEvent('semantic_search_result_clicked', {
+        'query_length': ref.read(memoSearchProvider).query.length,
+      });
+    }
+    context.pushNamed(
+      AppRoutes.memoDetailName,
+      pathParameters: {'id': memo.id},
+      extra: memo,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,44 +116,73 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
 
     return state.results.when(
       skipLoadingOnReload: true,
-      loading: () => Padding(
-        padding: EdgeInsets.only(top: topPadding),
-        child: const Center(
-          child: CircularProgressIndicator(
-              color: AppColors.textSecondary, strokeWidth: 2),
-        ),
-      ),
+      loading: () => _spinner(topPadding),
       error: (_, __) => _message(l10n.memoSearchFailed, topPadding),
-      data: (memos) {
-        if (memos.isEmpty) return _message(l10n.memoSearchEmpty, topPadding);
-        return ListView.separated(
-          controller: _scroll,
-          padding: EdgeInsets.fromLTRB(
-              AppSpacing.lg, topPadding, AppSpacing.lg, 110),
-          itemCount: memos.length + (state.hasMore ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (_, i) {
-            if (i >= memos.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.textSecondary),
-                  ),
-                ),
-              );
-            }
-            return _card(l10n, memos[i]);
-          },
-        );
+      data: (memos) => _results(l10n, state, memos, topPadding),
+    );
+  }
+
+  Widget _results(AppL10n l10n, MemoSearchState state, List<Memo> memos,
+      double topPadding) {
+    final semantic = state.semanticOnly;
+    final extra = semantic.value ?? const <Memo>[];
+
+    // 키워드가 0건일 땐 의미 검색을 기다린다. 먼저 "없어요"를 띄운 뒤 아래에 결과가
+    // 붙으면 화면이 자기 말을 뒤집는다.
+    if (memos.isEmpty && extra.isEmpty) {
+      if (semantic.isLoading) return _spinner(topPadding);
+      return _message(l10n.memoSearchEmpty, topPadding);
+    }
+
+    // 키워드를 다 불러온 뒤에만 의미 섹션을 붙인다. 더 불러올 게 남은 동안 붙이면
+    // 페이지가 추가될 때마다 섹션이 리스트 중간에서 밀려 내려간다.
+    final showSemantic = extra.isNotEmpty && !state.hasMore;
+
+    final rows = <_Row>[
+      for (final m in memos) _MemoRow(m, fromSemantic: false),
+      if (state.hasMore) _LoaderRow(),
+      if (showSemantic) ...[
+        _HeaderRow(l10n.memoSearchSemanticTitle),
+        for (final m in extra) _MemoRow(m, fromSemantic: true),
+      ],
+    ];
+
+    return ListView.separated(
+      controller: _scroll,
+      padding:
+          EdgeInsets.fromLTRB(AppSpacing.lg, topPadding, AppSpacing.lg, 110),
+      itemCount: rows.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, i) {
+        final row = rows[i];
+        return switch (row) {
+          _MemoRow(:final memo, :final fromSemantic) =>
+            _card(l10n, memo, fromSemantic: fromSemantic),
+          _HeaderRow(:final text) => Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: 4),
+              child: Text(text, style: AppTypography.title),
+            ),
+          _LoaderRow() => _spinner(null),
+        };
       },
     );
   }
 
-  Widget _card(AppL10n l10n, Memo memo) {
+  Widget _spinner(double? topPadding) => Padding(
+        padding: topPadding == null
+            ? const EdgeInsets.symmetric(vertical: 16)
+            : EdgeInsets.only(top: topPadding),
+        child: const Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.textSecondary),
+          ),
+        ),
+      );
+
+  Widget _card(AppL10n l10n, Memo memo, {required bool fromSemantic}) {
     final edited = memo.isEdited;
     final date = edited ? memo.updatedAt! : memo.createdAt;
     return MemoCard(
@@ -158,7 +196,7 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
       imageUrl: memo.imageUrl,
       commentCount: memo.commentCount,
       lyraQuestion: memo.lyraQuestion,
-      onTap: () => _openDetail(memo),
+      onTap: () => _openDetail(memo, fromSemantic: fromSemantic),
     );
   }
 
@@ -178,3 +216,22 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
     );
   }
 }
+
+/// 리스트 한 줄의 정체. 키워드 결과와 의미 결과를 한 ListView 에 담되, 탭했을 때
+/// 어느 쪽에서 왔는지는 잃지 않는다(`semantic_search_result_clicked`).
+sealed class _Row {}
+
+class _MemoRow extends _Row {
+  _MemoRow(this.memo, {required this.fromSemantic});
+
+  final Memo memo;
+  final bool fromSemantic;
+}
+
+class _HeaderRow extends _Row {
+  _HeaderRow(this.text);
+
+  final String text;
+}
+
+class _LoaderRow extends _Row {}

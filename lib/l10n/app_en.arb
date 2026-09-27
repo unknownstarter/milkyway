@@ -319,6 +319,7 @@
   "memoSearchPrompt": "Type a word to search the memos you wrote",
   "memoSearchEmpty": "No memos found",
   "memoSearchFailed": "Could not search",
+  "memoSearchSemanticTitle": "Different words, similar thoughts",
   "memoSegmentMine": "Mine",
   "memoFeedLoadFailed": "Could not load the feed",
   "memoEmptyMine": "No memos yet",
