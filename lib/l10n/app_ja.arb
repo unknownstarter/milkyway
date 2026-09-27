@@ -319,6 +319,7 @@
   "memoSearchPrompt": "言葉を入力すると自分が残したメモから探します",
   "memoSearchEmpty": "見つかるメモがありません",
   "memoSearchFailed": "検索できませんでした",
+  "memoSearchSemanticTitle": "言葉は違うけれど似ている考え",
   "memoSegmentMine": "自分のメモ",
   "memoFeedLoadFailed": "フィードを読み込めませんでした",
   "memoEmptyMine": "まだメモがありません",

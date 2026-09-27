@@ -1031,6 +1031,9 @@ class AppL10nKo extends AppL10n {
   String get memoSearchFailed => '검색하지 못했어요';
 
   @override
+  String get memoSearchSemanticTitle => '단어는 다르지만 비슷한 생각';
+
+  @override
   String get memoSegmentMine => '내 메모';
 
   @override

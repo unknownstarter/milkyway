@@ -25,22 +25,26 @@
 - [ ] PRD v2 §36 Engineering Principle 7문항 통과하나 (특히 "LLM이 반드시 필요한가")
 - [ ] 현재 단계 확인 (아래 참조)
 
-## 현재 단계 (2026-09-24)
-**0.2.11+100 스토어 배포 완료.** 다음 사이클 = PRD v2 MVP 1순위 착수.
+## 현재 단계 (2026-09-27)
+**0.2.11+100 스토어 배포 완료.** 검색 2단계까지 코드 완료, 스토어 반영 전.
 
-| 순서 | 일감 | 과금 |
-|---|---|---|
-| 1 | **메모 키워드 검색** (현재 앱에 내 메모를 찾는 검색이 아예 없음) | 무료 |
-| 2 | **의미 검색** (쿼리 임베딩 → 벡터 검색. LLM 불필요) | Milkyway+ |
-| 3 | **Lyra 대화형 검색 (RAG)** - 2번 위에 얹는다 | Milkyway+ |
-| 4 | **인앱결제 + 페이월** (`subscriptions` · `ai_usage` 테이블 신규) | - |
+| 순서 | 일감 | 과금 | 상태 |
+|---|---|---|---|
+| 1 | **메모 키워드 검색** | 무료 | 완료 (#55) |
+| 2 | **의미 검색** (쿼리 임베딩 → 벡터 검색. LLM 불필요) | Milkyway+ | 코드 완료. **페이월이 없어 당장은 무료 노출** |
+| 3 | **Lyra 대화형 검색 (RAG)** - 2번 위에 얹는다 | Milkyway+ | 다음 |
+| 4 | **인앱결제 + 페이월** (`subscriptions` · `ai_usage` 테이블 신규) | - | 미착수. 2번을 잠글 자물쇠 |
 
 **이미 깔려 있는 인프라 (신규 제작 금지, 재사용할 것):**
 - `memo_embeddings` (pgvector 1024차원 + HNSW) · `memo_edges` · `match_memos` / `get_constellation` RPC
   → `supabase/migrations/20260822152417_connectome_schema.sql`
 - `connect-memo` 엣지 함수 = 메모 저장 시 Voyage 임베딩 자동 생성 + 연결 판정 (작동 중)
 - Related Thoughts(PRD v2 2순위)는 **별자리 기능으로 이미 출시됨** (`lib/features/constellation/`)
-- 주의: `match_memos`는 **메모→메모**용이다. 검색은 **쿼리→메모** RPC가 별도로 필요.
+- 검색용 **쿼리→메모** 경로도 이제 있다: `search_memos_by_embedding` RPC + `search-memos-semantic` 엣지 함수
+  → `supabase/migrations/20260927100000_semantic_search.sql`
+- 주의: `match_memos`는 **메모→메모**(별자리)용이다. 검색에 쓰지 말 것.
+- 임베딩 모델은 `voyage-3` / 1024차원 **고정.** 메모와 쿼리가 같은 모델이어야 한다.
+  다르면 에러 없이 유사도 점수만 조용히 무의미해진다.
 
 ## 브랜치 · PR · 세션 이름 규칙
 이미 굳어져 있던 관행을 명문화한 것이다. 새로 만드는 게 아니라 지키는 것.

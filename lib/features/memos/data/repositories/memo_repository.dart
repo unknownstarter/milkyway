@@ -511,6 +511,41 @@ class MemoRepository {
     return response.map((json) => Memo.fromJson(json)).toList();
   }
 
+  /// 내 메모 의미 검색(PRD v2 §10). 단어가 달라도 뜻이 가까운 메모를 찾는다.
+  ///
+  /// Edge Function 을 경유하는 이유는 하나다. 쿼리 임베딩에 쓰는 VOYAGE_API_KEY 는
+  /// 서버에만 둔다. 클라이언트에서 임베딩하면 키가 앱 번들에 실린다.
+  ///
+  /// 페이지네이션이 없다. 벡터 검색은 상위 [limit]개가 결과의 전부고, 뒤로 갈수록
+  /// 안 닮은 것이 나오므로 더 불러올 이유가 없다.
+  ///
+  /// 실패를 [] 로 삼키지 않고 던진다. 이 화면의 보조 섹션이라 조용히 비워도 화면은
+  /// 안 깨지지만, 그러면 결과 0건과 장애를 구분할 수 없어진다.
+  Future<List<Memo>> searchMyMemosSemantic({
+    required String query,
+    int limit = 20,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final response = await _client.functions.invoke(
+      'search-memos-semantic',
+      body: {'query': trimmed, 'limit': limit},
+    );
+
+    if (response.status != 200) {
+      throw Exception('의미 검색 실패(${response.status}): ${response.data}');
+    }
+
+    final result = response.data as Map<String, dynamic>;
+    final memosData = result['memos'] as List<dynamic>?;
+    if (memosData == null) return [];
+
+    return memosData
+        .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Memos 탭 하단 네비 빨간 점용 활동 시각을 가져온다.
   ///
   /// RPC `get_memos_badge_activity`: 남의 마지막 공개 메모 / 내 메모에 달린

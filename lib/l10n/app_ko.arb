@@ -539,6 +539,7 @@
   "memoSearchPrompt": "단어를 입력하면 내가 남긴 메모에서 찾아요",
   "memoSearchEmpty": "찾는 메모가 없어요",
   "memoSearchFailed": "검색하지 못했어요",
+  "memoSearchSemanticTitle": "단어는 다르지만 비슷한 생각",
   "memoSegmentMine": "내 메모",
   "memoFeedLoadFailed": "피드를 불러오지 못했어요",
   "memoEmptyMine": "아직 남긴 메모가 없어요",
