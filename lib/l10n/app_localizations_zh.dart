@@ -1019,7 +1019,7 @@ class AppL10nZh extends AppL10n {
   String get memoSearchHint => '在我的笔记中查找';
 
   @override
-  String get memoSearchPrompt => '输入词语就能在自己写下的笔记中查找';
+  String get memoSearchPrompt => '输入词语或书名就能在自己写下的笔记中查找';
 
   @override
   String get memoSearchEmpty => '没有找到笔记';

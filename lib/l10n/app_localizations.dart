@@ -2000,7 +2000,7 @@ abstract class AppL10n {
   /// No description provided for @memoSearchPrompt.
   ///
   /// In ko, this message translates to:
-  /// **'단어를 입력하면 내가 남긴 메모에서 찾아요'**
+  /// **'단어나 책 제목을 입력하면 내가 남긴 메모에서 찾아요'**
   String get memoSearchPrompt;
 
   /// No description provided for @memoSearchEmpty.

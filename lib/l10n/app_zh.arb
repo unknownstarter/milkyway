@@ -316,7 +316,7 @@
   "memoConstellationTooltip": "星座",
   "memoSearchTooltip": "搜索笔记",
   "memoSearchHint": "在我的笔记中查找",
-  "memoSearchPrompt": "输入词语就能在自己写下的笔记中查找",
+  "memoSearchPrompt": "输入词语或书名就能在自己写下的笔记中查找",
   "memoSearchEmpty": "没有找到笔记",
   "memoSearchFailed": "无法搜索",
   "memoSearchSemanticTitle": "用词不同，想法相似",
