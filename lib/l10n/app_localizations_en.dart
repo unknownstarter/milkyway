@@ -1040,7 +1040,8 @@ class AppL10nEn extends AppL10n {
   String get memoSearchHint => 'Search my memos';
 
   @override
-  String get memoSearchPrompt => 'Type a word to search the memos you wrote';
+  String get memoSearchPrompt =>
+      'Type a word or book title to search the memos you wrote';
 
   @override
   String get memoSearchEmpty => 'No memos found';

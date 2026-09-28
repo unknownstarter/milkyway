@@ -9,20 +9,33 @@ import 'dart:developer';
 import '../../../../core/utils/retry_helper.dart';
 import '../../../../core/utils/response_cache.dart';
 
-/// ILIKE 검색어의 메타문자를 이스케이프한다.
-///
-/// 안 하면 '%' 한 글자만 쳐도 전체 메모가 쏟아지고, '_'는 아무 글자나
-/// 매칭한다. PostgreSQL ILIKE의 기본 이스케이프 문자는 백슬래시라
-/// 백슬래시 자신을 먼저 두 배로 늘려야 한다(순서 중요).
-String escapeIlikePattern(String raw) => raw
-    .replaceAll(r'\', r'\\')
-    .replaceAll('%', r'\%')
-    .replaceAll('_', r'\_');
 
 class MemoRepository {
   final SupabaseClient _client;
 
   MemoRepository(this._client);
+
+  /// 메모 목록을 가져올 때 쓰는 select 모양.
+  ///
+  /// `comment_count` · `lyra_question` 은 memos 의 컬럼이 아니라 PostgREST computed
+  /// field 다(SQL 함수 `comment_count(memos)` · `lyra_question(memos)`). 서버에서
+  /// 메모 JSON 을 직접 조립하면 이걸 손으로 재현해야 하고, 컬럼이 하나 늘면 조용히
+  /// 어긋난다. 그래서 검색 RPC 는 순서만 정하고 본문은 이 모양으로 채운다.
+  static const String _memoSelect = '''
+    *,
+    comment_count,
+    lyra_question,
+    books (
+      id,
+      title,
+      author,
+      cover_url
+    ),
+    users!user_id (
+      nickname,
+      picture_url
+    )
+  ''';
 
   Future<List<Memo>> getRecentMemos() async {
     final response = await _client
@@ -479,6 +492,15 @@ class MemoRepository {
   /// 한 토큰으로 보기 때문에 "리더십"으로 검색해도 안 걸린다. 형태소 분석기
   /// (mecab)는 Supabase에 설치할 수 없다. 그래서 부분일치(ILIKE)로 간다.
   /// 메모 200개 규모에선 인덱스 없이도 충분하다.
+  /// 내 메모 키워드 검색. 무료 기능(PRD v2 §8 Free). AI 비용 0.
+  ///
+  /// 메모 본문뿐 아니라 **책 제목과 저자**로도 찾는다. 메모를 "그 책에서 쓴 것"으로
+  /// 기억하는 경우가 많은데, 본문만 훑으면 그 기억으로는 아무것도 못 찾는다.
+  ///
+  /// 순서는 RPC 가 정한다(내용 일치 먼저, 그다음 최신순). '타이탄'을 쳤을 때 그 책의
+  /// 메모 30개가 내용이 일치하는 메모를 밀어내면 안 된다.
+  ///
+  /// id 만 받아 와서 [_memoSelect] 로 본문을 채운다. 이유는 그 상수의 주석 참조.
   Future<List<Memo>> searchMyMemos({
     required String query,
     required int limit,
@@ -487,28 +509,28 @@ class MemoRepository {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
-    final escaped = escapeIlikePattern(trimmed);
+    final rows = await _client.rpc('search_my_memo_ids', params: {
+      'p_query': trimmed,
+      'p_limit': limit,
+      'p_offset': offset,
+    }) as List<dynamic>;
+    if (rows.isEmpty) return [];
 
-    final response = await _client.from('memos').select('''
-      *,
-      comment_count,
-      lyra_question,
-      books (
-        id,
-        title,
-        author,
-        cover_url
-      ),
-      users!user_id (
-        nickname,
-        picture_url
-      )
-    ''').eq('user_id', _client.auth.currentUser!.id).ilike(
-        'content', '%$escaped%')
-        .order('created_at', ascending: false)
-        .range(offset, offset + limit - 1);
+    final ids = [
+      for (final row in rows) (row as Map<String, dynamic>)['memo_id'] as String
+    ];
 
-    return response.map((json) => Memo.fromJson(json)).toList();
+    final response =
+        await _client.from('memos').select(_memoSelect).inFilter('id', ids);
+
+    // inFilter 는 순서를 보장하지 않는다. RPC 가 매긴 순서를 되살린다.
+    final byId = {
+      for (final json in response) json['id'] as String: Memo.fromJson(json)
+    };
+    return [
+      for (final id in ids)
+        if (byId.containsKey(id)) byId[id]!,
+    ];
   }
 
   /// 내 메모 의미 검색(PRD v2 §10). 단어가 달라도 뜻이 가까운 메모를 찾는다.

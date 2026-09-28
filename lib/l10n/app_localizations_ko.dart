@@ -1022,7 +1022,7 @@ class AppL10nKo extends AppL10n {
   String get memoSearchHint => '내 메모에서 찾기';
 
   @override
-  String get memoSearchPrompt => '단어를 입력하면 내가 남긴 메모에서 찾아요';
+  String get memoSearchPrompt => '단어나 책 제목을 입력하면 내가 남긴 메모에서 찾아요';
 
   @override
   String get memoSearchEmpty => '찾는 메모가 없어요';

@@ -536,7 +536,7 @@
   "memoConstellationTooltip": "별자리",
   "memoSearchTooltip": "메모 검색",
   "memoSearchHint": "내 메모에서 찾기",
-  "memoSearchPrompt": "단어를 입력하면 내가 남긴 메모에서 찾아요",
+  "memoSearchPrompt": "단어나 책 제목을 입력하면 내가 남긴 메모에서 찾아요",
   "memoSearchEmpty": "찾는 메모가 없어요",
   "memoSearchFailed": "검색하지 못했어요",
   "memoSearchSemanticTitle": "단어는 다르지만 비슷한 생각",

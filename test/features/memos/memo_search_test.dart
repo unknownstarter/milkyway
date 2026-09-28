@@ -5,13 +5,16 @@ import 'package:whatif_milkyway_app/features/memos/domain/models/memo.dart';
 import 'package:whatif_milkyway_app/features/memos/domain/models/memo_visibility.dart';
 import 'package:whatif_milkyway_app/features/memos/presentation/providers/memo_search_provider.dart';
 
-// 메모 검색. 네 가지가 중요하다.
-// 1) ILIKE 메타문자를 안 막으면 '%' 한 글자로 남의 전체 메모가 아니라
-//    내 전체 메모가 쏟아진다. 검색이 아니라 사고다.
-// 2) 디바운스/페이지네이션이 어긋나면 같은 메모가 두 번 붙거나 검색이 안 끝난다.
-// 3) 의미 검색(§10)이 키워드 결과를 망치면 안 된다. 임베딩 왕복은 느리고 실패할 수
+// 메모 검색. 세 가지가 중요하다.
+// 1) 디바운스/페이지네이션이 어긋나면 같은 메모가 두 번 붙거나 검색이 안 끝난다.
+// 2) 의미 검색(§10)이 키워드 결과를 망치면 안 된다. 임베딩 왕복은 느리고 실패할 수
 //    있는데, 그 실패가 이미 떠 있는 공짜 키워드 결과를 지우면 손해만 남는다.
-// 4) 키워드와 의미가 같은 메모를 잡으면 한 번만 보여야 한다.
+// 3) 키워드와 의미가 같은 메모를 잡으면 한 번만 보여야 한다.
+//
+// ILIKE 메타문자 이스케이프 테스트가 여기 있었는데 없앴다. 책 제목/저자 검색을
+// 붙이면서 이스케이프가 Dart 에서 `search_my_memo_ids` RPC 안으로 옮겨갔기 때문이다.
+// 한 군데서만 막는 게 맞아서 옮긴 것이고, 대신 이 가드는 flutter test 가 못 닿는
+// 곳으로 갔다. 검증은 SQL 로 직접 했다('%' 0건 / '_' 0건 / '해빙' 2건).
 
 Memo _memo(String id, String content) => Memo(
       id: id,
@@ -65,28 +68,6 @@ class _FakeMemoRepository implements MemoRepository {
 }
 
 void main() {
-  group('escapeIlikePattern', () {
-    test('퍼센트는 리터럴로 막는다', () {
-      expect(escapeIlikePattern('100%'), r'100\%');
-    });
-
-    test('언더스코어도 막는다 - 한 글자 와일드카드였다', () {
-      expect(escapeIlikePattern('a_b'), r'a\_b');
-    });
-
-    test('백슬래시를 먼저 늘린다 - 순서가 틀리면 이스케이프가 깨진다', () {
-      expect(escapeIlikePattern(r'a\%'), r'a\\\%');
-    });
-
-    test('평범한 한글은 그대로 둔다', () {
-      expect(escapeIlikePattern('리더십'), '리더십');
-    });
-
-    test('메타문자만 친 검색어도 전체 매칭으로 새지 않는다', () {
-      expect(escapeIlikePattern('%'), r'\%');
-    });
-  });
-
   group('MemoSearchNotifier', () {
     late List<({String query, int count})> logged;
     late List<({String query, int count})> semanticLogged;

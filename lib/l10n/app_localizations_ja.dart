@@ -1021,7 +1021,7 @@ class AppL10nJa extends AppL10n {
   String get memoSearchHint => '自分のメモから探す';
 
   @override
-  String get memoSearchPrompt => '言葉を入力すると自分が残したメモから探します';
+  String get memoSearchPrompt => '言葉や本のタイトルを入力すると自分が残したメモから探します';
 
   @override
   String get memoSearchEmpty => '見つかるメモがありません';
