@@ -7,6 +7,43 @@ import 'avatar.dart';
 import 'chips.dart';
 import 'cached_image.dart';
 
+/// [text] 에서 [query] 와 겹치는 부분만 [match] 스타일로 바꾼 스팬을 만든다.
+///
+/// 검색 결과에서 "왜 이게 걸렸는지"를 보여주려고 쓴다. 책 제목으로 걸린 메모는
+/// 본문에 검색어가 없어서, 하이라이트가 없으면 왜 나왔는지 알 수가 없다.
+///
+/// 대소문자는 무시한다. [query] 가 비면 통짜 하나를 돌려주므로 호출부가
+/// 분기할 필요 없다.
+List<TextSpan> highlightSpans(
+  String text,
+  String? query, {
+  required TextStyle base,
+  required TextStyle match,
+}) {
+  final needle = (query ?? '').trim().toLowerCase();
+  if (needle.isEmpty) return [TextSpan(text: text, style: base)];
+
+  final haystack = text.toLowerCase();
+  final spans = <TextSpan>[];
+  var cursor = 0;
+
+  while (true) {
+    final hit = haystack.indexOf(needle, cursor);
+    if (hit < 0) break;
+    if (hit > cursor) {
+      spans.add(TextSpan(text: text.substring(cursor, hit), style: base));
+    }
+    spans.add(TextSpan(
+        text: text.substring(hit, hit + needle.length), style: match));
+    cursor = hit + needle.length;
+  }
+
+  if (cursor < text.length) {
+    spans.add(TextSpan(text: text.substring(cursor), style: base));
+  }
+  return spans;
+}
+
 /// 조합: 메모 카드(피드·책 상세 공용, 03-COMPONENTS.md ★핵심 재사용).
 ///
 /// param 기반으로 variant를 표현한다:
@@ -37,6 +74,10 @@ class MemoCard extends StatelessWidget {
   /// 이 메모가 답한 Lyra 물음 스냅샷(있으면 본문 위에 인용 라인).
   final String? lyraQuestion;
 
+  /// 검색어. 주면 본문과 책 제목에서 겹치는 부분을 강조한다.
+  /// 검색 화면 전용이라 기본값은 null 이고, 다른 화면은 아무것도 안 바뀐다.
+  final String? highlight;
+
   const MemoCard({
     super.key,
     required this.content,
@@ -52,7 +93,36 @@ class MemoCard extends StatelessWidget {
     this.imageUrl,
     this.commentCount = 0,
     this.lyraQuestion,
+    this.highlight,
   });
+
+  /// [highlight] 가 있으면 강조한 Text.rich, 없으면 그냥 Text.
+  /// 없을 때 굳이 Text.rich 로 안 가는 건, 이 카드를 쓰는 다른 화면들의
+  /// 렌더 경로를 건드리지 않기 위해서다.
+  Widget _text(
+    String value,
+    TextStyle style, {
+    int? maxLines,
+    TextOverflow? overflow,
+  }) {
+    final needle = (highlight ?? '').trim();
+    if (needle.isEmpty) {
+      return Text(value,
+          maxLines: maxLines, overflow: overflow, style: style);
+    }
+    return Text.rich(
+      TextSpan(
+        children: highlightSpans(
+          value,
+          needle,
+          base: style,
+          match: style.copyWith(color: AppColors.accentGreen),
+        ),
+      ),
+      maxLines: maxLines,
+      overflow: overflow,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,11 +147,11 @@ class MemoCard extends StatelessWidget {
               _lyraLine(),
               const SizedBox(height: 8),
             ],
-            Text(
+            _text(
               content,
+              AppTypography.body.copyWith(color: AppColors.textPrimary),
               maxLines: maxLines,
               overflow: maxLines != null ? TextOverflow.ellipsis : null,
-              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
             ),
             if (imageUrl != null && imageUrl!.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -187,11 +257,11 @@ class MemoCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(
+          child: _text(
             parts.join('  /  '),
+            AppTypography.caption.copyWith(color: AppColors.textTertiary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
           ),
         ),
         if (commentCount > 0) ...[

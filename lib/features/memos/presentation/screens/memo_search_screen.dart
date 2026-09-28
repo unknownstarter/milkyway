@@ -186,6 +186,9 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
     final edited = memo.isEdited;
     final date = edited ? memo.updatedAt! : memo.createdAt;
     return MemoCard(
+      // 의미 검색 결과에는 보통 검색어가 안 들어 있다. 그건 그대로 둔다.
+      // 어쩌다 겹치면 강조되는 것이고, 안 겹치면 아무 일도 안 일어난다.
+      highlight: ref.read(memoSearchProvider).query,
       content: memo.content,
       authorName: memo.userNickname ?? l10n.memoAuthorFallback,
       authorImageUrl: memo.userAvatarUrl,
