@@ -97,7 +97,7 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
       controller: _controller,
       autofocus: true,
       style: AppTypography.body.copyWith(color: AppColors.textPrimary),
-      cursorColor: AppColors.accentGreen,
+      cursorColor: Colors.white,
       textInputAction: TextInputAction.search,
       onChanged: ref.read(memoSearchProvider.notifier).onQueryChanged,
       onSubmitted: ref.read(memoSearchProvider.notifier).search,
