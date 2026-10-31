@@ -145,6 +145,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     );
   }
 
+  /// 하단 고정 "메모하기" 바 높이(안전영역 제외): 위 12 + 버튼 41 + 아래 12.
+  static const double _bottomBarHeight = 12 + 41 + 12;
+
   Widget _buildContent(Book book) {
     // 하단 버튼 높이 계산: 버튼(41px) + 상하 패딩(20px * 2) + SafeArea
     final bottomPadding = 41 + 20 * 2 + MediaQuery.of(context).padding.bottom + 20; // 추가 여유 공간 20px
@@ -707,7 +710,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       if (mounted) {
         final l = AppL10n.of(context);
         showAppSnackBar(
-            context, l.bookStatusChanged(bookStatusLabel(l, newStatus)));
+            context, l.bookStatusChanged(bookStatusLabel(l, newStatus)),
+            bottomOffset: _bottomBarHeight + 8);
       }
     } catch (e) {
       if (mounted) {
