@@ -309,6 +309,9 @@ class AppL10nEn extends AppL10n {
   String get onboardingSkip => 'Skip';
 
   @override
+  String get onboardingProfileImageLater => 'I\'ll do it later';
+
+  @override
   String get onboardingNicknameTitle => 'Nickname';
 
   @override

@@ -90,6 +90,7 @@
   "splashUpdateBody": "A new version is available.\nPlease update to keep reading",
   "splashUpdateAction": "Update",
   "onboardingSkip": "Skip",
+  "onboardingProfileImageLater": "I'll do it later",
   "onboardingNicknameTitle": "Nickname",
   "onboardingNicknameHeading": "Set your nickname",
   "onboardingNicknameSubtitle": "Other milkyway readers can see this name",
