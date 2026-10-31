@@ -17,10 +17,26 @@ import '../../../theme/app_typography.dart';
 /// 하단 액션바/네비를 비켜가는 여백. 안전영역 위에 얹는다.
 const double _bottomGap = 80;
 
+/// 스낵바 margin 의 하단 값.
+///
+/// [bottomOffset] 이 null 이면 기존 동작(안전영역 + [_bottomGap]).
+/// 값이 있으면 그 화면이 하단을 가리는 높이만큼만 띄운다. Flutter 의 floating
+/// SnackBar 는 Scaffold 가 이미 하단 안전영역(viewPadding.bottom) 위에 배치하므로
+/// 여기서 padding.bottom 을 다시 더하면 이중 가산이 된다.
+@visibleForTesting
+double snackBarBottomMargin(BuildContext context, double? bottomOffset) {
+  if (bottomOffset != null) return bottomOffset;
+  return MediaQuery.of(context).padding.bottom + _bottomGap;
+}
+
 /// 앱 공통 스낵바. 기본값이자 대부분의 경우 쓸 것.
-void showAppSnackBar(BuildContext context, String message) {
+///
+/// [bottomOffset]: 이 화면이 하단을 가리는 높이(하단 액션바 등, 안전영역 제외).
+/// 탭 네비가 없는 화면에서 기본 여백이 너무 높을 때만 넘긴다.
+void showAppSnackBar(BuildContext context, String message,
+    {double? bottomOffset}) {
   final messenger = ScaffoldMessenger.of(context);
-  final bottomSafe = MediaQuery.of(context).padding.bottom;
+  final bottomMargin = snackBarBottomMargin(context, bottomOffset);
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(
@@ -30,7 +46,7 @@ void showAppSnackBar(BuildContext context, String message) {
         message,
         style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary),
       ),
-      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomSafe + _bottomGap),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       duration: const Duration(seconds: 2),
     ),
   );
@@ -41,9 +57,10 @@ void showAppSnackBar(BuildContext context, String message) {
 ///
 /// 기본형([showAppSnackBar])으로 충분하면 이걸 쓰지 말 것. 변형이 늘어나는
 /// 만큼 화면마다 다르게 보인다.
-void showAppPillSnackBar(BuildContext context, String message) {
+void showAppPillSnackBar(BuildContext context, String message,
+    {double? bottomOffset}) {
   final messenger = ScaffoldMessenger.of(context);
-  final bottomSafe = MediaQuery.of(context).padding.bottom;
+  final bottomMargin = snackBarBottomMargin(context, bottomOffset);
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(
@@ -56,7 +73,7 @@ void showAppPillSnackBar(BuildContext context, String message) {
         textAlign: TextAlign.center,
         style: AppTypography.caption.copyWith(color: AppColors.textPrimary),
       ),
-      margin: EdgeInsets.fromLTRB(44, 0, 44, bottomSafe + _bottomGap),
+      margin: EdgeInsets.fromLTRB(44, 0, 44, bottomMargin),
       duration: const Duration(milliseconds: 800),
     ),
   );
