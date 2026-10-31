@@ -81,8 +81,8 @@ class _GenreScreenState extends ConsumerState<GenreScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md,
+                AppSpacing.lg, AppSpacing.lg + MediaQuery.viewPaddingOf(context).bottom),
             child: _nextButton(),
           ),
         ],

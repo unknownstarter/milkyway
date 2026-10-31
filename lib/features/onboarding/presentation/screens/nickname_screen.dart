@@ -174,7 +174,8 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
           
           // 하단 고정 버튼 영역
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: EdgeInsets.fromLTRB(
+                20, 20, 20, 20 + MediaQuery.viewPaddingOf(context).bottom),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

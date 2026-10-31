@@ -95,7 +95,8 @@ Future<void> showOrbGateSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.modal)),
     ),
     builder: (context) => Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 28, AppSpacing.xl, AppSpacing.xxl),
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, 28, AppSpacing.xl,
+          AppSpacing.xxl + MediaQuery.viewPaddingOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
