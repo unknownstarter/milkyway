@@ -12,6 +12,9 @@ class MemoComposeLayout extends StatelessWidget {
   final Widget editor;
   final List<Widget> bottomBars;
 
+  /// 입력창 아래 빈 곳을 눌러도 포커스를 주기 위한 노드.
+  final FocusNode? editorFocusNode;
+
   static const double minEditorHeight = 120;
   static const editorKey = ValueKey('memo_compose_editor');
 
@@ -22,6 +25,7 @@ class MemoComposeLayout extends StatelessWidget {
     required this.lyraLabel,
     required this.editor,
     required this.bottomBars,
+    this.editorFocusNode,
   });
 
   @override
@@ -31,26 +35,39 @@ class MemoComposeLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 6),
-                bookChipBuilder(keyboardOpen),
-                if (lyraQuestion != null)
-                  MemoLyraQuestionBlock(
-                    question: lyraQuestion!,
-                    label: lyraLabel,
-                    collapsed: keyboardOpen,
-                  ),
-                ConstrainedBox(
-                  key: editorKey,
-                  constraints:
-                      const BoxConstraints(minHeight: minEditorHeight),
-                  child: editor,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 6),
+                    bookChipBuilder(keyboardOpen),
+                    if (lyraQuestion != null)
+                      MemoLyraQuestionBlock(
+                        question: lyraQuestion!,
+                        label: lyraLabel,
+                        collapsed: keyboardOpen,
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // 남은 공간을 입력창이 채운다. 부족하면 최소 높이를 지키고 스크롤된다.
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: editorFocusNode?.requestFocus,
+                  child: ConstrainedBox(
+                    key: editorKey,
+                    constraints: const BoxConstraints(
+                      minHeight: minEditorHeight,
+                    ),
+                    child: Align(alignment: Alignment.topCenter, child: editor),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         ...bottomBars,
@@ -91,16 +108,18 @@ class _MemoLyraQuestionBlockState extends State<MemoLyraQuestionBlock> {
     final folded = widget.collapsed && !_expanded;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap:
-          widget.collapsed ? () => setState(() => _expanded = !_expanded) : null,
+      onTap: widget.collapsed
+          ? () => setState(() => _expanded = !_expanded)
+          : null,
       child: Container(
         margin: EdgeInsets.fromLTRB(20, folded ? 8 : 14, 20, 0),
         padding: EdgeInsets.all(folded ? 10 : 14),
         decoration: BoxDecoration(
           color: AppColors.accentGreen.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(12),
-          border:
-              Border.all(color: AppColors.accentGreen.withValues(alpha: 0.25)),
+          border: Border.all(
+            color: AppColors.accentGreen.withValues(alpha: 0.25),
+          ),
         ),
         child: folded ? _foldedRow() : _fullColumn(),
       ),
@@ -108,11 +127,13 @@ class _MemoLyraQuestionBlockState extends State<MemoLyraQuestionBlock> {
   }
 
   Widget _dot() => Container(
-        width: 6,
-        height: 6,
-        decoration: const BoxDecoration(
-            color: AppColors.accentGreen, shape: BoxShape.circle),
-      );
+    width: 6,
+    height: 6,
+    decoration: const BoxDecoration(
+      color: AppColors.accentGreen,
+      shape: BoxShape.circle,
+    ),
+  );
 
   Widget _foldedRow() {
     return Row(
@@ -125,13 +146,18 @@ class _MemoLyraQuestionBlockState extends State<MemoLyraQuestionBlock> {
             maxLines: 1,
             softWrap: false,
             overflow: TextOverflow.fade,
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary, fontSize: 13),
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+            ),
           ),
         ),
         const SizedBox(width: 4),
-        const Icon(Icons.keyboard_arrow_down,
-            size: 16, color: AppColors.textTertiary),
+        const Icon(
+          Icons.keyboard_arrow_down,
+          size: 16,
+          color: AppColors.textTertiary,
+        ),
       ],
     );
   }
@@ -144,15 +170,23 @@ class _MemoLyraQuestionBlockState extends State<MemoLyraQuestionBlock> {
           children: [
             _dot(),
             const SizedBox(width: 7),
-            Text(widget.label,
-                style: AppTypography.caption.copyWith(
-                    color: AppColors.accentGreen, fontWeight: FontWeight.w700)),
+            Text(
+              widget.label,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.accentGreen,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
-        Text(widget.question,
-            style: AppTypography.bodySmall
-                .copyWith(color: AppColors.textPrimary, height: 1.6)),
+        Text(
+          widget.question,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textPrimary,
+            height: 1.6,
+          ),
+        ),
       ],
     );
   }

@@ -50,6 +50,7 @@ class MemoCreateScreen extends ConsumerStatefulWidget {
 class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
   final _contentController = TextEditingController();
   final _pageController = TextEditingController();
+  final _editorFocus = FocusNode();
   String? _selectedImagePath;
   bool _isLoading = false;
   String? _selectedBookId;
@@ -67,6 +68,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
   void dispose() {
     _contentController.dispose();
     _pageController.dispose();
+    _editorFocus.dispose();
     super.dispose();
   }
 
@@ -110,6 +112,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
           bookChipBuilder: (compact) => _bookChip(selected, books, compact),
           lyraQuestion: widget.lyraQuestion,
           lyraLabel: l10n.memoAnsweringLyra,
+          editorFocusNode: _editorFocus,
           editor: _editor(),
           bottomBars: [
             if (_selectedImagePath != null) _imagePreview(),
@@ -192,6 +195,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: TextField(
         controller: _contentController,
+        focusNode: _editorFocus,
         maxLines: null,
         minLines: 5,
         scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
