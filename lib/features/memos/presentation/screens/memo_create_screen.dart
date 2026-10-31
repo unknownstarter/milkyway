@@ -17,6 +17,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../providers/memo_form_provider.dart';
+import '../widgets/memo_compose_layout.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../utils/memo_image_uploader.dart';
 import '../../utils/memo_error_handler.dart';
@@ -105,13 +106,12 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         title: Text(l10n.memoTitle, style: AppTypography.subtitle),
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-            _bookChip(selected, books),
-            if (widget.lyraQuestion != null) _lyraBlock(widget.lyraQuestion!),
-            Expanded(child: _editor()),
+        child: MemoComposeLayout(
+          bookChipBuilder: (compact) => _bookChip(selected, books, compact),
+          lyraQuestion: widget.lyraQuestion,
+          lyraLabel: l10n.memoAnsweringLyra,
+          editor: _editor(),
+          bottomBars: [
             if (_selectedImagePath != null) _imagePreview(),
             _toolbar(),
             _saveBar(),
@@ -129,14 +129,14 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     }
   }
 
-  Widget _bookChip(Book? selected, List<Book> books) {
+  Widget _bookChip(Book? selected, List<Book> books, bool compact) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: GestureDetector(
         onTap: _isLoading ? null : () => _pickBook(books),
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 13, vertical: compact ? 5 : 8),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(999),
@@ -187,49 +187,14 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
     );
   }
 
-  Widget _lyraBlock(String question) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.accentGreen.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                    color: AppColors.accentGreen, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 7),
-              Text(AppL10n.of(context).memoAnsweringLyra,
-                  style: AppTypography.caption.copyWith(
-                      color: AppColors.accentGreen, fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(question,
-              style: AppTypography.bodySmall
-                  .copyWith(color: AppColors.textPrimary, height: 1.6)),
-        ],
-      ),
-    );
-  }
-
   Widget _editor() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: TextField(
         controller: _contentController,
-        expands: true,
         maxLines: null,
-        minLines: null,
+        minLines: 5,
+        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         textAlignVertical: TextAlignVertical.top,
         cursorColor: Colors.white,
         style: AppTypography.body
