@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -148,7 +149,8 @@ class BookDetailMemoCard extends ConsumerWidget {
                   ),
                   child: Padding(
                     padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                      bottom: math.max(MediaQuery.of(context).viewInsets.bottom,
+                          MediaQuery.viewPaddingOf(context).bottom),
                     ),
                     child: ReportMemoBottomSheet(memo: memo),
                   ),

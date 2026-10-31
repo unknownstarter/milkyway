@@ -257,8 +257,8 @@ class _OnboardingBookSavingScreenState
     final label = count == 0 ? l.discoverySkip : l.discoveryStartCta(count);
     final active = count > 0;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg,
+          AppSpacing.lg + MediaQuery.viewPaddingOf(context).bottom),
       child: SizedBox(
         width: double.infinity,
         height: 54,
