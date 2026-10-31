@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/book_cover_fallback.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 
@@ -40,11 +41,11 @@ class BookSearchItem extends StatelessWidget {
                 height: 120,
                 fit: BoxFit.cover,
                 cacheWidth: 240,
-                fallback: Container(
+                fallback: BookCoverFallback(
                   width: 80,
                   height: 120,
-                  color: Colors.grey.shade900,
-                  child: Icon(Icons.book, color: Colors.grey.shade700),
+                  title: book.title,
+                  author: book.author,
                 ),
               ),
             ),

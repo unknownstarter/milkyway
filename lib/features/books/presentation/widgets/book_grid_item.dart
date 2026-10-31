@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/book_cover_fallback.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 
@@ -29,13 +30,9 @@ class BookGridItem extends StatelessWidget {
                 url: book.coverUrl,
                 fit: BoxFit.cover,
                 cacheWidth: 300,
-                fallback: Container(
-                  color: Colors.grey.shade900,
-                  child: const Icon(
-                    Icons.book,
-                    color: Colors.grey,
-                    size: 32,
-                  ),
+                fallback: BookCoverFallback(
+                  title: book.title,
+                  author: book.author,
                 ),
               ),
             ),

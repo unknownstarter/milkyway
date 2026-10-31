@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/book_cover_fallback.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -191,9 +192,9 @@ class CollapsedReadingBooksSection extends ConsumerWidget {
                                 height: 76,
                                 fit: BoxFit.cover,
                                 cacheWidth: 162,
-                                fallback: _SmallBookPlaceholder(),
+                                fallback: _SmallBookPlaceholder(selectedBook),
                               )
-                            : _SmallBookPlaceholder(),
+                            : _SmallBookPlaceholder(selectedBook),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -533,9 +534,9 @@ class _BookCover extends StatelessWidget {
                   height: height,
                   fit: BoxFit.cover,
                   cacheWidth: 700,
-                  fallback: _BookPlaceholder(width: width, height: height),
+                  fallback: _BookPlaceholder(book: book, width: width, height: height),
                 )
-              : _BookPlaceholder(width: width, height: height),
+              : _BookPlaceholder(book: book, width: width, height: height),
         ),
       ),
     );
@@ -543,43 +544,30 @@ class _BookCover extends StatelessWidget {
 }
 
 class _BookPlaceholder extends StatelessWidget {
+  final Book book;
   final double? width;
   final double? height;
 
-  const _BookPlaceholder({this.width, this.height});
+  const _BookPlaceholder({required this.book, this.width, this.height});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return BookCoverFallback(
       width: width,
       height: height,
-      color: const Color(0xFF1A1A1A),
-      child: const Center(
-        child: Icon(
-          Icons.book,
-          color: Colors.grey,
-          size: 48,
-        ),
-      ),
+      title: book.title,
+      author: book.author,
     );
   }
 }
 
 class _SmallBookPlaceholder extends StatelessWidget {
-  const _SmallBookPlaceholder();
+  final Book book;
+  const _SmallBookPlaceholder(this.book);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 54,
-      height: 76,
-      color: Colors.grey.shade900,
-      child: const Icon(
-        Icons.book,
-        color: Colors.grey,
-        size: 24,
-      ),
-    );
+    return BookCoverFallback(width: 54, height: 76, title: book.title);
   }
 }
 

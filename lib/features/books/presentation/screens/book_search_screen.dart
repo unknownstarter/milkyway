@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/book_cover_fallback.dart';
 import '../../../../core/presentation/widgets/design/app_snackbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
@@ -255,22 +256,15 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
                 url: book.coverUrl,
                 fit: BoxFit.cover,
                 cacheWidth: 240,
-                fallback: _buildBookPlaceholder(),
+                fallback: _buildBookPlaceholder(book),
               )
-            : _buildBookPlaceholder(),
+            : _buildBookPlaceholder(book),
       ),
     );
   }
 
-  Widget _buildBookPlaceholder() {
-    return Container(
-      color: Colors.grey.shade900,
-      child: const Icon(
-        Icons.book,
-        color: Colors.grey,
-        size: 24,
-      ),
-    );
+  Widget _buildBookPlaceholder(NaverBook book) {
+    return BookCoverFallback(title: book.title, author: book.author);
   }
 
   Widget _buildLoadingState() {
