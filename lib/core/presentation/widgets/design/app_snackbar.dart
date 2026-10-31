@@ -11,22 +11,21 @@ import '../../../theme/app_typography.dart';
 /// (실제 사고: 책 등록 -> 책 상세 이동 시 "메모하기" 버튼을 덮었다)
 ///
 /// 하단 여백 [_bottomGap] 은 하단 액션바("메모하기" 등)와 탭 네비를 한 번에
-/// 비켜가는 값이다(안전영역은 Scaffold 가 처리하므로 포함하지 않는다). 화면마다 계산하지 않는다 - 계산하기 시작하면 화면마다
+/// 비켜가는 값이다. 화면마다 계산하지 않는다 - 계산하기 시작하면 화면마다
 /// 달라지고, 그게 어긋나면 다시 같은 사고가 난다.
 
-/// 하단 액션바/네비를 비켜가는 여백. 안전영역 위에 얹힌다(Scaffold 가 처리).
+/// 하단 액션바/네비를 비켜가는 여백. 안전영역 위에 얹는다.
 const double _bottomGap = 80;
 
 /// 스낵바 margin 의 하단 값.
 ///
-/// [bottomOffset] 이 null 이면 [_bottomGap]. 값이 있으면 그 화면이 하단을 가리는
-/// 높이만큼만 띄운다. Flutter 의 floating SnackBar 는 Scaffold 가 이미 하단
-/// 안전영역(viewPadding.bottom) 위에 배치하므로 여기서 padding.bottom 을 더하면
-/// 이중 가산이 된다.
+/// 기본값(null)은 탭 화면들 눈높이에 맞춰진 기존 값(안전영역 + [_bottomGap])을 유지한다.
+/// [bottomOffset] 을 넘기면 Scaffold 가 floating SnackBar 를 이미 안전영역 위에
+/// 놓으므로(이중 가산 방지) padding.bottom 을 더하지 않고 그 값만 쓴다.
 @visibleForTesting
-double snackBarBottomMargin(double? bottomOffset) {
+double snackBarBottomMargin(BuildContext context, double? bottomOffset) {
   if (bottomOffset != null) return bottomOffset;
-  return _bottomGap;
+  return MediaQuery.of(context).padding.bottom + _bottomGap;
 }
 
 /// 앱 공통 스낵바. 기본값이자 대부분의 경우 쓸 것.
@@ -36,7 +35,7 @@ double snackBarBottomMargin(double? bottomOffset) {
 void showAppSnackBar(BuildContext context, String message,
     {double? bottomOffset}) {
   final messenger = ScaffoldMessenger.of(context);
-  final bottomMargin = snackBarBottomMargin(bottomOffset);
+  final bottomMargin = snackBarBottomMargin(context, bottomOffset);
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(
@@ -60,7 +59,7 @@ void showAppSnackBar(BuildContext context, String message,
 void showAppPillSnackBar(BuildContext context, String message,
     {double? bottomOffset}) {
   final messenger = ScaffoldMessenger.of(context);
-  final bottomMargin = snackBarBottomMargin(bottomOffset);
+  final bottomMargin = snackBarBottomMargin(context, bottomOffset);
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(

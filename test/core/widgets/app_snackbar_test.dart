@@ -28,7 +28,7 @@ void main() {
   testWidgets('bottomOffset 을 주면 margin 이 그만큼이고 안전영역을 더하지 않는다',
       (tester) async {
     final ctx = await _pump(tester);
-    expect(snackBarBottomMargin(73), 73);
+    expect(snackBarBottomMargin(ctx, 73), 73);
     showAppSnackBar(ctx, '확인', bottomOffset: 73);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -36,13 +36,13 @@ void main() {
     expect((bar.margin! as EdgeInsets).bottom, 73);
   });
 
-  testWidgets('bottomOffset 이 없으면 안전영역을 더하지 않은 기본 여백', (tester) async {
+  testWidgets('bottomOffset 이 없으면 기본값은 예전과 같다(안전영역 + 80)', (tester) async {
     final ctx = await _pump(tester);
-    expect(snackBarBottomMargin(null), 80);
+    expect(snackBarBottomMargin(ctx, null), 34 + 80);
     showAppPillSnackBar(ctx, '확인');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     final bar = tester.widget<SnackBar>(find.byType(SnackBar));
-    expect((bar.margin! as EdgeInsets).bottom, 80);
+    expect((bar.margin! as EdgeInsets).bottom, 114);
   });
 }
