@@ -8,6 +8,7 @@ import '../presentation/widgets/add_floating_action_button.dart';
 import '../providers/seen_tracker_provider.dart';
 import '../services/seen_tracker.dart';
 import '../../features/constellation/presentation/widgets/connection_reveal.dart';
+import '../../features/home/presentation/widgets/others_content_resume_refresher.dart';
 import '../../features/books/presentation/providers/books_tab_badge_provider.dart';
 import '../../features/memos/presentation/providers/memos_tab_badge_provider.dart';
 
@@ -32,7 +33,9 @@ class MainShell extends ConsumerWidget {
       // extendBody: 본문이 네비 뒤로 확장돼 유리 뒤로 콘텐츠가 블러되어 비침.
       extendBody: true,
       // 연결이 생기면(memo_edges insert) 어느 탭이든 조용히 Lyra 리빌을 띄운다(push).
-      body: ConnectionRevealListener(child: child),
+      body: OthersContentResumeRefresher(
+        child: ConnectionRevealListener(child: child),
+      ),
       // FAB를 네비와 같은 Scaffold에 둬서 Flutter가 네비 위에 자동 정렬(겹침/가림 없음).
       // 홈/책 탭에서만 노출.
       floatingActionButton: (index == 0 || index == 1 || index == 2)
