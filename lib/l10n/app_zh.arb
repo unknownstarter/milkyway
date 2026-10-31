@@ -90,6 +90,7 @@
   "splashUpdateBody": "有新版本了\n更新后继续使用",
   "splashUpdateAction": "更新",
   "onboardingSkip": "跳过",
+  "onboardingProfileImageLater": "稍后再设置",
   "onboardingNicknameTitle": "设置昵称",
   "onboardingNicknameHeading": "设置一个昵称",
   "onboardingNicknameSubtitle": "其他 milkyway 用户会看到这个名字",

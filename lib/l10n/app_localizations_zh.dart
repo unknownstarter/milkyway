@@ -303,6 +303,9 @@ class AppL10nZh extends AppL10n {
   String get onboardingSkip => '跳过';
 
   @override
+  String get onboardingProfileImageLater => '稍后再设置';
+
+  @override
   String get onboardingNicknameTitle => '设置昵称';
 
   @override

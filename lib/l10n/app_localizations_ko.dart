@@ -303,6 +303,9 @@ class AppL10nKo extends AppL10n {
   String get onboardingSkip => '건너뛰기';
 
   @override
+  String get onboardingProfileImageLater => '나중에 할게요';
+
+  @override
   String get onboardingNicknameTitle => '닉네임 설정';
 
   @override

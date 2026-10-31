@@ -641,6 +641,12 @@ abstract class AppL10n {
   /// **'건너뛰기'**
   String get onboardingSkip;
 
+  /// No description provided for @onboardingProfileImageLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에 할게요'**
+  String get onboardingProfileImageLater;
+
   /// No description provided for @onboardingNicknameTitle.
   ///
   /// In ko, this message translates to:

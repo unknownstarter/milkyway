@@ -303,6 +303,9 @@ class AppL10nJa extends AppL10n {
   String get onboardingSkip => 'スキップ';
 
   @override
+  String get onboardingProfileImageLater => 'あとで設定する';
+
+  @override
   String get onboardingNicknameTitle => 'ニックネーム設定';
 
   @override

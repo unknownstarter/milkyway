@@ -90,6 +90,7 @@
   "splashUpdateBody": "新しいバージョンがあります。\nアップデートしてください",
   "splashUpdateAction": "アップデート",
   "onboardingSkip": "スキップ",
+  "onboardingProfileImageLater": "あとで設定する",
   "onboardingNicknameTitle": "ニックネーム設定",
   "onboardingNicknameHeading": "ニックネームを決めましょう",
   "onboardingNicknameSubtitle": "milkywayの他のユーザーに見える名前です",

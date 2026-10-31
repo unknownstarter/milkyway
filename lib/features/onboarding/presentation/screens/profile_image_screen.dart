@@ -95,10 +95,6 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
               children: [
                 // 다음 버튼
                 _buildNextButton(),
-                const SizedBox(height: 8),
-                
-                // 건너뛰기 버튼
-                _buildSkipButton(),
               ],
             ),
           ),
@@ -215,32 +211,19 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     );
   }
 
-  Widget _buildSkipButton() {
-    return Center(
-      child: TextButton(
-        onPressed: _isLoading ? null : _skipImage,
-        child: Text(
-          AppL10n.of(context).onboardingSkip,
-          style: const TextStyle(
-            color: Color(0xFF6B7280),
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-            fontFamily: 'Pretendard',
-            height: 16.8 / 12,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildNextButton() {
-    final isEnabled = _selectedImagePath != null && !_isLoading;
+    final isEnabled = !_isLoading;
+    final hasImage = _selectedImagePath != null;
     
     return Container(
       width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
-        color: isEnabled ? const Color(0xFFDEDEDE) : const Color(0xFF838383),
+        color: !isEnabled
+            ? const Color(0xFF838383)
+            : hasImage
+                ? const Color(0xFFDEDEDE)
+                : const Color(0xFF3A3A3A),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Material(
@@ -257,9 +240,11 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
                 : MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                     child: Text(
-                      AppL10n.of(context).commonNext,
+                      hasImage
+                          ? AppL10n.of(context).commonNext
+                          : AppL10n.of(context).onboardingProfileImageLater,
                       style: TextStyle(
-                        color: isEnabled ? Colors.black : Colors.white,
+                        color: hasImage ? Colors.black : Colors.white,
                         fontFamily: 'Pretendard',
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -331,10 +316,6 @@ class _ProfileImageScreenState extends ConsumerState<ProfileImageScreen> {
     }
   }
 
-
-  Future<void> _skipImage() async {
-    await _next();
-  }
 
   Future<void> _next() async {
     setState(() {
