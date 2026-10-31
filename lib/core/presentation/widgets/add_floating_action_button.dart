@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../features/home/presentation/widgets/add_action_modal.dart';
 
@@ -55,7 +56,8 @@ class AddFloatingActionButton extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: Padding(
                       padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                        bottom: math.max(MediaQuery.of(context).viewInsets.bottom,
+                          MediaQuery.viewPaddingOf(context).bottom),
                       ),
                       child: const AddActionModal(),
                     ),

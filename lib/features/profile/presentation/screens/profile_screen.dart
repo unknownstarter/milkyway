@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -277,7 +278,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   child: Padding(
                     padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom),
+                        bottom: math.max(MediaQuery.of(context).viewInsets.bottom,
+                            MediaQuery.viewPaddingOf(context).bottom)),
                     child: const FeedbackModal(),
                   ),
                 ),
