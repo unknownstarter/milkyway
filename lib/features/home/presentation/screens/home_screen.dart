@@ -33,6 +33,7 @@ import '../../../ranking/presentation/widgets/ranking_card.dart';
 import '../../../wrapped/presentation/providers/wrapped_providers.dart';
 import '../../../memos/domain/models/memo.dart';
 import '../../../memos/presentation/providers/memo_provider.dart';
+import '../providers/others_content_refresh.dart';
 import '../../../calendar/domain/calendar_logic.dart';
 
 /// 홈 = 발견 피드. 좋아하는 책 스토리 + 지금 읽는 책 Lyra 물음 + 다른 사람이 담은 책.
@@ -466,7 +467,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             backgroundColor: AppColors.surface,
             onRefresh: () async {
               ref.invalidate(homeBooksProvider);
-              ref.invalidate(booksSavedByOthersProvider);
+              await refreshOthersContent(ref);
             },
             child: ListView(
               padding: EdgeInsets.only(top: statusBarTop(context), bottom: 210),
