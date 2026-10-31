@@ -51,7 +51,7 @@ class DiscoveryRepository {
     ];
   }
 
-  /// 사람들이 많이 담은 책(사회적 증거 = savers). get_recommended_books RPC 경유.
+  /// 다른 사람이 최근에 담은 책 (부른 사람 제외, 마지막 담은 시각 순). get_recommended_books RPC 경유.
   /// RLS상 클라이언트가 못 세는 savers 집계를 SECURITY DEFINER 함수로 받는다.
   Future<List<RecommendedBook>> getBooksSavedByOthers({int limit = 12}) async {
     final rows = await _client.rpc(
