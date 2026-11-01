@@ -39,6 +39,16 @@ class MemoDetailScreen extends ConsumerStatefulWidget {
 class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   bool _hasInitialized = false;
 
+  // build 는 키보드/로케일 변화마다 다시 불린다. post-frame 으로 하는 이동/팝업은 1번만 건다.
+  bool _restrictedHandled = false;
+  bool _deletedHandled = false;
+
+  /// restricted 경로에서 책 저장 여부 조회가 실패했다. 닫지 않고 오류 화면 + 다시 시도.
+  bool _restrictedLookupFailed = false;
+
+  /// 메모 삭제 진행 중. 중복 탭/중복 호출을 막는다.
+  bool _deleting = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -58,23 +68,22 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
 
     // 남의 비공개 메모: 책 상세로 유도.
     if (memoAsync.hasError && memoAsync.error is MemoRestrictedException) {
+      if (_restrictedLookupFailed) return _restrictedLookupErrorView();
       final e = memoAsync.error as MemoRestrictedException;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _routeRestricted(e.bookId);
-      });
+      if (!_restrictedHandled) {
+        _restrictedHandled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _routeRestricted(e.bookId);
+        });
+      }
       return const Scaffold(backgroundColor: AppColors.bgPrimary);
     }
-    // 삭제됨(로드 완료 + null): 뒤로/홈.
+    // 삭제됨(로드 완료 + null): 뒤로/홈. 내가 지우는 중이면 삭제 쪽에서 닫는다.
     if (memoAsync.hasValue && memoAsync.value == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.goNamed(AppRoutes.homeName);
-          }
-        }
-      });
+      if (!_deletedHandled && !_deleting) {
+        _deletedHandled = true;
+        WidgetsBinding.instance.addPostFrameCallback(_leave);
+      }
       return const Scaffold(backgroundColor: AppColors.bgPrimary);
     }
 
@@ -126,10 +135,16 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     }
     final repo = ref.read(bookRepositoryProvider);
     final userId = repo.getCurrentUserId();
-    bool saved = false;
+    bool saved;
     try {
       saved = await repo.hasUserBookConnection(bookId, userId);
-    } catch (_) {}
+    } catch (e) {
+      // 조회 오류를 '저장 안 함' 으로 읽으면 이미 담은 책에도 담기 팝업이 뜬다.
+      if (!mounted) return;
+      ErrorHandler.showError(context, e, operation: '책 저장 여부 조회');
+      setState(() => _restrictedLookupFailed = true);
+      return;
+    }
     if (!mounted) return;
     if (saved) {
       context.pushReplacementNamed(AppRoutes.bookDetailName,
@@ -161,7 +176,33 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     }
   }
 
-  void _leave() {
+  Widget _restrictedLookupErrorView() {
+    return Scaffold(
+      backgroundColor: AppColors.bgPrimary,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(AppL10n.of(context).memoLoadFailed,
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() {
+                _restrictedLookupFailed = false;
+                _restrictedHandled = false;
+              }),
+              child: Text(AppL10n.of(context).commonRetry,
+                  style: AppTypography.bodyBold
+                      .copyWith(color: AppColors.accentGreen)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _leave([Duration? _]) {
     if (!mounted) return;
     if (context.canPop()) {
       context.pop();
@@ -354,10 +395,16 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
   Future<void> _openBook(String bookId) async {
     final repo = ref.read(bookRepositoryProvider);
     final uid = repo.getCurrentUserId();
-    bool saved = false;
+    bool saved;
     try {
       saved = await repo.hasUserBookConnection(bookId, uid);
-    } catch (_) {}
+    } catch (e) {
+      // 오류를 '저장 안 함' 으로 읽지 않는다. 팝업 대신 오류만 알리고 화면을 유지한다.
+      if (mounted) {
+        ErrorHandler.showError(context, e, operation: '책 저장 여부 조회');
+      }
+      return;
+    }
     if (!mounted) return;
     if (saved) {
       context.pushNamed(AppRoutes.bookDetailName, pathParameters: {'id': bookId});
@@ -511,11 +558,11 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       tone: ConfirmTone.danger,
     );
 
-    if (shouldDelete) {
+    if (shouldDelete && !_deleting) {
+      _deleting = true;
       try {
-        await ref
-            .read(deleteMemoProvider((memoId: memo.id, bookId: memo.bookId))
-                .future);
+        await ref.read(deleteMemoActionProvider)(
+            memoId: memo.id, bookId: memo.bookId);
         if (context.mounted) {
           if (context.canPop()) {
             context.pop();
@@ -524,6 +571,7 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
           }
         }
       } catch (e) {
+        _deleting = false;
         if (context.mounted) {
           ErrorHandler.showError(context, e, operation: '메모 삭제');
         }
