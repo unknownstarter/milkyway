@@ -27,6 +27,8 @@ class OnboardingBookSavingScreen extends ConsumerStatefulWidget {
 class _OnboardingBookSavingScreenState
     extends ConsumerState<OnboardingBookSavingScreen> {
   bool _saving = false;
+  // 완료 처리(온보딩 상태 저장 + 이동) 중 재진입 잠금
+  bool _completing = false;
 
   @override
   void initState() {
@@ -37,25 +39,30 @@ class _OnboardingBookSavingScreenState
   /// 온보딩 완료 처리 후 홈으로. savedCount는 담은 책 수(0이면 건너뜀).
   /// onboarding_completed=true 를 반드시 세팅해야 재진입 루프에 안 갇힌다.
   Future<void> _complete(int savedCount) async {
-    final analytics = ref.read(analyticsProvider);
-    analytics.logEvent(
-        'click_complete_in_onboarding', {'added_book_count': savedCount});
-    if (savedCount > 0) {
-      analytics.logEvent('click_save_book_in_onboarding',
-          {'source': 'onboarding_discovery', 'count': savedCount});
-    }
-    ref.read(bookSelectionProvider.notifier).clear();
+    if (_completing) return;
+    _completing = true;
+    if (mounted) setState(() => _saving = true);
     try {
+      final analytics = ref.read(analyticsProvider);
+      analytics.logEvent(
+          'click_complete_in_onboarding', {'added_book_count': savedCount});
+      if (savedCount > 0) {
+        analytics.logEvent('click_save_book_in_onboarding',
+            {'source': 'onboarding_discovery', 'count': savedCount});
+      }
+      ref.read(bookSelectionProvider.notifier).clear();
       await ref.read(authProvider.notifier).updateOnboardingStatus(true);
+      if (await DeepLinkService.consumePending()) return;
+      if (mounted) context.goNamed(AppRoutes.homeName);
     } catch (_) {
-      // 완료 표시가 저장되지 않았으면 홈으로 보내지 않는다(스플래시 재진입 루프 방지).
-      // 화면을 유지해 다시 누를 수 있게 한다. 책은 이미 담겼으므로 선택은 비어 있고,
-      // 다시 누르면 완료 처리만 재시도된다.
-      if (mounted) showAppSnackBar(context, AppL10n.of(context).errSaveFailed);
-      return;
+      // 완료 저장이 실패하면 이동하지 않고 다시 누를 수 있게 둔다
+      if (mounted) {
+        showAppSnackBar(context, AppL10n.of(context).discoverySaveError);
+      }
+    } finally {
+      _completing = false;
+      if (mounted) setState(() => _saving = false);
     }
-    if (await DeepLinkService.consumePending()) return;
-    if (mounted) context.goNamed(AppRoutes.homeName);
   }
 
   void _openSearch() {
@@ -77,8 +84,9 @@ class _OnboardingBookSavingScreenState
 
   Future<void> _save() async {
     final selected = ref.read(bookSelectionProvider).toList();
+    if (_saving) return;
     if (selected.isEmpty) {
-      await _skip();
+      await _complete(0);
       return;
     }
     setState(() => _saving = true);

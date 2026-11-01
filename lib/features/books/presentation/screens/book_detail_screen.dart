@@ -51,6 +51,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   bool _isDescriptionExpanded = false;
   bool _lyraQuestionShownLogged = false;
   int _memoSegment = 0; // 0 = 함께(공개), 1 = 내 메모
+  // 쓰기 진행 중 잠금 (같은 동작은 서버로 1번만)
+  bool _statusBusy = false;
+  bool _deleteBusy = false;
+  bool _readToggleBusy = false;
+  bool _memoOpening = false;
 
   @override
   void initState() {
@@ -128,7 +133,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       body: bookAsync.when(
         data: (book) {
           // 상태 동기화: 책 상태가 변경된 경우 업데이트
-          if (_selectedStatus != book.status) {
+          if (!_statusBusy && _selectedStatus != book.status) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
                 setState(() {
@@ -274,17 +279,28 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Future<void> _toggleReadToday(String bookId, bool currentlyRead) async {
+    if (_readToggleBusy) return;
+    _readToggleBusy = true;
     final repo = ref.read(readingRepositoryProvider);
-    if (currentlyRead) {
-      await repo.unlogToday(bookId);
-    } else {
-      await repo.logToday(bookId);
-      ref
-          .read(analyticsProvider)
-          .logEvent('click_read_today_in_book_detail', {'book_id': bookId});
+    try {
+      if (currentlyRead) {
+        await repo.unlogToday(bookId);
+      } else {
+        await repo.logToday(bookId);
+        ref
+            .read(analyticsProvider)
+            .logEvent('click_read_today_in_book_detail', {'book_id': bookId});
+      }
+      ref.invalidate(readTodayProvider(bookId));
+      ref.invalidate(readingLogsProvider);
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showError(context, e,
+            operation: AppL10n.of(context).readingLogTodayCta);
+      }
+    } finally {
+      _readToggleBusy = false;
     }
-    ref.invalidate(readTodayProvider(bookId));
-    ref.invalidate(readingLogsProvider);
   }
 
   /// Lyra 물음 카드. 물음이 있을 때만 노출되고, 실패/없음이면 화면에 아무 영향 없음.
@@ -403,12 +419,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             label: bookStatusLabel(l, BookStatus.wantToRead),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.wantToRead,
-            onTap: () {
-              setState(() {
-                _selectedStatus = BookStatus.wantToRead;
-              });
-              _changeStatus(book, BookStatus.wantToRead);
-            },
+            onTap: () => _changeStatus(book, BookStatus.wantToRead),
             width: 90,
             fontSize: 16,
             activeFontWeight: FontWeight.w400,
@@ -419,12 +430,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             label: bookStatusLabel(l, BookStatus.reading),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.reading,
-            onTap: () {
-              setState(() {
-                _selectedStatus = BookStatus.reading;
-              });
-              _changeStatus(book, BookStatus.reading);
-            },
+            onTap: () => _changeStatus(book, BookStatus.reading),
             width: 90,
             fontSize: 16,
             activeFontWeight: FontWeight.w400,
@@ -435,12 +441,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             label: bookStatusLabel(l, BookStatus.completed),
             isActive: (_selectedStatus ?? BookStatus.wantToRead) ==
                 BookStatus.completed,
-            onTap: () {
-              setState(() {
-                _selectedStatus = BookStatus.completed;
-              });
-              _changeStatus(book, BookStatus.completed);
-            },
+            onTap: () => _changeStatus(book, BookStatus.completed),
             width: 72,
             fontSize: 16,
             activeFontWeight: FontWeight.w400,
@@ -704,6 +705,12 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   }
 
   Future<void> _changeStatus(Book book, BookStatus newStatus) async {
+    if (_statusBusy) return;
+    final previous = _selectedStatus;
+    setState(() {
+      _statusBusy = true;
+      _selectedStatus = newStatus;
+    });
     try {
       ref.read(analyticsProvider).logEvent('click_status_in_book_detail',
           {'book_id': book.id, 'status': newStatus.value});
@@ -718,25 +725,44 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // 실패한 선택을 화면에 남기지 않는다
+        setState(() => _selectedStatus = previous);
         ErrorHandler.showError(context, e,
             operation: AppL10n.of(context).bookOpStatusChange);
       }
+    } finally {
+      if (mounted) setState(() => _statusBusy = false);
     }
   }
 
-  void _addMemo(Book book, {String? lyraQuestion}) {
-    context.pushNamed(
-      AppRoutes.memoCreateName,
-      queryParameters: {
-        'bookId': book.id,
-        if (lyraQuestion != null) 'lyraQuestion': lyraQuestion,
-      },
-    );
+  Future<void> _addMemo(Book book, {String? lyraQuestion}) async {
+    // 연타로 작성 화면이 2개 쌓이지 않게: 돌아올 때까지 잠근다
+    if (_memoOpening) return;
+    _memoOpening = true;
+    try {
+      await context.pushNamed(
+        AppRoutes.memoCreateName,
+        queryParameters: {
+          'bookId': book.id,
+          if (lyraQuestion != null) 'lyraQuestion': lyraQuestion,
+        },
+      );
+    } finally {
+      _memoOpening = false;
+    }
   }
 
   Future<void> _deleteBook(Book? book) async {
-    if (book == null) return;
+    if (book == null || _deleteBusy) return;
+    _deleteBusy = true;
+    try {
+      await _confirmAndDeleteBook(book);
+    } finally {
+      _deleteBusy = false;
+    }
+  }
 
+  Future<void> _confirmAndDeleteBook(Book book) async {
     final l = AppL10n.of(context);
 
     // 삭제 확인 다이얼로그

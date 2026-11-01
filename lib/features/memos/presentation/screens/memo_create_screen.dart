@@ -511,6 +511,7 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
       }
     }
 
+    if (_isLoading) return;
     setState(() => _isLoading = true);
 
     try {
@@ -529,7 +530,8 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
         }
       }
 
-      await ref.read(memoFormProvider(_selectedBookId!).notifier).createMemo(
+      final notifier = ref.read(memoFormProvider(_selectedBookId!).notifier);
+      final saved = await notifier.createMemo(
             bookId: _selectedBookId!,
             content: _contentController.text.trim(),
             page: _pageController.text.isNotEmpty
@@ -542,6 +544,11 @@ class _MemoCreateScreenState extends ConsumerState<MemoCreateScreen> {
             lyraQuestionId: widget.lyraQuestionId,
             lyraSource: widget.lyraSource,
           );
+      if (!saved) {
+        // 실패를 성공으로 읽지 않는다: 저장 토스트/pop 없이 입력 유지
+        throw ref.read(memoFormProvider(_selectedBookId!)).error ??
+            Exception('memo save failed');
+      }
 
       // 메모 = 그날 읽음. 읽음 자동 기록(비차단).
       unawaited(ref.read(readingRepositoryProvider).logToday(_selectedBookId!));

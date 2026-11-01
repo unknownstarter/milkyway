@@ -11,6 +11,9 @@ import '../../../../core/utils/error_handler.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../../../home/presentation/providers/selected_book_provider.dart';
 
+// 책 담기 진행 중 재탭 잠금 (위젯이 Stateless 라 파일 단위로 둔다)
+bool _savingBook = false;
+
 /// 빈 상태 (책이 없을 때)
 class HomeEmptyState extends ConsumerWidget {
   const HomeEmptyState({super.key});
@@ -210,6 +213,20 @@ class HomeEmptyState extends ConsumerWidget {
   }
 
   void _handleBookTap(
+    BuildContext context,
+    WidgetRef ref,
+    Book book,
+  ) async {
+    if (_savingBook) return;
+    _savingBook = true;
+    try {
+      await _confirmAndSaveBook(context, ref, book);
+    } finally {
+      _savingBook = false;
+    }
+  }
+
+  Future<void> _confirmAndSaveBook(
     BuildContext context,
     WidgetRef ref,
     Book book,

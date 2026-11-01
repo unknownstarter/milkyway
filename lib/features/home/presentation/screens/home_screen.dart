@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/presentation/widgets/language_sheet.dart';
 import '../../../../core/presentation/widgets/design/floating_pill.dart';
@@ -49,6 +50,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _lyraShownLogged = false;
+  // 진행 중 재탭 잠금 (책 담기 흐름 / Lyra 작성 화면 진입)
+  bool _openingBook = false;
+  bool _answering = false;
 
   @override
   void initState() {
@@ -87,12 +91,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 책 탭. 저장 안 한 책(발견/최근 메모)이면 담기 팝업 → 담고 이동.
   /// (저장 안 한 책을 바로 상세로 보내면 user_books 0행 -> PGRST116 에러 페이지)
   Future<void> _openBook(String bookId) async {
+    if (_openingBook) return;
+    _openingBook = true;
+    try {
+      await _openBookInner(bookId);
+    } finally {
+      _openingBook = false;
+    }
+  }
+
+  Future<void> _openBookInner(String bookId) async {
     final repo = ref.read(bookRepositoryProvider);
     final userId = repo.getCurrentUserId();
     bool owned = false;
     try {
       owned = await repo.hasUserBookConnection(bookId, userId);
-    } catch (_) {}
+    } catch (e) {
+      // 조회 실패를 '안 담은 책'으로 읽지 않는다: 담기 팝업 없이 알리고 끝낸다
+      if (mounted) ErrorHandler.showError(context, e);
+      return;
+    }
     if (!mounted) return;
     if (owned) {
       await context.pushNamed(AppRoutes.bookDetailName,
@@ -132,18 +150,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// Lyra 물음에 답하기. 책 물음이면 그 책으로, 일반 물음이면 책 선택 화면으로.
   /// 답하고 돌아오면 다음 물음으로 갱신.
   Future<void> _answerPrompt(LyraPrompt p) async {
-    ref.read(analyticsProvider)
-        .logEvent('click_answer_lyra_in_home', {'source': p.source});
-    await context.pushNamed(
-      AppRoutes.memoCreateName,
-      queryParameters: {
-        'lyraQuestion': p.question,
-        'lyraSource': p.source,
-        if (p.questionId != null) 'lyraQuestionId': p.questionId!,
-        if (p.isBook && p.bookId != null) 'bookId': p.bookId!,
-      },
-    );
-    ref.invalidate(lyraPromptProvider);
+    // 연타로 작성 화면이 2개 쌓이지 않게: 돌아올 때까지 잠근다
+    if (_answering) return;
+    _answering = true;
+    try {
+      ref.read(analyticsProvider)
+          .logEvent('click_answer_lyra_in_home', {'source': p.source});
+      await context.pushNamed(
+        AppRoutes.memoCreateName,
+        queryParameters: {
+          'lyraQuestion': p.question,
+          'lyraSource': p.source,
+          if (p.questionId != null) 'lyraQuestionId': p.questionId!,
+          if (p.isBook && p.bookId != null) 'bookId': p.bookId!,
+        },
+      );
+      ref.invalidate(lyraPromptProvider);
+    } finally {
+      _answering = false;
+    }
   }
 
   void _openBooksTab() => context.goNamed(AppRoutes.booksName);

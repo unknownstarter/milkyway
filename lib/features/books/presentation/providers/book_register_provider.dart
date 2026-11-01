@@ -92,6 +92,8 @@ class BookRegisterNotifier extends StateNotifier<AsyncValue<void>> {
     } catch (e, st) {
       log('Error in connectExistingBook: $e');
       state = AsyncValue.error(e, st);
+      // 호출 화면이 실패를 성공으로 읽지 않도록 다시 던진다
+      rethrow;
     }
   }
 

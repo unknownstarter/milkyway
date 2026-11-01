@@ -46,6 +46,8 @@ class _CommentSectionState extends ConsumerState<CommentSection>
   final _scroll = ScrollController();
   Comment? _editing;
   bool _sending = false;
+  // 삭제/숨김/신고/책 담기 진행 중 재탭 잠금 (같은 동작은 서버로 1번만)
+  bool _actionBusy = false;
 
   @override
   void initState() {
@@ -101,6 +103,7 @@ class _CommentSectionState extends ConsumerState<CommentSection>
   }
 
   Future<void> _send(String text) async {
+    if (_sending) return;
     setState(() => _sending = true);
     final repo = ref.read(commentRepositoryProvider);
     try {
@@ -137,7 +140,20 @@ class _CommentSectionState extends ConsumerState<CommentSection>
     });
   }
 
-  Future<void> _delete(Comment c) async {
+  /// 한 번에 하나의 쓰기 동작만. 확인 팝업이 떠 있는 동안도 잠가 중복 팝업을 막는다.
+  Future<void> _guard(Future<void> Function() action) async {
+    if (_actionBusy) return;
+    _actionBusy = true;
+    try {
+      await action();
+    } finally {
+      _actionBusy = false;
+    }
+  }
+
+  Future<void> _delete(Comment c) => _guard(() => _deleteInner(c));
+
+  Future<void> _deleteInner(Comment c) async {
     final l10n = AppL10n.of(context);
     final ok = await showAppConfirm(
       context,
@@ -157,7 +173,9 @@ class _CommentSectionState extends ConsumerState<CommentSection>
     }
   }
 
-  Future<void> _hide(Comment c) async {
+  Future<void> _hide(Comment c) => _guard(() => _hideInner(c));
+
+  Future<void> _hideInner(Comment c) async {
     try {
       await ref.read(commentRepositoryProvider).hideComment(c.id);
       _refresh();
@@ -166,7 +184,9 @@ class _CommentSectionState extends ConsumerState<CommentSection>
     }
   }
 
-  Future<void> _report(Comment c) async {
+  Future<void> _report(Comment c) => _guard(() => _reportInner(c));
+
+  Future<void> _reportInner(Comment c) async {
     final l10n = AppL10n.of(context);
     final reasons = <String, String>{
       'spam': l10n.commentReportSpam,
@@ -209,7 +229,9 @@ class _CommentSectionState extends ConsumerState<CommentSection>
   }
 
   /// 책 미저장 시: 담기 팝업 → 담고 게이트 해제.
-  Future<void> _saveBookPrompt() async {
+  Future<void> _saveBookPrompt() => _guard(_saveBookPromptInner);
+
+  Future<void> _saveBookPromptInner() async {
     final l10n = AppL10n.of(context);
     final repo = ref.read(bookRepositoryProvider);
     final userId = repo.getCurrentUserId();
@@ -240,7 +262,8 @@ class _CommentSectionState extends ConsumerState<CommentSection>
     final me = ref.watch(authProvider).value;
     final myId = me?.id;
     final commentsAsync = ref.watch(commentsProvider(widget.memoId));
-    final saved = ref.watch(isBookSavedProvider(widget.bookId)).value ?? false;
+    final saved = isCommentComposerUnlocked(
+        ref.watch(isBookSavedProvider(widget.bookId)));
 
     return Column(
       children: [
