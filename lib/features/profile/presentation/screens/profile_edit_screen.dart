@@ -25,6 +25,8 @@ class ProfileEditScreen extends ConsumerStatefulWidget {
 class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   final _nicknameController = TextEditingController();
   bool _isLoading = false;
+  bool _isLoggingOut = false; // 로그아웃 연타 잠금
+  bool _isDeleting = false; // 계정 삭제 연타 잠금(확인 모달 전부터)
   String? _selectedImagePath;
   bool _isImageRemoved = false;
   bool _isCheckingNickname = false;
@@ -583,6 +585,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   Future<void> _logout() async {
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+    try {
+      await _confirmAndLogout();
+    } finally {
+      _isLoggingOut = false;
+    }
+  }
+
+  Future<void> _confirmAndLogout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -655,6 +667,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   Future<void> _deleteAccount() async {
+    if (_isDeleting) return;
+    _isDeleting = true;
+    try {
+      await _confirmAndDeleteAccount();
+    } finally {
+      _isDeleting = false;
+    }
+  }
+
+  Future<void> _confirmAndDeleteAccount() async {
     // 30일 소프트딜리트 안내(기존 컨펌 모달 디자인 재사용).
     final l10n = AppL10n.of(context);
     final shouldDelete = await showAppConfirm(

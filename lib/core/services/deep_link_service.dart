@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../features/auth/domain/entities/user.dart' as app_user;
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../router/app_router.dart';
 import '../router/app_routes.dart';
@@ -83,7 +84,15 @@ class DeepLinkService {
       router.goNamed(AppRoutes.loginName); // pending 유지 -> 로그인 후 소비
       return;
     }
-    final user = await _ref.read(authProvider.notifier).getCurrentUser();
+    final app_user.User? user;
+    try {
+      user = await _ref.read(authProvider.notifier).getCurrentUser();
+    } catch (_) {
+      // 조회 오류(네트워크/서버)는 "로그아웃"이 아니다. 로그인으로 보내지 않고 홈으로 간다.
+      // pending 딥링크는 유지돼 다음 진입 지점(consumePending)에서 소비된다.
+      router.goNamed(AppRoutes.homeName);
+      return;
+    }
     if (user == null) {
       router.goNamed(AppRoutes.loginName);
       return;

@@ -45,7 +45,15 @@ class _OnboardingBookSavingScreenState
           {'source': 'onboarding_discovery', 'count': savedCount});
     }
     ref.read(bookSelectionProvider.notifier).clear();
-    await ref.read(authProvider.notifier).updateOnboardingStatus(true);
+    try {
+      await ref.read(authProvider.notifier).updateOnboardingStatus(true);
+    } catch (_) {
+      // 완료 표시가 저장되지 않았으면 홈으로 보내지 않는다(스플래시 재진입 루프 방지).
+      // 화면을 유지해 다시 누를 수 있게 한다. 책은 이미 담겼으므로 선택은 비어 있고,
+      // 다시 누르면 완료 처리만 재시도된다.
+      if (mounted) showAppSnackBar(context, AppL10n.of(context).errSaveFailed);
+      return;
+    }
     if (await DeepLinkService.consumePending()) return;
     if (mounted) context.goNamed(AppRoutes.homeName);
   }
@@ -57,16 +65,26 @@ class _OnboardingBookSavingScreenState
     );
   }
 
+  Future<void> _skip() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await _complete(0);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   Future<void> _save() async {
     final selected = ref.read(bookSelectionProvider).toList();
     if (selected.isEmpty) {
-      _complete(0);
+      await _skip();
       return;
     }
     setState(() => _saving = true);
     try {
       await ref.read(discoveryRepositoryProvider).saveBooks(selected);
-      if (mounted) _complete(selected.length);
+      if (mounted) await _complete(selected.length);
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, AppL10n.of(context).discoverySaveError);
@@ -91,7 +109,7 @@ class _OnboardingBookSavingScreenState
         title: Text(l.discoveryTitle, style: AppTypography.subtitle),
         actions: [
           TextButton(
-            onPressed: _saving ? null : () => _complete(0),
+            onPressed: _saving ? null : _skip,
             child: Text(l.discoverySkip,
                 style: AppTypography.bodySmall
                     .copyWith(color: AppColors.textSecondary)),

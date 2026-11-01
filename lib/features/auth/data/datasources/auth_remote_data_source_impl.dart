@@ -165,25 +165,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// 세션 없음/행 없음 -> null. 조회 오류는 throw (null 로 삼키지 않는다).
   @override
   Future<UserModel?> getCurrentUser() async {
-    try {
-      final session = _supabase.auth.currentSession;
-      if (session?.user == null) return null;
+    final session = _supabase.auth.currentSession;
+    if (session?.user == null) return null;
 
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('id', session!.user.id)
-          .maybeSingle();
+    final response = await _supabase
+        .from('users')
+        .select()
+        .eq('id', session!.user.id)
+        .maybeSingle();
 
-      if (response == null) return null;
+    if (response == null) return null;
 
-      return UserModel.fromJson(response);
-    } catch (e) {
-      print('❌ 현재 사용자 정보 조회 실패: $e');
-      return null;
-    }
+    return UserModel.fromJson(response);
   }
 
   Future<void> updateProfile({

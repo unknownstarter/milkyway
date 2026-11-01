@@ -98,9 +98,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           await _checkAndShowNotificationPermissionDialog(context);
         }
 
-        final onboardingCompleted = await ref
-            .read(authProvider.notifier)
-            .checkOnboardingStatus();
+        bool onboardingCompleted;
+        try {
+          onboardingCompleted = await ref
+              .read(authProvider.notifier)
+              .checkOnboardingStatus();
+        } catch (_) {
+          // 조회 오류를 "온보딩 미완료"로 읽지 않는다. 로그인 직후 조회에 성공한
+          // 사용자 정보(next.value)의 값을 그대로 쓴다.
+          onboardingCompleted = next.value!.onboardingCompleted;
+        }
         if (context.mounted) {
           if (onboardingCompleted) {
             if (await DeepLinkService.consumePending()) return;
@@ -128,11 +135,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () =>
-                          ref.read(authProvider.notifier).signInWithApple(),
+                      onPressed: authState.isLoading
+                          ? null
+                          : () => ref
+                              .read(authProvider.notifier)
+                              .signInWithApple(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.black,
+                        disabledForegroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(28),
