@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:whatif_milkyway_app/core/network/edge_function_client.dart';
 import 'package:whatif_milkyway_app/features/memos/data/repositories/memo_repository.dart';
 import 'package:whatif_milkyway_app/features/memos/domain/memo_exceptions.dart';
 
@@ -38,8 +42,14 @@ const _memoJson = {
   'books': {'title': '책'},
 };
 
-MemoRepository _repo(FunctionResponse Function() respond) =>
-    MemoRepository(_NoClient(), functions: _FakeFunctions(respond));
+MemoRepository _repo(FunctionResponse Function() respond) => MemoRepository(
+      _NoClient(),
+      edge: EdgeFunctionClient(
+        _FakeFunctions(respond),
+        sleep: (_) async {}, // 재시도 대기를 건너뛴다
+        attemptTimeout: const Duration(milliseconds: 50),
+      ),
+    );
 
 FunctionResponse _throwing(int status, [dynamic details]) =>
     throw FunctionException(status: status, details: details);
@@ -99,5 +109,46 @@ void main() {
     await expectLater(
         tooMany.getMemoById('m1'),
         throwsA(allOf(isA<Exception>(), isNot(isA<MemoNotFoundException>()))));
+  });
+
+  // G1: 404 / restricted 말고는 어떤 예외도 NotFound 가 되면 안 된다.
+  final notNotFound = throwsA(allOf(
+    isNot(isA<MemoNotFoundException>()),
+    isNot(isA<MemoRestrictedException>()),
+  ));
+
+  test('546 -> NotFound 아님', () async {
+    await expectLater(
+        _repo(() => _throwing(546)).getMemoById('m1'), notNotFound);
+  });
+
+  test('SocketException -> NotFound 아님', () async {
+    await expectLater(
+        _repo(() => throw const SocketException('offline')).getMemoById('m1'),
+        notNotFound);
+  });
+
+  test('TimeoutException -> NotFound 아님', () async {
+    await expectLater(
+        _repo(() => throw TimeoutException('slow')).getMemoById('m1'),
+        notNotFound);
+  });
+
+  test('응답 형식 오류(Map 아님) -> NotFound 아님', () async {
+    await expectLater(
+        _repo(() => FunctionResponse(data: 'html', status: 200))
+            .getMemoById('m1'),
+        notNotFound);
+  });
+
+  test('429 두 번 뒤 200 -> 메모를 받는다', () async {
+    var n = 0;
+    final memo = await _repo(() {
+      n++;
+      if (n < 3) return _throwing(429);
+      return FunctionResponse(data: {'memo': _memoJson}, status: 200);
+    }).getMemoById('m1');
+    expect(memo.id, 'm1');
+    expect(n, 3);
   });
 }

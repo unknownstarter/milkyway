@@ -58,3 +58,18 @@ jobs:
             exit 1
           fi
           echo "스낵바 규칙 OK"
+
+      # 엣지 함수 호출 관문 감시.
+      # functions.invoke( 를 화면/repository 에서 직접 부르면 중복 합치기, 속도 제한, 재시도를
+      # 우회한다. 2026-11-01 메모 상세가 1초에 94번 불러 429 가 났다.
+      # 엣지 함수는 lib/core/network/edge_function_client.dart 만 부른다.
+      - name: 엣지 함수 직접 호출 금지 검사
+        run: |
+          HITS=$(grep -rn "functions.invoke(" lib/ --include="*.dart" \
+                 | grep -v "core/network/edge_function_client.dart" || true)
+          if [ -n "$HITS" ]; then
+            echo "::error::functions.invoke( 직접 호출이 있습니다. EdgeFunctionClient.invoke 를 쓰세요."
+            echo "$HITS"
+            exit 1
+          fi
+          echo "엣지 함수 호출 규칙 OK"

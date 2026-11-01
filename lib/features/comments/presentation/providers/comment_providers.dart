@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../data/repositories/comment_repository.dart';
 import '../../domain/models/comment.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 
 /// memo_provider 스타일에 맞춘 수동 Provider 선언.
 final commentRepositoryProvider = Provider<CommentRepository>((ref) {
-  return CommentRepository(Supabase.instance.client);
+  return CommentRepository(Supabase.instance.client,
+      edge: ref.watch(edgeFunctionClientProvider));
 });
 
 /// 특정 메모의 댓글 목록.

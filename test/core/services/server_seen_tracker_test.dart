@@ -103,4 +103,30 @@ void main() {
     await t.markTabSeen('books'); // datasource.mark가 throw해도
     expect(await t.tabLastSeen('books'), isNotNull); // 캐시는 갱신됨(자가치유)
   });
+
+  test('loadAll 이 실패해도 실패 future 를 남기지 않고 다음 호출에서 다시 시도한다', () async {
+    final ds = _FlakyLoadDs(failFirst: 1, stored: {'tab:books': DateTime.utc(2026, 8, 1)});
+    final t = ServerSeenTracker(ds);
+
+    await expectLater(t.tabLastSeen('books'), throwsException);
+    expect(await t.tabLastSeen('books'), DateTime.utc(2026, 8, 1));
+    expect(ds.loadCount, 2); // 1번째 실패 + 2번째 성공
+    await t.tabLastSeen('memos');
+    expect(ds.loadCount, 2); // 성공 뒤에는 캐시
+  });
+}
+
+class _FlakyLoadDs extends _FakeDs {
+  _FlakyLoadDs({required this.failFirst, super.stored});
+  int failFirst;
+
+  @override
+  Future<Map<String, DateTime>> loadAll() async {
+    loadCount++;
+    if (failFirst > 0) {
+      failFirst--;
+      throw Exception('network');
+    }
+    return Map.of(stored);
+  }
 }

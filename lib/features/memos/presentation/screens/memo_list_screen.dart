@@ -7,6 +7,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/presentation/widgets/design/segment_filter.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
@@ -129,7 +130,14 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
         child: CircularProgressIndicator(
             color: AppColors.textSecondary, strokeWidth: 2),
       ),
-      error: (_, __) => _message(AppL10n.of(context).memoFeedLoadFailed),
+      error: (_, __) => Center(
+        child: AsyncErrorView(
+          text: AppL10n.of(context).memoFeedLoadFailed,
+          onRetry: () => _segment == 0
+              ? ref.read(paginatedMemosProvider(null).notifier).loadInitialMemos()
+              : ref.read(paginatedPublicFeedProvider.notifier).loadInitial(),
+        ),
+      ),
       data: (memos) {
         if (memos.isEmpty) {
           return _message(_segment == 0

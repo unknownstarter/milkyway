@@ -5,12 +5,13 @@ import '../../domain/models/memo.dart';
 import '../../domain/memo_exceptions.dart';
 import 'dart:io';
 import 'dart:developer';
-import '../../../../core/providers/supabase_client_provider.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../../../core/utils/response_cache.dart';
 import '../../../home/presentation/providers/book_provider.dart';
 
 final memoRepositoryProvider = Provider((ref) {
-  return MemoRepository(Supabase.instance.client);
+  return MemoRepository(Supabase.instance.client,
+      edge: ref.watch(edgeFunctionClientProvider));
 });
 
 /// 메모 변경 후 관련 provider들 무효화 (중앙화된 함수)
@@ -72,12 +73,8 @@ final bookMemosProvider =
     FutureProvider.family<List<Memo>, String>((ref, bookId) async {
   if (bookId.isEmpty) return [];
   final repository = ref.watch(memoRepositoryProvider);
-  try {
-    return await repository.getBookMemos(bookId);
-  } catch (e) {
-    log('Error in bookMemosProvider: $e');
-    return []; // 에러가 발생해도 빈 리스트를 반환
-  }
+  // 오류를 [] 로 삼키면 화면이 "메모가 없어요" 라는 거짓 빈 상태를 보인다. 그대로 전파한다.
+  return repository.getBookMemos(bookId);
 });
 
 /// 해당 책의 모든 공개 메모 가져오기 (다른 유저의 공개 메모 포함)
@@ -86,12 +83,7 @@ final publicBookMemosProvider =
     FutureProvider.family<List<Memo>, String>((ref, bookId) async {
   if (bookId.isEmpty) return [];
   final repository = ref.watch(memoRepositoryProvider);
-  try {
-    return await repository.getPublicBookMemos(bookId);
-  } catch (e) {
-    log('Error in publicBookMemosProvider: $e');
-    return []; // 에러가 발생해도 빈 리스트를 반환
-  }
+  return repository.getPublicBookMemos(bookId);
 });
 
 /// 해당 책의 공개 메모를 페이지네이션으로 가져오기 (다른 유저의 공개 메모 포함)
@@ -202,80 +194,19 @@ final homePublicMemoFeedProvider = FutureProvider<List<Memo>>((ref) async {
   return repository.getPublicFeed(excludeSelf: true);
 });
 
-final createMemoProvider =
-    FutureProvider.family<void, ({String bookId, String content, int? page})>(
-  (ref, params) async {
-    final repository = ref.watch(memoRepositoryProvider);
-    await repository.createMemo(
-      bookId: params.bookId,
-      content: params.content,
-      page: params.page,
-    );
+/// 메모 삭제 동작. FutureProvider.family 가 아니라 "함수를 주는 Provider" 다.
+/// FutureProvider 는 같은 인자의 결과(오류 포함)를 캐시해서 재시도가 캐시된 실패를 돌려받는다.
+/// 이쪽은 부를 때마다 repository 를 새로 친다.
+final deleteMemoActionProvider = Provider<
+    Future<void> Function({required String memoId, required String bookId})>(
+  (ref) => ({required String memoId, required String bookId}) async {
+    await ref.read(memoRepositoryProvider).deleteMemo(memoId);
 
-    // 중앙화된 무효화 함수 사용 (private 메모로 가정)
-    invalidateMemoProviders(ref, params.bookId, isPublic: false);
-  },
-);
-
-final updateMemoProvider = FutureProvider.family<
-    void,
-    ({
-      String memoId,
-      String content,
-      String bookId,
-      int? page,
-      String? imageUrl,
-    })>((ref, params) async {
-  final repository = ref.read(memoRepositoryProvider);
-  final supabase = ref.read(supabaseClientProvider);
-
-  // 기존 메모의 이미지가 있다면 삭제
-  if (params.imageUrl == null) {
-    try {
-      final oldMemo = await supabase
-          .from('memos')
-          .select('image_url')
-          .eq('id', params.memoId)
-          .single();
-
-      if (oldMemo['image_url'] != null) {
-        final userId = supabase.auth.currentUser!.id;
-        final oldFileName = '${userId}/${oldMemo['image_url'].split('/').last}';
-        await supabase.storage.from('memo_images').remove([oldFileName]);
-      }
-    } catch (e) {
-      log('기존 이미지 삭제 실패: $e');
-    }
-  }
-
-  await repository.updateMemo(
-    memoId: params.memoId,
-    content: params.content,
-    page: params.page,
-    imageUrl: params.imageUrl,
-  );
-
-  // updateMemoProvider는 visibility 정보가 없으므로 안전하게 모두 무효화
-  // (공개 메모일 수 있으므로 isPublic: true로 설정)
-  invalidateMemoProviders(
-    ref,
-    params.bookId,
-    memoId: params.memoId,
-    isPublic: true, // 안전을 위해 공개 메모로 가정
-  );
-});
-
-final deleteMemoProvider =
-    FutureProvider.family<void, ({String memoId, String bookId})>(
-  (ref, params) async {
-    final repository = ref.watch(memoRepositoryProvider);
-    await repository.deleteMemo(params.memoId);
-
-    // deleteMemoProvider는 삭제된 메모가 공개였을 수 있으므로 모두 무효화
+    // 삭제된 메모가 공개였을 수 있으므로 모두 무효화
     invalidateMemoProviders(
       ref,
-      params.bookId,
-      memoId: params.memoId,
+      bookId,
+      memoId: memoId,
       isPublic: true, // 안전을 위해 공개 메모로 가정
     );
   },

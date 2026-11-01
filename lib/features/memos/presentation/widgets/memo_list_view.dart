@@ -4,6 +4,7 @@ import '../providers/memo_provider.dart';
 import '../providers/memo_report_provider.dart';
 import '../../domain/models/memo_filter.dart';
 import 'book_detail_memo_card.dart';
+import '../../../../core/presentation/widgets/design/async_view.dart';
 import '../../../../core/presentation/widgets/pill_filter_button.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../memo_l10n.dart';
@@ -81,10 +82,20 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
             ? ref.watch(hiddenMemoIdsProvider)
             : const AsyncValue.data(<String>{});
 
+        // 숨긴 메모 목록을 못 불러왔는데(직전 값도 없음) 목록을 그리면 신고한 메모가
+        // 다시 보인다. 목록 대신 오류 + 다시 시도. 직전 값이 있으면 그것을 유지한다.
+        if (hiddenMemoIdsAsync.hasError && !hiddenMemoIdsAsync.hasValue) {
+          return AsyncErrorView(
+            text: l10n.memoLoadFailed,
+            onRetry: () => ref.invalidate(hiddenMemoIdsProvider),
+          );
+        }
+
         return memosAsyncValue.when(
           data: (memos) {
             // 신고한 메모 필터링
-            final hiddenMemoIds = hiddenMemoIdsAsync.value ?? <String>{};
+            final hiddenMemoIds =
+                hiddenMemoIdsAsync.valueOrNull ?? <String>{};
             final filteredMemos = memos
                 .where((memo) => !hiddenMemoIds.contains(memo.id))
                 .toList();
@@ -135,15 +146,14 @@ class _MemoListViewState extends ConsumerState<MemoListView> {
               ),
             ),
           ),
-          error: (error, stack) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              '${l10n.memoLoadErrorTitle}: $error',
-              style: const TextStyle(
-                color: Colors.red,
-                fontFamily: 'Pretendard',
-              ),
-            ),
+          error: (error, stack) => AsyncErrorView(
+            text: l10n.bookMemosLoadError,
+            onRetry: () => _selectedFilter == MemoFilter.myMemos
+                ? ref.invalidate(bookMemosProvider(widget.bookId))
+                : ref
+                    .read(paginatedPublicBookMemosProvider(widget.bookId)
+                        .notifier)
+                    .loadInitialMemos(),
           ),
         );
       },

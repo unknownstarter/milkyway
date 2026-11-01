@@ -57,8 +57,9 @@ Deno.serve(async (req) => {
         )
       `
       )
+      // maybeSingle: 없는 메모는 error(PGRST116 -> 500)가 아니라 data null -> 아래 404.
       .eq('id', memoId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('메모 조회 실패:', error);

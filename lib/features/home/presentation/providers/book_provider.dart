@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../../../core/presentation/widgets/design/story_circle.dart';
 import '../../../../core/providers/seen_tracker_provider.dart';
 import '../../data/repositories/book_repository.dart';
@@ -7,7 +8,8 @@ import '../../domain/book_activity.dart';
 import '../../domain/models/book.dart';
 
 final bookRepositoryProvider = Provider((ref) {
-  return BookRepository(Supabase.instance.client);
+  return BookRepository(Supabase.instance.client,
+      edge: ref.watch(edgeFunctionClientProvider));
 });
 
 final recentBooksProvider = FutureProvider<List<Book>>((ref) async {
