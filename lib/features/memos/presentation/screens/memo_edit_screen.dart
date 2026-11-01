@@ -502,9 +502,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
     if (shouldDelete == true) {
       try {
         if (_bookId == null) throw Exception('책 정보를 불러올 수 없습니다');
-        await ref
-            .read(deleteMemoProvider((memoId: widget.memoId, bookId: _bookId!))
-                .future);
+        await ref.read(deleteMemoActionProvider)(
+            memoId: widget.memoId, bookId: _bookId!);
         if (!mounted) return;
         if (context.mounted) context.pop();
       } catch (e) {

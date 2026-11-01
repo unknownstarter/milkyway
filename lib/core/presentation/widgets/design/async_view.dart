@@ -44,7 +44,6 @@ class AsyncView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
     return AnimatedSwitcher(
       duration: duration,
       switchInCurve: Curves.easeOut,
@@ -75,36 +74,54 @@ class AsyncView<T> extends StatelessWidget {
           ),
         ),
         // raw 에러는 노출 금지 - 친화 문구 + (있으면) 재시도 버튼만.
-        error: (_, __) => Padding(
+        error: (_, __) => AsyncErrorView(
           key: const ValueKey('async-error'),
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(errorText ?? l10n.commonLoadFailed,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodySmall
-                        .copyWith(color: AppColors.textSecondary)),
-                if (onRetry != null) ...[
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: onRetry,
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      backgroundColor: AppColors.surface,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 9),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999)),
-                    ),
-                    child:
-                        Text(l10n.commonRetry, style: AppTypography.bodySmall),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          text: errorText,
+          onRetry: onRetry,
+        ),
+      ),
+    );
+  }
+}
+
+/// 오류 상태 표준: 친화 문구 + (있으면) '다시 시도'. raw 에러는 노출하지 않는다.
+/// 오류를 빈 상태 문구("아직 메모가 없어요")로 그리면 거짓이 되므로 오류는 항상 이걸 쓴다.
+class AsyncErrorView extends StatelessWidget {
+  /// null이면 공용 기본 문구(commonLoadFailed).
+  final String? text;
+  final VoidCallback? onRetry;
+
+  const AsyncErrorView({super.key, this.text, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text ?? l10n.commonLoadFailed,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+            if (onRetry != null) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: onRetry,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  backgroundColor: AppColors.surface,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999)),
+                ),
+                child: Text(l10n.commonRetry, style: AppTypography.bodySmall),
+              ),
+            ],
+          ],
         ),
       ),
     );

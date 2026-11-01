@@ -231,12 +231,12 @@ class _ReportMemoBottomSheetState
               : _descriptionController.text.trim()
           : null;
 
-      await ref.read(reportMemoProvider((
+      await ref.read(reportMemoActionProvider)((
         memoId: widget.memo.id,
         bookId: widget.memo.bookId, // 메모 리스트 리로딩을 위해 필요
         reason: _selectedReason!,
         description: description,
-      )).future);
+      ));
 
       if (mounted) {
         Navigator.of(context).pop();

@@ -564,6 +564,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         AsyncView<List<Memo>>(
           value: async,
           errorText: l.bookMemosLoadError,
+          onRetry: () => ref.invalidate(_memoSegment == 0
+              ? publicBookMemosProvider(book.id)
+              : bookMemosProvider(book.id)),
           isEmpty: (memos) => memos.isEmpty,
           emptyBuilder: () => _memoSectionMessage(_memoSegment == 0
               ? l.bookMemosEmptyPublic
