@@ -29,6 +29,13 @@ class _FakeSeenTracker implements SeenTracker {
   }
 
   @override
+  Future<void> markMemoViewed(String memoId) async =>
+      _m['memo:$memoId'] = DateTime.now();
+
+  @override
+  Future<DateTime?> memoLastViewed(String memoId) async => _m['memo:$memoId'];
+
+  @override
   Future<void> markTabSeen(String tabKey) async =>
       _m['tab:$tabKey'] = DateTime.now();
 

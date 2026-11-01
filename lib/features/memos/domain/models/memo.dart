@@ -19,6 +19,10 @@ class Memo {
   /// 없으면 0.
   final int commentCount;
 
+  /// PostgREST computed column(last_comment_at). 메모 주인이 아닌 사람이 단
+  /// 공개 댓글 중 가장 늦은 시각. 없으면 null.
+  final DateTime? lastCommentAt;
+
   /// PostgREST computed column(lyra_question). 이 메모가 답한 Lyra 물음 스냅샷.
   /// 없으면 null.
   final String? lyraQuestion;
@@ -38,6 +42,7 @@ class Memo {
     this.userNickname,
     this.userAvatarUrl,
     this.commentCount = 0,
+    this.lastCommentAt,
     this.lyraQuestion,
   });
 
@@ -82,6 +87,9 @@ class Memo {
       userNickname: users?['nickname'],
       userAvatarUrl: users?['picture_url'],
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
+      lastCommentAt: json['last_comment_at'] != null
+          ? DateTime.tryParse(json['last_comment_at'] as String)
+          : null,
       lyraQuestion: json['lyra_question'] as String?,
     );
   }

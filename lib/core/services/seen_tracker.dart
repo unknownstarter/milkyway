@@ -1,5 +1,6 @@
 /// '봤음' 시각 기록의 계약. presentation은 직접 접근 금지, provider(SeenController) 경유.
 ///  - 책별 last-viewed(scope='book'): 책 상세 진입 시 -> 홈 스토리 링 / 책탭 점
+///  - 메모별 last-viewed(scope='memo'): 메모 상세 진입 시 -> 메모 카드 새 댓글 점
 ///  - 탭별 last-seen(scope='tab', key='books'|'memos'): 탭 진입 시 -> 하단 네비 점
 abstract class SeenTracker {
   static const tabBooks = 'books';
@@ -8,6 +9,8 @@ abstract class SeenTracker {
   Future<void> markBookViewed(String bookId);
   Future<DateTime?> bookLastViewed(String bookId);
   Future<Map<String, DateTime>> allBookViewed(List<String> bookIds);
+  Future<void> markMemoViewed(String memoId);
+  Future<DateTime?> memoLastViewed(String memoId);
   Future<void> markTabSeen(String tabKey);
   Future<DateTime?> tabLastSeen(String tabKey);
 }
@@ -84,6 +87,13 @@ class ServerSeenTracker implements SeenTracker {
     }
     return result;
   }
+
+  @override
+  Future<void> markMemoViewed(String memoId) => _mark('memo', memoId);
+
+  @override
+  Future<DateTime?> memoLastViewed(String memoId) async =>
+      (await _ensure())['memo:$memoId'];
 
   @override
   Future<void> markTabSeen(String tabKey) => _mark('tab', tabKey);
