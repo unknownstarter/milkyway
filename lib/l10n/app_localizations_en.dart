@@ -1250,6 +1250,35 @@ class AppL10nEn extends AppL10n {
   String get profileOpenSettings => 'Open settings';
 
   @override
+  String get notifSettingsTitle => 'Notifications';
+
+  @override
+  String get notifSettingsAll => 'Receive notifications';
+
+  @override
+  String get notifSettingsBookMemos => 'Memos on my books';
+
+  @override
+  String get notifSettingsBookMemosDesc =>
+      'Get notified when others\' memos pile up on books I saved';
+
+  @override
+  String get notifSettingsComments => 'Comments on my memos';
+
+  @override
+  String get notifSettingsQuiet => 'Mute from 10 PM to 7 AM';
+
+  @override
+  String get notifSettingsQuietDesc =>
+      'Anything that arrives in between is sent together at 7 AM';
+
+  @override
+  String get notifSettingsPermissionOff => 'Phone notifications are off';
+
+  @override
+  String get notifSettingsOpenPhoneSettings => 'Turn on in phone settings';
+
+  @override
   String get profileFeedbackTitle => 'Leave feedback';
 
   @override

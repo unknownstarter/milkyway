@@ -14,6 +14,7 @@ import '../../features/books/presentation/screens/book_shelf_screen.dart';
 import '../../features/memos/presentation/screens/memo_list_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
+import '../../features/notification_settings/presentation/screens/notification_settings_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/constellation/presentation/screens/constellation_screen.dart';
 import '../../features/orb/presentation/screens/my_orb_screen.dart';
@@ -232,6 +233,13 @@ final router = GoRouter(
       path: AppRoutes.profileEdit,
       name: AppRoutes.profileEditName,
       builder: (context, state) => const ProfileEditScreen(),
+    ),
+
+    // 알림 설정 (ShellRoute 밖 - 하단 네비게이션바 없음)
+    GoRoute(
+      path: AppRoutes.notificationSettings,
+      name: AppRoutes.notificationSettingsName,
+      builder: (context, state) => const NotificationSettingsScreen(),
     ),
 
     // 기록 캘린더 (ShellRoute 밖 - 책/메모 탭 앱바에서 진입)

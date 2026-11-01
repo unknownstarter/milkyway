@@ -2393,6 +2393,60 @@ abstract class AppL10n {
   /// **'설정 열기'**
   String get profileOpenSettings;
 
+  /// No description provided for @notifSettingsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림'**
+  String get notifSettingsTitle;
+
+  /// No description provided for @notifSettingsAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림 받기'**
+  String get notifSettingsAll;
+
+  /// No description provided for @notifSettingsBookMemos.
+  ///
+  /// In ko, this message translates to:
+  /// **'책에 달린 메모'**
+  String get notifSettingsBookMemos;
+
+  /// No description provided for @notifSettingsBookMemosDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'내가 담은 책에 다른 사람 메모가 쌓이면 알려줘요'**
+  String get notifSettingsBookMemosDesc;
+
+  /// No description provided for @notifSettingsComments.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 메모에 달린 댓글'**
+  String get notifSettingsComments;
+
+  /// No description provided for @notifSettingsQuiet.
+  ///
+  /// In ko, this message translates to:
+  /// **'밤 10시부터 아침 7시까지 알림 끄기'**
+  String get notifSettingsQuiet;
+
+  /// No description provided for @notifSettingsQuietDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'그 사이 온 알림은 아침 7시에 모아서 보내요'**
+  String get notifSettingsQuietDesc;
+
+  /// No description provided for @notifSettingsPermissionOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴대폰 알림이 꺼져 있어요'**
+  String get notifSettingsPermissionOff;
+
+  /// No description provided for @notifSettingsOpenPhoneSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴대폰 설정에서 켜기'**
+  String get notifSettingsOpenPhoneSettings;
+
   /// No description provided for @profileFeedbackTitle.
   ///
   /// In ko, this message translates to:

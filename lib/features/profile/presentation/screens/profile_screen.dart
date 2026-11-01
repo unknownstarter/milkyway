@@ -17,7 +17,6 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_stats_provider.dart';
 import '../../domain/profile_stats.dart';
 import '../widgets/feedback_modal.dart';
-import '../widgets/notification_settings_tile.dart';
 
 /// 나 탭 = 마이페이지. 프로필 + 내 기록(담은 책/남긴 메모/완독) + 메뉴.
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -185,7 +184,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          const NotificationSettingsTile(),
+          _menuRow(Icons.notifications_outlined,
+              AppL10n.of(context).profileMenuNotification,
+              () => context.pushNamed(AppRoutes.notificationSettingsName)),
           const Divider(color: AppColors.divider, height: 1),
           _menuRow(Icons.chat_bubble_outline,
               AppL10n.of(context).profileMenuFeedback,

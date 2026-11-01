@@ -13,6 +13,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/session_restore.dart';
 import 'core/services/push_token_lifecycle.dart';
+import 'features/notification_settings/data/time_zone_sync.dart';
 import 'core/providers/locale_controller.dart';
 import 'core/router/app_routes.dart';
 import 'l10n/app_localizations.dart';
@@ -280,7 +281,9 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   DeepLinkService? _deepLink;
-  final PushTokenLifecycle _pushToken = PushTokenLifecycle();
+  final PushTokenLifecycle _pushToken = PushTokenLifecycle(
+    extraSyncs: [TimeZoneSync.live().sync],
+  );
 
   @override
   void initState() {
