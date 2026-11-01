@@ -10,13 +10,10 @@ import 'package:whatif_milkyway_app/features/notification_settings/presentation/
 import 'package:whatif_milkyway_app/l10n/app_localizations.dart';
 
 class _FakeRepo implements NotificationPreferencesRepository {
-  _FakeRepo({
-    this.enabled = true,
-    this.prefs = NotificationPreferences.defaults,
-  });
+  _FakeRepo({this.enabled = true});
 
   bool enabled;
-  NotificationPreferences prefs;
+  NotificationPreferences prefs = NotificationPreferences.defaults;
   final List<NotificationPreferences> saved = [];
   final List<bool> enabledCalls = [];
 
