@@ -25,6 +25,9 @@ if [ -z "$IPA" ]; then
   exit 1
 fi
 
+# 빌드 안의 .env 가 운영 milkyway 인지 먼저 본다 (0.2.13 사고). 실패하면 올리지 않는다
+bash "$(dirname "$0")/check_release_env.sh" --built
+
 echo "▶ 업로드: $IPA"
 echo "  버전: $(grep '^version:' pubspec.yaml)"
 xcrun altool --upload-app --type ios -f "$IPA" \
