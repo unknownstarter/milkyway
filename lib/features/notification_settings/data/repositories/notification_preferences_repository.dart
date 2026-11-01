@@ -43,7 +43,7 @@ class NotificationPreferencesRepository {
   }
 
   /// 스위치를 처음 바꿀 때 행이 생긴다 (upsert).
-  /// 시간대 칼럼은 건드리지 않는다 ([syncTimeZone] 이 맡는다).
+  /// 시간대/언어 칼럼은 건드리지 않는다 ([syncTimeZone] 이 맡는다).
   Future<void> savePreferences(NotificationPreferences p) async {
     final uid = _uid;
     if (uid == null) return;
@@ -56,22 +56,45 @@ class NotificationPreferencesRepository {
     });
   }
 
-  /// 기기 시간대 (IANA 이름) 를 저장한다. 서버가 밤 10시~아침 7시를 이 시간대로 판정한다.
-  /// 이미 같은 값이면 쓰지 않는다. 반환: 실제로 썼는지.
-  Future<bool> syncTimeZone(String timeZone) async {
+  /// 시간대/언어 upsert 본문. 키는 서버 계약 그대로 (user_id, time_zone, language, updated_at).
+  /// language 는 notification_preferences.language check ('ko','en','ja','zh') 를 따른다.
+  static Map<String, Object> timeZoneSyncPayload({
+    required String userId,
+    required String timeZone,
+    required String language,
+    required DateTime now,
+  }) =>
+      {
+        'user_id': userId,
+        'time_zone': timeZone,
+        'language': language,
+        'updated_at': now.toUtc().toIso8601String(),
+      };
+
+  /// 기기 시간대 (IANA 이름) 와 앱 언어를 저장한다. 서버가 밤 10시~아침 7시를 이 시간대로,
+  /// 푸시 문구를 이 언어로 정한다.
+  /// 둘 다 이미 같은 값이면 쓰지 않는다. 반환: 실제로 썼는지.
+  Future<bool> syncTimeZone(String timeZone, String language) async {
     final uid = _uid;
     if (uid == null) return false;
     final row = await _client
         .from('notification_preferences')
-        .select('time_zone')
+        .select('time_zone, language')
         .eq('user_id', uid)
         .maybeSingle();
-    if (row != null && row['time_zone'] == timeZone) return false;
-    await _client.from('notification_preferences').upsert({
-      'user_id': uid,
-      'time_zone': timeZone,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    });
+    if (row != null &&
+        row['time_zone'] == timeZone &&
+        row['language'] == language) {
+      return false;
+    }
+    await _client.from('notification_preferences').upsert(
+          timeZoneSyncPayload(
+            userId: uid,
+            timeZone: timeZone,
+            language: language,
+            now: DateTime.now(),
+          ),
+        );
     return true;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:whatif_milkyway_app/core/providers/locale_controller.dart';
 import 'package:whatif_milkyway_app/features/notification_settings/data/push_permission_gateway.dart';
 import 'package:whatif_milkyway_app/features/notification_settings/data/repositories/notification_preferences_repository.dart';
 import 'package:whatif_milkyway_app/features/notification_settings/data/time_zone_sync.dart';
@@ -36,7 +37,7 @@ class _FakeRepo implements NotificationPreferencesRepository {
   }
 
   @override
-  Future<bool> syncTimeZone(String timeZone) async => true;
+  Future<bool> syncTimeZone(String timeZone, String language) async => true;
 }
 
 class _FakeGateway extends PushPermissionGateway {
@@ -142,12 +143,14 @@ void main() {
   });
 
   group('TimeZoneSync', () {
+    var lang = 'ko';
     test('로그인 상태에서 한 번만 저장하고 같은 값은 건너뛴다', () async {
       final saved = <String>[];
       final sync = TimeZoneSync(
         getTimeZone: () async => 'Asia/Seoul',
         currentUserId: () => 'u1',
-        save: (z) async {
+        getLanguage: () => lang,
+        save: (z, l) async {
           saved.add(z);
           return true;
         },
@@ -162,7 +165,8 @@ void main() {
       final sync = TimeZoneSync(
         getTimeZone: () async => 'Asia/Seoul',
         currentUserId: () => null,
-        save: (z) async {
+        getLanguage: () => lang,
+        save: (z, l) async {
           saved.add(z);
           return true;
         },
@@ -178,7 +182,8 @@ void main() {
       final sync = TimeZoneSync(
         getTimeZone: () async => zone,
         currentUserId: () => 'u1',
-        save: (z) async {
+        getLanguage: () => lang,
+        save: (z, l) async {
           if (fail) throw Exception('network');
           saved.add(z);
           return true;
@@ -191,6 +196,64 @@ void main() {
       zone = 'America/New_York';
       await sync.sync();
       expect(saved, ['Asia/Seoul', 'America/New_York']);
+    });
+  });
+
+  group('푸시 언어 계약 (서버 check: ko/en/ja/zh)', () {
+    const serverLangs = {'ko', 'en', 'ja', 'zh'};
+
+    test('upsert 본문 키가 정확히 user_id/time_zone/language/updated_at', () {
+      final m = NotificationPreferencesRepository.timeZoneSyncPayload(
+        userId: 'u1',
+        timeZone: 'Asia/Seoul',
+        language: 'ko',
+        now: DateTime.utc(2026, 11, 1),
+      );
+      expect(m.keys.toSet(),
+          {'user_id', 'time_zone', 'language', 'updated_at'});
+      expect(serverLangs, contains(m['language']));
+    });
+
+    test('기기 언어 -> 앱 언어', () {
+      const cases = <String, Locale>{
+        'ko': Locale('ko', 'KR'),
+        'en': Locale('en', 'US'),
+        'ja': Locale('ja', 'JP'),
+        'zh': Locale.fromSubtags(
+            languageCode: 'zh', scriptCode: 'Hans', countryCode: 'CN'),
+        // 지원 밖 = MaterialApp 이 실제로 고르는 폴백 (supportedLocales 첫째)
+        'en ': Locale('fr', 'FR'),
+      };
+      for (final e in cases.entries) {
+        final r = resolveAppLanguage(null, [e.value]);
+        expect(r, e.key.trim(), reason: e.value.toString());
+        expect(serverLangs, contains(r));
+      }
+    });
+
+    test('override 가 기기 언어보다 앞선다', () {
+      expect(resolveAppLanguage(const Locale('ja'), [const Locale('ko', 'KR')]),
+          'ja');
+    });
+
+    test('같은 (시간대, 언어) 두 번이면 쓰기 1번, 언어가 바뀌면 다시 쓴다', () async {
+      var lang = 'ko';
+      final saved = <String>[];
+      final sync = TimeZoneSync(
+        getTimeZone: () async => 'Asia/Seoul',
+        currentUserId: () => 'u1',
+        getLanguage: () => lang,
+        save: (z, l) async {
+          saved.add('$z/$l');
+          return true;
+        },
+      );
+      await sync.sync();
+      await sync.sync();
+      expect(saved, ['Asia/Seoul/ko']);
+      lang = 'ja';
+      await sync.sync();
+      expect(saved, ['Asia/Seoul/ko', 'Asia/Seoul/ja']);
     });
   });
 }
