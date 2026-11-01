@@ -279,3 +279,7 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# cron 이 x-cron-secret 으로 부른다 (JWT 없음). 시크릿은 함수 안에서 검증
+[functions.deliver-pending-notifications]
+verify_jwt = false

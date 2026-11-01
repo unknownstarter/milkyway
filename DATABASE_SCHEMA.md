@@ -146,6 +146,16 @@ CHECK (status = ANY (ARRAY['읽고 싶은'::text, '읽는 중'::text, '완독'::
 
 ---
 
+### 7. 알림 테이블 4종 (2026-11-01 추가, 신규)
+마이그레이션: `supabase/migrations/20261101100000_notification_preferences.sql`
+
+| 테이블 | 용도 | RLS |
+|---|---|---|
+| `notification_preferences` | 사용자별 알림 설정 (`book_memos` / `comments` / `quiet_hours` / `time_zone`). 행 없으면 서버가 기본값(모두 켜짐, Asia/Seoul)으로 처리 | 본인만 select/insert/update |
+| `book_memo_milestones` | (user, book) 별 마지막 알린 마일스톤 `last_milestone` (1, 5, 10, 20, 50, 100개째) | 정책 없음 (서비스 롤 전용) |
+| `pending_notifications` | 방해 금지 시간(현지 22:00~06:59)에 모아둔 알림. `deliver_after` 이후 `deliver-pending-notifications` 가 묶어 발송 | 정책 없음 (서비스 롤 전용) |
+| `notification_sends` | 발송 기록. 책 메모 알림 하루 1개 상한 판정용 | 정책 없음 (서비스 롤 전용) |
+
 ## ERD (Entity Relationship Diagram)
 
 ```
@@ -248,6 +258,9 @@ WHERE b.isbn = ?
 ---
 
 ## 변경 이력
+
+### v1.3 (2026-11-01)
+- 알림 테이블 4종 신규 (notification_preferences, book_memo_milestones, pending_notifications, notification_sends). 기존 6개 테이블 변경 없음
 
 ### v1.2 (2025-11-19)
 - users 테이블에 referral_code 컬럼 추가
