@@ -13,6 +13,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/memo.dart';
 import '../memo_l10n.dart';
 import '../providers/memo_search_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/memo_new_comment_provider.dart';
 
 /// 내 메모 검색. 키워드는 무료(PRD v2 §8 Free), 의미 검색은 그 위에 얹었다(§10).
 ///
@@ -198,6 +200,11 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
       page: memo.page,
       imageUrl: memo.imageUrl,
       commentCount: memo.commentCount,
+      hasNewComment: ref
+              .watch(memoHasNewCommentProvider(memoNewCommentKey(
+                  memo, ref.watch(authProvider).value?.id)))
+              .value ??
+          false,
       lyraQuestion: memo.lyraQuestion,
       onTap: () => _openDetail(memo, fromSemantic: fromSemantic),
     );

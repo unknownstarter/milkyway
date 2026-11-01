@@ -14,6 +14,7 @@ import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/analytics_provider.dart';
+import '../../../../core/providers/seen_tracker_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../comments/presentation/widgets/comment_section.dart';
@@ -44,6 +45,8 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     if (!_hasInitialized) {
       _hasInitialized = true;
       ref.read(analyticsProvider).logScreenView('memo_detail_screen');
+      // 새 댓글 점 끄기: 메모 카드가 memoViewed 리비전을 구독해 자동 재계산된다.
+      ref.read(seenControllerProvider.notifier).markMemoViewed(widget.memoId);
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {

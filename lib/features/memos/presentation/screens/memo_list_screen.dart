@@ -12,6 +12,8 @@ import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/design/memo_card.dart';
 import '../../domain/models/memo.dart';
 import '../providers/memo_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/memo_new_comment_provider.dart';
 import '../memo_l10n.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -190,6 +192,11 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
       page: memo.page,
       imageUrl: memo.imageUrl,
       commentCount: memo.commentCount,
+      hasNewComment: ref
+              .watch(memoHasNewCommentProvider(memoNewCommentKey(
+                  memo, ref.watch(authProvider).value?.id)))
+              .value ??
+          false,
       lyraQuestion: memo.lyraQuestion,
       onTap: () => _openDetail(memo),
     );

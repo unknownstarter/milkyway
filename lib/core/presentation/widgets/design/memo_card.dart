@@ -71,6 +71,10 @@ class MemoCard extends StatelessWidget {
   /// 댓글 수(> 0이면 말풍선 아이콘 + 숫자 노출).
   final int commentCount;
 
+  /// 내 메모에 아직 못 본 새 댓글이 있으면 true(댓글 아이콘 옆 초록 점).
+  /// 판정은 호출측 provider 몫이고 카드는 그리기만 한다. 기본 false.
+  final bool hasNewComment;
+
   /// 이 메모가 답한 Lyra 물음 스냅샷(있으면 본문 위에 인용 라인).
   final String? lyraQuestion;
 
@@ -92,6 +96,7 @@ class MemoCard extends StatelessWidget {
     this.maxLines,
     this.imageUrl,
     this.commentCount = 0,
+    this.hasNewComment = false,
     this.lyraQuestion,
     this.highlight,
   });
@@ -267,11 +272,23 @@ class MemoCard extends StatelessWidget {
         if (commentCount > 0) ...[
           const SizedBox(width: 8),
           const Icon(Icons.chat_bubble_outline,
-              size: 13, color: AppColors.textTertiary),
+              size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 4),
           Text('$commentCount',
               style: AppTypography.caption
-                  .copyWith(color: AppColors.textTertiary)),
+                  .copyWith(color: AppColors.textSecondary)),
+          if (hasNewComment) ...[
+            const SizedBox(width: 4),
+            Container(
+              key: const Key('memo-card-new-comment-dot'),
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: AppColors.accentGreen,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ],
       ],
     );

@@ -8,18 +8,24 @@ final seenTrackerServiceProvider = Provider<SeenTracker>(
   (ref) => ServerSeenTracker(SupabaseSeenDataSource(Supabase.instance.client)),
 );
 
-/// '봤음' 리비전 3종. 종류별로 분리해 **관심 있는 파생 provider만** 재계산되게 한다.
+/// '봤음' 리비전 4종. 종류별로 분리해 **관심 있는 파생 provider만** 재계산되게 한다.
 /// (단일 전역 카운터면 책탭을 봤을 때 메모탭 배지의 네트워크까지 재호출되어 비용이 샘)
 class SeenRevisions {
   final int bookViewed; // 홈 스토리 링 / 책탭 썸네일 점
+  final int memoViewed; // 메모 카드 새 댓글 점
   final int tabBooks; // 하단 네비 Books 점
   final int tabMemos; // 하단 네비 Memos 점
   const SeenRevisions(
-      {this.bookViewed = 0, this.tabBooks = 0, this.tabMemos = 0});
+      {this.bookViewed = 0,
+      this.memoViewed = 0,
+      this.tabBooks = 0,
+      this.tabMemos = 0});
 
-  SeenRevisions copyWith({int? bookViewed, int? tabBooks, int? tabMemos}) =>
+  SeenRevisions copyWith(
+          {int? bookViewed, int? memoViewed, int? tabBooks, int? tabMemos}) =>
       SeenRevisions(
         bookViewed: bookViewed ?? this.bookViewed,
+        memoViewed: memoViewed ?? this.memoViewed,
         tabBooks: tabBooks ?? this.tabBooks,
         tabMemos: tabMemos ?? this.tabMemos,
       );
@@ -42,6 +48,11 @@ class SeenController extends Notifier<SeenRevisions> {
     state = state.copyWith(bookViewed: state.bookViewed + 1);
   }
 
+  Future<void> markMemoViewed(String memoId) async {
+    await _tracker.markMemoViewed(memoId);
+    state = state.copyWith(memoViewed: state.memoViewed + 1);
+  }
+
   Future<void> markTabSeen(String tabKey) async {
     await _tracker.markTabSeen(tabKey);
     state = tabKey == SeenTracker.tabBooks
@@ -52,6 +63,9 @@ class SeenController extends Notifier<SeenRevisions> {
   // 읽기(판정용). 파생 provider는 관심 리비전을 select로 구독하고 데이터는 이걸로 읽는다.
   Future<Map<String, DateTime>> allBookViewed(List<String> bookIds) =>
       _tracker.allBookViewed(bookIds);
+
+  Future<DateTime?> memoLastViewed(String memoId) =>
+      _tracker.memoLastViewed(memoId);
 
   Future<DateTime?> tabLastSeen(String tabKey) => _tracker.tabLastSeen(tabKey);
 }

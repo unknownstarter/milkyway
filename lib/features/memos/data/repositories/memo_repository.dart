@@ -17,13 +17,14 @@ class MemoRepository {
 
   /// 메모 목록을 가져올 때 쓰는 select 모양.
   ///
-  /// `comment_count` · `lyra_question` 은 memos 의 컬럼이 아니라 PostgREST computed
+  /// `comment_count` · `last_comment_at` · `lyra_question` 은 memos 의 컬럼이 아니라 PostgREST computed
   /// field 다(SQL 함수 `comment_count(memos)` · `lyra_question(memos)`). 서버에서
   /// 메모 JSON 을 직접 조립하면 이걸 손으로 재현해야 하고, 컬럼이 하나 늘면 조용히
   /// 어긋난다. 그래서 검색 RPC 는 순서만 정하고 본문은 이 모양으로 채운다.
   static const String _memoSelect = '''
     *,
     comment_count,
+    last_comment_at,
     lyra_question,
     books (
       id,
@@ -43,6 +44,7 @@ class MemoRepository {
         .select('''
           *,
           comment_count,
+          last_comment_at,
           lyra_question,
           books (
             id,
@@ -98,6 +100,7 @@ class MemoRepository {
     final response = await _client.from('memos').select('''
           *,
           comment_count,
+          last_comment_at,
           lyra_question,
           books (
             id,
@@ -435,6 +438,7 @@ class MemoRepository {
         .select('''
           *,
           comment_count,
+          last_comment_at,
           lyra_question,
           books (
             id,
@@ -461,6 +465,7 @@ class MemoRepository {
     var query = _client.from('memos').select('''
       *,
       comment_count,
+      last_comment_at,
       lyra_question,
       books (
         id,

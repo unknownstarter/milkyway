@@ -257,6 +257,9 @@ WHERE b.isbn = ?
 
 ---
 
+### 8. computed field 함수 (2026-11-01, 신규)
+- `last_comment_at(memos)` : 메모 주인이 아닌 사람이 단 댓글 중 가장 늦은 `created_at` (숨김/소프트삭제 작성자 제외, security definer, `comment_count` 와 동일 기준). 메모 카드 새 댓글 점용. `supabase/migrations/20261101120000_memo_last_comment_at.sql`
+
 ## 변경 이력
 
 ### v1.3 (2026-11-01)
