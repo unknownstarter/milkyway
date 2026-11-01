@@ -56,6 +56,37 @@ async function generateAccessToken(serviceAccount: any): Promise<string> {
   return tokenData.access_token;
 }
 
+/// FCM 이 "이 토큰은 더 못 쓴다"고 답한 경우인지. 404 UNREGISTERED, 400 INVALID_ARGUMENT(토큰 형식).
+/// INVALID_ARGUMENT 는 페이로드 문제일 수도 있어서 메시지/상세가 토큰을 가리킬 때만 인정한다.
+function isDeadTokenError(status: number, bodyText: string): boolean {
+  let err: any = null;
+  try {
+    err = JSON.parse(bodyText)?.error ?? null;
+  } catch (_) {
+    return false;
+  }
+  if (!err) return false;
+  const details = JSON.stringify(err.details ?? []);
+  if (status === 404 || err.status === 'NOT_FOUND') {
+    return err.status === 'NOT_FOUND' ? details.includes('UNREGISTERED') : true;
+  }
+  if (status === 400 || err.status === 'INVALID_ARGUMENT') {
+    return /token/i.test(`${err.message ?? ''} ${details}`);
+  }
+  return false;
+}
+
+/// 죽은 토큰을 users 에서 지운다. 그 사이 새 토큰으로 바뀌었으면 건드리지 않도록 값이 같을 때만.
+async function dropDeadToken(userId: string, token: string): Promise<void> {
+  const { error } = await supabase
+    .from('users')
+    .update({ fcm_token: null })
+    .eq('id', userId)
+    .eq('fcm_token', token);
+  if (error) console.error('죽은 FCM 토큰 삭제 실패:', error.message);
+  else console.log(`죽은 FCM 토큰 삭제: user=${userId}`);
+}
+
 Deno.serve(async (req) => {
   try {
     if (req.method !== 'POST') {
@@ -128,7 +159,7 @@ Deno.serve(async (req) => {
     }
 
     // FCM 토큰이 있고 알림이 활성화된 사용자만 필터링 (메모 작성자 제외)
-    const tokens: string[] = [];
+    const tokens: { userId: string; token: string }[] = [];
     for (const userBook of userBooks) {
       const user = userBook.users;
       if (
@@ -138,7 +169,7 @@ Deno.serve(async (req) => {
         user.fcm_token.length > 0 &&
         user.notification_enabled !== false
       ) {
-        tokens.push(user.fcm_token);
+        tokens.push({ userId: (user as any).id, token: (user as any).fcm_token });
       }
     }
 
@@ -216,8 +247,9 @@ Deno.serve(async (req) => {
     // v1 API는 한 번에 하나의 토큰만 지원하므로 각각 전송
     let successCount = 0;
     let failureCount = 0;
+    let droppedCount = 0;
 
-    for (const token of tokens) {
+    for (const { userId, token } of tokens) {
       try {
         // FCM 메시지 페이로드 구성
         const messagePayload: any = {
@@ -275,9 +307,13 @@ Deno.serve(async (req) => {
         if (fcmResponse.ok) {
           successCount++;
         } else {
-          const errorData = await fcmResponse.json();
-          console.error(`FCM 전송 실패 (토큰: ${token.substring(0, 20)}...):`, errorData);
+          const errorText = await fcmResponse.text();
+          console.error(`FCM 전송 실패 (토큰: ${token.substring(0, 20)}...):`, errorText);
           failureCount++;
+          if (isDeadTokenError(fcmResponse.status, errorText)) {
+            await dropDeadToken(userId, token);
+            droppedCount++;
+          }
         }
       } catch (error) {
         console.error(`FCM 전송 중 오류 발생:`, error);
@@ -293,6 +329,8 @@ Deno.serve(async (req) => {
         tokens_count: tokens.length,
         success_count: successCount,
         failure_count: failureCount,
+        dropped_count: droppedCount,
+        reason: droppedCount > 0 ? 'token_unregistered' : undefined,
         message: `알림 전송 완료: ${successCount}개 성공, ${failureCount}개 실패`,
       }),
       {

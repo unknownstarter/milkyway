@@ -42,6 +42,37 @@ async function generateAccessToken(serviceAccount: any): Promise<string> {
   return (await tokenResponse.json()).access_token;
 }
 
+/// FCM 이 "이 토큰은 더 못 쓴다"고 답한 경우인지. 404 UNREGISTERED, 400 INVALID_ARGUMENT(토큰 형식).
+/// INVALID_ARGUMENT 는 페이로드 문제일 수도 있어서 메시지/상세가 토큰을 가리킬 때만 인정한다.
+function isDeadTokenError(status: number, bodyText: string): boolean {
+  let err: any = null;
+  try {
+    err = JSON.parse(bodyText)?.error ?? null;
+  } catch (_) {
+    return false;
+  }
+  if (!err) return false;
+  const details = JSON.stringify(err.details ?? []);
+  if (status === 404 || err.status === 'NOT_FOUND') {
+    return err.status === 'NOT_FOUND' ? details.includes('UNREGISTERED') : true;
+  }
+  if (status === 400 || err.status === 'INVALID_ARGUMENT') {
+    return /token/i.test(`${err.message ?? ''} ${details}`);
+  }
+  return false;
+}
+
+/// 죽은 토큰을 users 에서 지운다. 그 사이 새 토큰으로 바뀌었으면 건드리지 않도록 값이 같을 때만.
+async function dropDeadToken(userId: string, token: string): Promise<void> {
+  const { error } = await supabase
+    .from('users')
+    .update({ fcm_token: null })
+    .eq('id', userId)
+    .eq('fcm_token', token);
+  if (error) console.error('죽은 FCM 토큰 삭제 실패:', error.message);
+  else console.log(`죽은 FCM 토큰 삭제: user=${userId}`);
+}
+
 const ok = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     headers: { 'Content-Type': 'application/json' },
@@ -158,6 +189,10 @@ Deno.serve(async (req) => {
     if (!fcmResponse.ok) {
       const errorData = await fcmResponse.text();
       console.error('FCM 전송 실패:', errorData);
+      if (isDeadTokenError(fcmResponse.status, errorData)) {
+        await dropDeadToken(authorId, author.fcm_token);
+        return ok({ sent: false, success: false, reason: 'token_unregistered' }, 200);
+      }
       return ok({ success: false, message: 'FCM 전송 실패' }, 200);
     }
 
