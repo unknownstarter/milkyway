@@ -13,6 +13,19 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// 릴리즈 빌드인데 서명 키가 없으면 서명 없는 aab 가 조용히 만들어진다 (2026-11-02 0.2.17 사고).
+// key.properties 와 upload-keystore.jks 는 gitignore 라 git worktree 에는 없다.
+// debug 빌드, flutter test, analyze, CI 는 릴리즈 태스크를 요청하지 않으므로 영향 없다.
+def releaseRequested = gradle.startParameter.taskNames.any {
+    it ==~ /(?i).*(bundle|assemble|package)Release.*/
+}
+if (releaseRequested && !keystorePropertiesFile.exists()) {
+    throw new GradleException(
+        "\n[릴리즈 빌드 중단] android/app/key.properties 와 android/app/upload-keystore.jks 가 없습니다.\n" +
+        "서명 없이 빌드하면 Play 가 aab 를 거절합니다. git worktree 에는 이 파일이 없으니 메인 체크아웃(~/milkyway)에서 두 파일을 복사해 오세요. (커밋 금지)"
+    )
+}
+
 android {
     namespace = "com.whatif.milkyway"
     compileSdk = flutter.compileSdkVersion

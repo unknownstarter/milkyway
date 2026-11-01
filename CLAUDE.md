@@ -212,7 +212,8 @@ lib/
    - `SUPABASE_URL` = `https://hyjgfgzexvxhgfmqgiqu.supabase.co` (운영 milkyway)
    - anon 키 JWT 의 `ref` 가 같은 프로젝트이고 `role` 이 `anon`
 4. 그 밖에 빌드 전 확인: 버전 번호가 스토어에 올라간 것보다 크다 (iOS 빌드 번호, Android versionCode 둘 다), `flutter analyze --no-fatal-infos` exit 0, `flutter test` 통과, `git status ios/Runner` 깨끗
-5. 다른 프로젝트 (double-take, momo 등) 작업을 같은 맥에서 하므로 `.env` 가 바뀌어 있을 수 있다. **복사해 온 `.env` 를 믿지 말고 매번 스크립트로 확인한다**
+5. **worktree 에서 릴리즈 빌드하면** `android/app/key.properties` 와 `android/app/upload-keystore.jks` 가 없다 (gitignore). 메인 체크아웃에서 복사해 오고 커밋하지 않는다. 없으면 `android/app/build.gradle` 이 릴리즈 빌드를 중단시킨다 (2026-11-02 0.2.17 서명 없는 aab 사고). `--built` 는 aab 서명 (`jarsigner`), Play 업로드 키 지문 (SHA256), 버전 (pubspec 과 `bundletool`) 도 검증한다. `--aab <경로>` 로 특정 aab 를 지정할 수 있다
+6. 다른 프로젝트 (double-take, momo 등) 작업을 같은 맥에서 하므로 `.env` 가 바뀌어 있을 수 있다. **복사해 온 `.env` 를 믿지 말고 매번 스크립트로 확인한다**
 
 ## 게이트 (설치 필수)
 **새 맥에서 클론했으면 이 한 줄을 먼저 칠 것.** 안 치면 pre-push 훅이 조용히 꺼진 채로 개발된다.
