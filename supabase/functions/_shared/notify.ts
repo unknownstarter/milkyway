@@ -4,8 +4,10 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import {
   dailyLimitReached,
   isQuietHour,
+  type Lang,
   localDayRange,
   nextMorning,
+  normalizeLang,
   safeTimeZone,
 } from './notify_core.ts';
 
@@ -21,6 +23,9 @@ export interface NotifyPayload {
   image?: string | null;
   /// 아침 묶음 본문에 쓸 댓글 본문 요약 (pending data 에만 저장, FCM 으로는 안 보냄)
   preview?: string;
+  /// 아침 묶음에서 "OO님 외 N명" 문구용 (pending data 에만 저장, FCM 으로는 안 보냄)
+  actorName?: string;
+  actorId?: string;
 }
 
 export type DecideResult =
@@ -191,6 +196,8 @@ export interface Recipient {
   switchOn: boolean; // 종류별 스위치
   quietHours: boolean;
   timeZone: string;
+  /// 수신자 언어 (notification_preferences.language, 없으면 ko)
+  language: Lang;
 }
 
 /// users + notification_preferences. 설정 행이 없으면 기본값 (모두 켜짐, Asia/Seoul).
@@ -207,7 +214,7 @@ export async function loadRecipient(
   if (!user) return null;
   const { data: pref } = await supabase
     .from('notification_preferences')
-    .select('book_memos, comments, quiet_hours, time_zone')
+    .select('book_memos, comments, quiet_hours, time_zone, language')
     .eq('user_id', userId)
     .maybeSingle();
   const switchOn = pref ? (kind === 'comment' ? pref.comments : pref.book_memos) !== false : true;
@@ -217,6 +224,7 @@ export async function loadRecipient(
     switchOn,
     quietHours: pref ? pref.quiet_hours !== false : true,
     timeZone: safeTimeZone(pref?.time_zone),
+    language: normalizeLang(pref?.language),
   };
 }
 
@@ -254,7 +262,7 @@ export async function decide(
   supabase: SupabaseClient,
   userId: string,
   kind: NotifyKind,
-  payload: NotifyPayload,
+  payloadOrBuild: NotifyPayload | ((lang: Lang) => NotifyPayload),
   now: Date = new Date(),
 ): Promise<DecideResult> {
   const r = await loadRecipient(supabase, userId, kind);
@@ -262,6 +270,11 @@ export async function decide(
   if (!r.enabled) return { status: 'skipped', reason: 'notification_disabled' };
   if (!r.switchOn) return { status: 'skipped', reason: 'preference_off' };
   if (!r.token) return { status: 'skipped', reason: 'no_token' };
+
+  // 수신자 언어로 문구를 만든다 (prefs 를 이미 읽었으므로 쿼리 추가 없음)
+  const payload = typeof payloadOrBuild === 'function'
+    ? payloadOrBuild(r.language)
+    : payloadOrBuild;
 
   if (kind === 'book_memo') {
     const sent = await countSentToday(supabase, userId, kind, r.timeZone, now);
@@ -285,7 +298,13 @@ export async function decide(
       kind,
       title: payload.title,
       body: payload.body,
-      data: payload.preview ? { ...payload.data, preview: payload.preview } : payload.data,
+      data: {
+        ...payload.data,
+        ...(payload.preview ? { preview: payload.preview } : {}),
+        ...(payload.actorName ? { actor_name: payload.actorName } : {}),
+        ...(payload.actorId ? { actor_id: payload.actorId } : {}),
+        lang: r.language,
+      },
       deliver_after: deliverAfter,
     });
     if (error) {
