@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/session_restore.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/splash_layout.dart';
@@ -46,6 +47,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
         // 딥링크로 켜졌으면 그 카드가 우선.
         if (await DeepLinkService.consumePending()) return;
+
+        // 꺼진 앱에서 알림을 눌러 켜졌으면: 홈을 깔고 그 위에 메모 상세를 올린다.
+        // (SessionRestore 가 덮어쓰지 않도록 복원보다 먼저 처리)
+        final notif = NotificationService();
+        if (notif.hasPendingColdStart && mounted) {
+          context.goNamed(AppRoutes.homeName);
+          if (notif.dispatchPendingColdStart()) return;
+        }
 
         // 마지막 위치가 있으면 바로 복원(스플래시->홈 점프 방지).
         final last = await SessionRestore.last();

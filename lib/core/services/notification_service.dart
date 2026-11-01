@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,13 +23,33 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  late final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
   
   /// 알림 탭 시 라우팅 콜백
   Function(Map<String, dynamic>)? onNotificationTapped;
+
+  /// 앱이 꺼진 상태에서 알림을 눌러 실행됐을 때의 데이터.
+  /// 이동 콜백/라우터가 준비되기 전이라 보관만 하고, 스플래시가 세션 확인 뒤 [dispatchPendingColdStart] 로 소비한다.
+  Map<String, dynamic>? _pendingColdStart;
+
+  bool get hasPendingColdStart => _pendingColdStart != null;
+
+  @visibleForTesting
+  void setPendingColdStart(Map<String, dynamic>? data) => _pendingColdStart = data;
+
+  /// 보관된 콜드 스타트 알림을 이동 콜백으로 한 번 내보낸다. 보낸 경우 true.
+  /// 콜백이 아직 없으면 보관을 유지한다.
+  bool dispatchPendingColdStart() {
+    final data = _pendingColdStart;
+    final cb = onNotificationTapped;
+    if (data == null || cb == null) return false;
+    _pendingColdStart = null;
+    cb(data);
+    return true;
+  }
 
   /// 알림 권한 상태 확인
   Future<NotificationSettings> getNotificationSettings() async {
@@ -112,7 +134,7 @@ class NotificationService {
 
       await _localNotifications.initialize(
         initSettings,
-        onDidReceiveNotificationResponse: _onNotificationTapped,
+        onDidReceiveNotificationResponse: onLocalNotificationResponse,
       );
 
       // 백그라운드 메시지 핸들러 설정
@@ -135,7 +157,8 @@ class NotificationService {
         },
       );
       if (initialMessage != null) {
-        _handleNotificationTap(initialMessage);
+        // 이 시점엔 이동 콜백/라우터가 없다(runApp 전). 보관했다가 스플래시가 소비한다.
+        _pendingColdStart = Map<String, dynamic>.from(initialMessage.data);
       }
 
       _isInitialized = true;
@@ -188,7 +211,7 @@ class NotificationService {
       notification.title,
       notification.body,
       details,
-      payload: message.data.toString(),
+      payload: jsonEncode(message.data),
     );
   }
 
@@ -201,26 +224,17 @@ class NotificationService {
   }
 
   /// 로컬 알림 탭 처리
-  void _onNotificationTapped(NotificationResponse response) {
+  @visibleForTesting
+  void onLocalNotificationResponse(NotificationResponse response) {
     log.i('로컬 알림 탭: ${response.payload}');
-    // payload는 JSON 문자열이므로 파싱 필요
-    if (response.payload != null && onNotificationTapped != null) {
-      try {
-        // payload가 JSON 문자열인 경우 파싱
-        // 간단한 구현: memo_id만 추출
-        final payload = response.payload!;
-        if (payload.contains('memo_id')) {
-          // 간단한 파싱 (실제로는 JSON 파싱 필요)
-          // payload에서 memo_id 추출
-          final pattern = RegExp(r'memo_id[:\s]+([a-zA-Z0-9-]+)');
-          final memoIdMatch = pattern.firstMatch(payload);
-          if (memoIdMatch != null && memoIdMatch.groupCount > 0) {
-            onNotificationTapped!({'memo_id': memoIdMatch.group(1)!});
-          }
-        }
-      } catch (e) {
-        log.e('알림 payload 파싱 실패: $e');
-      }
+    final payload = response.payload;
+    final cb = onNotificationTapped;
+    if (payload == null || cb == null) return;
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) cb(decoded);
+    } catch (e) {
+      log.e('알림 payload 파싱 실패: $e');
     }
   }
 
