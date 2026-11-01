@@ -5,6 +5,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/datasources/auth_remote_data_source_impl.dart';
+import '../../../../core/utils/time_utils.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/services/session_restore.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
@@ -203,8 +204,8 @@ class Auth extends _$Auth {
           'email': user.email,
           'nickname': user.nickname,
           'picture_url': user.pictureUrl,
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
+          'created_at': nowUtcIso(),
+          'updated_at': nowUtcIso(),
           // referral_code는 NULL로 두면 trigger가 자동 생성
         });
       } else {
@@ -220,7 +221,7 @@ class Auth extends _$Auth {
         // 중요: nickname과 picture_url은 사용자가 온보딩/프로필 편집에서 설정한 값이 있으면 덮어쓰지 않음
         final updates = <String, dynamic>{
           'email': user.email,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': nowUtcIso(),
         };
 
         // nickname이 DB에 없거나 null인 경우에만 Google/Apple에서 받은 값으로 설정
@@ -287,7 +288,7 @@ class Auth extends _$Auth {
       if (currentUser == null) return;
 
       final updates = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': nowUtcIso(),
       };
 
       if (nickname != null) updates['nickname'] = nickname;
@@ -363,7 +364,7 @@ class Auth extends _$Auth {
           .from('users')
           .update({
             'onboarding_completed': completed,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': nowUtcIso(),
           })
           .eq('id', currentUser.id);
 
