@@ -13,8 +13,11 @@ import '../../../../core/utils/response_cache.dart';
 
 class MemoRepository {
   final SupabaseClient _client;
+  final FunctionsClient _functions;
 
-  MemoRepository(this._client);
+  /// [functions] 는 시험에서 가짜 엣지 함수 클라이언트를 꽂기 위한 자리다.
+  MemoRepository(this._client, {FunctionsClient? functions})
+      : _functions = functions ?? _client.functions;
 
   /// 메모 목록을 가져올 때 쓰는 select 모양.
   ///
@@ -391,46 +394,40 @@ class MemoRepository {
 
   /// 메모 ID로 조회 (공개/비공개 모두 조회 가능, 다른 유저의 메모도 조회 가능)
   /// RLS 정책으로 인해 users 조인 시 다른 유저 정보를 가져올 수 없으므로 Edge Function 사용
+  /// 판정: 200 memo -> Memo / 200 restricted -> MemoRestrictedException /
+  /// 404 또는 memo 비어 있음 -> MemoNotFoundException / 그 외(429, 5xx, 네트워크) -> 일반 예외.
   Future<Memo> getMemoById(String memoId) async {
+    final FunctionResponse response;
     try {
-      log('get-memo-by-id 호출 시작: $memoId');
-      final response = await _client.functions.invoke(
+      response = await _functions.invoke(
         'get-memo-by-id',
         body: {'memo_id': memoId},
       );
-
-      log('get-memo-by-id 응답 상태: ${response.status}');
-      log('get-memo-by-id 응답 데이터: ${response.data}');
-
-      if (response.status != 200) {
-        final errorData = response.data;
-        log('메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-        throw Exception('메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-      }
-
-      final result = response.data as Map<String, dynamic>;
-
-      // 남의 비공개 메모: 접근 제한. bookId를 담아 던져 책 상세로 유도(저장한 경우).
-      if (result['restricted'] == true) {
-        throw MemoRestrictedException(result['book_id'] as String?);
-      }
-
-      final memoData = result['memo'] as Map<String, dynamic>?;
-
-      if (memoData == null) {
-        log('메모 데이터가 null입니다. result: $result');
-        throw Exception('메모를 찾을 수 없습니다.');
-      }
-
-      log('메모 데이터 파싱 전: users=${memoData['users']}, nickname=${memoData['users']?['nickname']}');
-      final memo = Memo.fromJson(memoData);
-      log('메모 파싱 후: userNickname=${memo.userNickname}, userAvatarUrl=${memo.userAvatarUrl}');
-      return memo;
-    } catch (e, stackTrace) {
-      log('메모 조회 중 오류 발생: $e');
-      log('스택 트레이스: $stackTrace');
-      rethrow;
+    } on FunctionException catch (e) {
+      // supabase_flutter 는 2xx 가 아니면 throw 한다.
+      if (e.status == 404) throw const MemoNotFoundException();
+      throw Exception('메모 조회 실패(${e.status}): ${e.details ?? '알 수 없는 오류'}');
     }
+
+    if (response.status == 404) throw const MemoNotFoundException();
+    if (response.status != 200) {
+      throw Exception(
+          '메모 조회 실패(${response.status}): ${response.data ?? '알 수 없는 오류'}');
+    }
+
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw Exception('메모 조회 실패: 응답 형식이 올바르지 않습니다.');
+    }
+
+    // 남의 비공개 메모: 접근 제한. bookId를 담아 던져 책 상세로 유도(저장한 경우).
+    if (data['restricted'] == true) {
+      throw MemoRestrictedException(data['book_id'] as String?);
+    }
+
+    final memoData = data['memo'] as Map<String, dynamic>?;
+    if (memoData == null) throw const MemoNotFoundException();
+    return Memo.fromJson(memoData);
   }
 
   Future<List<Memo>> getAllMemos() async {

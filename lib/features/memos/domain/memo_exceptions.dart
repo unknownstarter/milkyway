@@ -6,3 +6,12 @@ class MemoRestrictedException implements Exception {
   @override
   String toString() => 'MemoRestrictedException(bookId: $bookId)';
 }
+
+/// 메모가 정말 없는 경우(삭제됨 등). 서버가 404 를 주거나 데이터가 비어 있을 때만 던진다.
+/// 429/5xx/네트워크 오류는 이 타입이 아니라 일반 예외로 전파해야 한다.
+class MemoNotFoundException implements Exception {
+  const MemoNotFoundException();
+
+  @override
+  String toString() => 'MemoNotFoundException';
+}

@@ -47,11 +47,9 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       ref.read(analyticsProvider).logScreenView('memo_detail_screen');
       // 새 댓글 점 끄기: 메모 카드가 memoViewed 리비전을 구독해 자동 재계산된다.
       ref.read(seenControllerProvider.notifier).markMemoViewed(widget.memoId);
-      return;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.invalidate(memoProvider(widget.memoId));
-    });
+    // didChangeDependencies 는 키보드(MediaQuery) 변화마다 불린다. 여기서 서버 호출/invalidate 금지.
+    // 수정/삭제 뒤 최신화는 invalidateMemoProviders 가 맡는다.
   }
 
   @override
@@ -81,7 +79,9 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
     }
 
     // 넘어온 메모(initialMemo)가 있으면 즉시 렌더. 서버 값이 오면 자동 갱신.
-    final memo = memoAsync.value ?? widget.initialMemo;
+    // AsyncError 일 때 .value 는 예외를 다시 던지므로 hasValue 로 가른다.
+    final memo = (memoAsync.hasValue ? memoAsync.value : null) ??
+        widget.initialMemo;
     if (memo != null) return _content(memo);
 
     // 로드 실패(넘어온 것도 없음)
@@ -89,9 +89,21 @@ class _MemoDetailScreenState extends ConsumerState<MemoDetailScreen> {
       return Scaffold(
         backgroundColor: AppColors.bgPrimary,
         body: Center(
-          child: Text(AppL10n.of(context).memoLoadFailed,
-              style: AppTypography.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AppL10n.of(context).memoLoadFailed,
+                  style: AppTypography.bodySmall
+                      .copyWith(color: AppColors.textSecondary)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => ref.invalidate(memoProvider(widget.memoId)),
+                child: Text(AppL10n.of(context).commonRetry,
+                    style: AppTypography.bodyBold
+                        .copyWith(color: AppColors.accentGreen)),
+              ),
+            ],
+          ),
         ),
       );
     }
