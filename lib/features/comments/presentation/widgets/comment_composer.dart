@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 ///  - [isEditing]이면 전송 아이콘 대신 체크(수정 확정)
 class CommentComposer extends StatelessWidget {
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final bool locked;
   final bool sending;
   final bool isEditing;
@@ -21,6 +22,7 @@ class CommentComposer extends StatelessWidget {
   const CommentComposer({
     super.key,
     required this.controller,
+    this.focusNode,
     required this.onSend,
     this.locked = false,
     this.sending = false,
@@ -41,6 +43,8 @@ class CommentComposer extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
+        // 키보드가 열리면 입력창이 키보드 바로 위에 붙는다(하단 안전영역을 또 더하지 않는다).
+        bottom: MediaQuery.viewInsetsOf(context).bottom == 0,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
           child: Row(
@@ -80,6 +84,8 @@ class CommentComposer extends StatelessWidget {
                       ),
                       child: TextField(
                         controller: controller,
+                        focusNode: focusNode,
+                        scrollPadding: const EdgeInsets.all(24),
                         maxLength: 500,
                         maxLines: 4,
                         minLines: 1,

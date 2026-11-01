@@ -39,13 +39,42 @@ class CommentSection extends ConsumerStatefulWidget {
   ConsumerState<CommentSection> createState() => _CommentSectionState();
 }
 
-class _CommentSectionState extends ConsumerState<CommentSection> {
+class _CommentSectionState extends ConsumerState<CommentSection>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
+  final _focus = FocusNode();
+  final _scroll = ScrollController();
   Comment? _editing;
   bool _sending = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _focus.addListener(_scrollToLatest);
+  }
+
+  /// 키보드가 올라오는 동안(창 크기가 계속 바뀐다) 입력창에 포커스가 있으면
+  /// 목록을 맨 아래(가장 최근 댓글)로 맞춘다. 수정 중이면 그대로 둔다.
+  @override
+  void didChangeMetrics() => _scrollToLatest();
+
+  void _scrollToLatest() {
+    if (!_focus.hasFocus || _editing != null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients || !_focus.hasFocus) return;
+      final max = _scroll.position.maxScrollExtent;
+      if ((max - _scroll.offset).abs() < 1) return;
+      _scroll.animateTo(max,
+          duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
+    });
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _focus.dispose();
+    _scroll.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -98,6 +127,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       _editing = c;
       _controller.text = c.content;
     });
+    _focus.requestFocus();
   }
 
   void _cancelEdit() {
@@ -216,6 +246,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
       children: [
         Expanded(
           child: SingleChildScrollView(
+            controller: _scroll,
             // 스크롤을 아래로 끌면 키보드가 내려간다(채팅 표준 동작).
             // 댓글이 적어도 드래그가 먹히도록 항상 스크롤 가능하게.
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -250,6 +281,7 @@ class _CommentSectionState extends ConsumerState<CommentSection> {
         ),
         CommentComposer(
           controller: _controller,
+          focusNode: _focus,
           locked: !saved,
           sending: _sending,
           isEditing: _editing != null,

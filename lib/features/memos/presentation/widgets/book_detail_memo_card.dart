@@ -1,5 +1,5 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/design/keyboard_aware_sheet.dart';
 import '../../../../core/presentation/widgets/design/cached_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -122,7 +122,6 @@ class BookDetailMemoCard extends ConsumerWidget {
         return const SizedBox.shrink();
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final screenHeight = MediaQuery.of(context).size.height;
 
         return SlideTransition(
           position: Tween<Offset>(
@@ -132,31 +131,9 @@ class BookDetailMemoCard extends ConsumerWidget {
             parent: animation,
             curve: Curves.easeOut,
           )),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTap: () {}, // 바텀시트 내부 탭은 무시
-                child: Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    maxHeight: screenHeight * 0.6,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF313131),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: math.max(MediaQuery.of(context).viewInsets.bottom,
-                          MediaQuery.viewPaddingOf(context).bottom),
-                    ),
-                    child: ReportMemoBottomSheet(memo: memo),
-                  ),
-                ),
-              ),
-            ),
+          child: KeyboardAwareSheet(
+            heightFactor: 0.6,
+            child: ReportMemoBottomSheet(memo: memo),
           ),
         );
       },
