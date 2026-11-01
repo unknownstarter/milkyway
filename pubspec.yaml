@@ -45,6 +45,7 @@ dependencies:
   
   # Database & Backend
   supabase_flutter: ^2.3.4
+  http: ^1.1.0 # EdgeFunctionClient 가 ClientException 을 재시도 대상으로 판정
   shared_preferences: ^2.2.3
 
   # Deep link (커스텀 스킴 milkyway://card/{code})

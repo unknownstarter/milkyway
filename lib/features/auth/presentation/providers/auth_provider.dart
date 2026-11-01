@@ -5,6 +5,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/datasources/auth_remote_data_source_impl.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../../../core/utils/time_utils.dart';
 import '../../../../core/providers/analytics_provider.dart';
 import '../../../../core/services/session_restore.dart';
@@ -261,7 +262,7 @@ class Auth extends _$Auth {
       }
 
       // Edge Function을 사용하여 닉네임 중복 체크 (RLS 정책 우회)
-      final response = await _supabase.functions.invoke(
+      final response = await ref.read(edgeFunctionClientProvider).invoke(
         'check-nickname',
         body: {'nickname': nickname, 'user_id': currentUser?.id},
       );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../domain/models/comment.dart';
 
 /// 댓글 CRUD + 신고/숨김. presentation은 반드시 이 repository를 경유한다.
@@ -11,7 +12,9 @@ import '../../domain/models/comment.dart';
 ///  - 신고/숨김: 누구나 (신고 즉시 내게만 숨김)
 class CommentRepository {
   final SupabaseClient _client;
-  CommentRepository(this._client);
+  final EdgeFunctionClient _edge;
+  CommentRepository(this._client, {required EdgeFunctionClient edge})
+      : _edge = edge;
 
   static const _withAuthor = '*, users!user_id(nickname, picture_url)';
 
@@ -65,7 +68,7 @@ class CommentRepository {
   /// 발송 안 함. 실패는 무시(댓글 작성 성공을 막지 않는다).
   Future<void> _notifyNewComment(String commentId) async {
     try {
-      await _client.functions.invoke(
+      await _edge.invoke(
         'notify-new-comment',
         body: {'comment_id': commentId},
       );

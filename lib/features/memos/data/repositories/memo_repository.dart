@@ -7,17 +7,17 @@ import '../../domain/models/memo_visibility.dart';
 import '../../domain/memo_exceptions.dart';
 import 'dart:developer';
 import '../../../../core/utils/time_utils.dart';
-import '../../../../core/utils/retry_helper.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../../../core/utils/response_cache.dart';
 
 
 class MemoRepository {
   final SupabaseClient _client;
-  final FunctionsClient _functions;
+  final EdgeFunctionClient _edge;
 
-  /// [functions] 는 시험에서 가짜 엣지 함수 클라이언트를 꽂기 위한 자리다.
-  MemoRepository(this._client, {FunctionsClient? functions})
-      : _functions = functions ?? _client.functions;
+  /// 엣지 함수는 전부 [edge] 를 거친다(중복 합치기/속도 제한/재시도). 시험에서는 가짜를 꽂는다.
+  MemoRepository(this._client, {required EdgeFunctionClient edge})
+      : _edge = edge;
 
   /// 메모 목록을 가져올 때 쓰는 select 모양.
   ///
@@ -73,31 +73,25 @@ class MemoRepository {
   /// 메모탭 '공개'는 전체 공개라 false.
   Future<List<Memo>> getPublicFeed(
       {int limit = 20, int offset = 0, bool excludeSelf = false}) async {
-    try {
-      final excludeUserId =
-          excludeSelf ? _client.auth.currentUser?.id : null;
-      final response = await _client.functions.invoke(
-        'get-public-memo-feed',
-        body: {
-          'limit': limit,
-          'offset': offset,
-          if (excludeUserId != null) 'exclude_user_id': excludeUserId,
-        },
-      );
-      if (response.status != 200) {
-        log('공개 피드 조회 실패: ${response.data ?? '알 수 없는 오류'}');
-        return [];
-      }
-      final result = response.data as Map<String, dynamic>;
-      final memosData = result['memos'] as List<dynamic>?;
-      if (memosData == null) return [];
-      return memosData
-          .map((json) => Memo.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      log('공개 피드 조회 중 오류: $e');
-      return [];
+    final excludeUserId = excludeSelf ? _client.auth.currentUser?.id : null;
+    // 실패를 [] 로 삼키면 화면이 "공개 메모가 없어요" 라는 거짓 빈 상태를 띄운다. 던진다.
+    final response = await _edge.invoke(
+      'get-public-memo-feed',
+      body: {
+        'limit': limit,
+        'offset': offset,
+        if (excludeUserId != null) 'exclude_user_id': excludeUserId,
+      },
+    );
+    if (response.status != 200) {
+      throw Exception('공개 피드 조회 실패(${response.status}): ${response.data}');
     }
+    final result = response.data as Map<String, dynamic>;
+    final memosData = result['memos'] as List<dynamic>?;
+    if (memosData == null) return [];
+    return memosData
+        .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<Memo>> getBookMemos(String bookId) async {
@@ -127,37 +121,25 @@ class MemoRepository {
   /// RLS 정책으로 인해 users 조인 시 다른 유저 정보를 가져올 수 없으므로 Edge Function 사용
   /// @deprecated 페이지네이션을 위해 getPaginatedPublicBookMemos 사용 권장
   Future<List<Memo>> getPublicBookMemos(String bookId) async {
-    try {
-      final response = await _client.functions.invoke(
-        'get-public-book-memos',
-        body: {'book_id': bookId},
-      );
-
-      if (response.status != 200) {
-        final errorData = response.data;
-        log('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-        return [];
-      }
-
-      final result = response.data as Map<String, dynamic>;
-      final memosData = result['memos'] as List<dynamic>?;
-
-      if (memosData == null) {
-        return [];
-      }
-
-      return memosData
-          .map((json) => Memo.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      log('공개 메모 조회 중 오류 발생: $e');
-      return [];
+    final response = await _edge.invoke(
+      'get-public-book-memos',
+      body: {'book_id': bookId},
+    );
+    if (response.status != 200) {
+      throw Exception('공개 메모 조회 실패(${response.status}): ${response.data}');
     }
+
+    final result = response.data as Map<String, dynamic>;
+    final memosData = result['memos'] as List<dynamic>?;
+    if (memosData == null) return [];
+    return memosData
+        .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   /// 해당 책의 공개 메모를 페이지네이션으로 가져오기 (다른 유저의 공개 메모 포함)
   /// RLS 정책으로 인해 users 조인 시 다른 유저 정보를 가져올 수 없으므로 Edge Function 사용
-  /// 네트워크 에러 시 자동 재시도 (exponential backoff)
+  /// 네트워크 에러 시 자동 재시도는 EdgeFunctionClient 가 맡는다
   /// 응답 캐싱으로 동일한 요청 시 네트워크 호출 감소
   Future<List<Memo>> getPaginatedPublicBookMemos({
     required String bookId,
@@ -189,104 +171,34 @@ class MemoRepository {
       }
     }
 
-    // 첫 페이지는 재시도 없이 빠르게 실패 처리 (사용자 경험 개선)
-    // 다음 페이지는 재시도 적용
+    // 재시도는 EdgeFunctionClient 가 한다(여기서 또 하면 곱절로 늘어난다).
+    final response = await _edge.invoke(
+      'get-public-book-memos',
+      body: requestBody,
+    );
+
+    if (response.status != 200) {
+      throw Exception('공개 메모 조회 실패(${response.status}): ${response.data}');
+    }
+
+    final result = response.data as Map<String, dynamic>;
+    final memosData = result['memos'] as List<dynamic>?;
+    if (memosData == null) return [];
+
+    final memos = memosData
+        .map((json) => Memo.fromJson(json as Map<String, dynamic>))
+        .toList();
+
+    // 첫 페이지만 캐싱
     if (offset == 0) {
-      try {
-        final response = await _client.functions.invoke(
-          'get-public-book-memos',
-          body: requestBody,
-        );
-
-        if (response.status != 200) {
-          final errorData = response.data;
-          log('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-          throw Exception('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-        }
-
-        final result = response.data as Map<String, dynamic>;
-        final memosData = result['memos'] as List<dynamic>?;
-
-        if (memosData == null) {
-          return [];
-        }
-
-        final memos = memosData
-            .map((json) => Memo.fromJson(json as Map<String, dynamic>))
-            .toList();
-
-        // 첫 페이지 캐싱
-        cache.set(
-          'get-public-book-memos',
-          requestBody,
-          result,
-          ttl: const Duration(minutes: 2),
-        );
-
-        return memos;
-      } catch (e) {
-        // 네트워크 에러만 재시도
-        if (RetryHelper.isNetworkError(e)) {
-          return await RetryHelper.retryWithBackoff<List<Memo>>(
-            operation: () async {
-              final response = await _client.functions.invoke(
-                'get-public-book-memos',
-                body: requestBody,
-              );
-
-              if (response.status != 200) {
-                final errorData = response.data;
-                log('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-                throw Exception('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-              }
-
-              final result = response.data as Map<String, dynamic>;
-              final memosData = result['memos'] as List<dynamic>?;
-
-              if (memosData == null) {
-                return [];
-              }
-
-              return memosData
-                  .map((json) => Memo.fromJson(json as Map<String, dynamic>))
-                  .toList();
-            },
-            maxRetries: 2, // 재시도 횟수 감소
-            initialDelay: const Duration(milliseconds: 500), // 초기 지연 시간 감소
-          );
-        }
-        rethrow;
-      }
-    } else {
-      // 다음 페이지는 재시도 적용
-      return await RetryHelper.retryWithBackoff<List<Memo>>(
-        operation: () async {
-          final response = await _client.functions.invoke(
-            'get-public-book-memos',
-            body: requestBody,
-          );
-
-          if (response.status != 200) {
-            final errorData = response.data;
-            log('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-            throw Exception('공개 메모 조회 실패: ${errorData ?? '알 수 없는 오류'}');
-          }
-
-          final result = response.data as Map<String, dynamic>;
-          final memosData = result['memos'] as List<dynamic>?;
-
-          if (memosData == null) {
-            return [];
-          }
-
-          return memosData
-              .map((json) => Memo.fromJson(json as Map<String, dynamic>))
-              .toList();
-        },
-        maxRetries: 2,
-        initialDelay: const Duration(milliseconds: 500),
+      cache.set(
+        'get-public-book-memos',
+        requestBody,
+        result,
+        ttl: const Duration(minutes: 2),
       );
     }
+    return memos;
   }
 
   Future<void> createMemo({
@@ -333,7 +245,7 @@ class MemoRepository {
 
     // 커넥톰: 이 메모를 임베딩하고 과거 메모와 연결(fire-and-forget, 실패 무시)
     unawaited(
-      _client.functions
+      _edge
           .invoke('connect-memo', body: {'memo_id': memoId})
           .then((_) {}, onError: (_) {}),
     );
@@ -349,7 +261,7 @@ class MemoRepository {
             .single();
         final memoAuthorNickname = userResponse['nickname'] as String? ?? '사용자';
 
-        await _client.functions.invoke(
+        await _edge.invoke(
           'notify-new-public-memo',
           body: {
             'book_id': bookId,
@@ -399,7 +311,7 @@ class MemoRepository {
   Future<Memo> getMemoById(String memoId) async {
     final FunctionResponse response;
     try {
-      response = await _functions.invoke(
+      response = await _edge.invoke(
         'get-memo-by-id',
         body: {'memo_id': memoId},
       );
@@ -553,7 +465,7 @@ class MemoRepository {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
-    final response = await _client.functions.invoke(
+    final response = await _edge.invoke(
       'search-memos-semantic',
       body: {'query': trimmed, 'limit': limit},
     );
@@ -599,5 +511,6 @@ class MemoRepository {
 }
 
 final memoRepositoryProvider = Provider((ref) {
-  return MemoRepository(Supabase.instance.client);
+  return MemoRepository(Supabase.instance.client,
+      edge: ref.watch(edgeFunctionClientProvider));
 });

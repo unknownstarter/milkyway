@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/network/edge_function_client.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_status.dart';
 import '../../../memos/domain/models/memo.dart';
@@ -7,8 +8,10 @@ import 'dart:developer';
 
 class BookRepository {
   final SupabaseClient _client;
+  final EdgeFunctionClient _edge;
 
-  BookRepository(this._client);
+  BookRepository(this._client, {required EdgeFunctionClient edge})
+      : _edge = edge;
 
   Future<List<Book>> getRecentBooks() async {
     final response = await _client
@@ -178,7 +181,7 @@ class BookRepository {
   /// 생성은 수 초 걸리므로 첫 진입에는 없을 수 있고 다음 방문에 노출된다.
   Future<void> _triggerLyraQuestion(String bookId) async {
     try {
-      await _client.functions.invoke(
+      await _edge.invoke(
         'lyra-question',
         body: {'book_id': bookId},
       );
