@@ -54,12 +54,24 @@ class ServerSeenTracker implements SeenTracker {
     if (_cache != null && _cacheUid == uid) return _cache!;
     if (_loading != null && _loadingUid == uid) return _loading!;
     _loadingUid = uid;
-    _loading = _ds.loadAll().then((m) {
+    final loading = _load(uid);
+    _loading = loading;
+    return loading;
+  }
+
+  Future<Map<String, DateTime>> _load(String uid) async {
+    try {
+      final m = await _ds.loadAll();
       _cache = m;
       _cacheUid = uid;
       return m;
-    });
-    return _loading!;
+    } catch (_) {
+      // 실패한 future 를 남기면 이후 모든 호출이 같은 실패를 돌려받는다. 비워서 다음 호출이
+      // 다시 시도하게 한다. 호출자에게는 그대로 던진다.
+      _loading = null;
+      _loadingUid = null;
+      rethrow;
+    }
   }
 
   Future<void> _mark(String scope, String key) async {
