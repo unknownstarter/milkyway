@@ -10,6 +10,34 @@
 
 ---
 
+## 🚨 2026-11-01: 메모 상세에서 키보드를 열면 홈으로 튕김 - 생명주기 콜백의 서버 호출 + 오류를 null 로 삼킨 provider
+
+### 문제 상황
+- 메모 상세에서 댓글 입력칸에 포커스하면 화면이 닫히고 홈으로 튕김. 같은 메모를 다시 열어도 즉시 닫힘
+- 운영 로그(2026-11-01 14:23, 14:25): `get-memo-by-id` 엣지 함수가 1초에 100번 넘게 호출되고 서버가 429 로 거절
+- 해당 줄은 커밋 65f6a1a (2026-08-20) 부터 있었다
+
+### 원인 분석 (두 개가 겹쳤다)
+1. `memo_detail_screen.dart` 의 `didChangeDependencies` 가 첫 호출 이후마다 `ref.invalidate(memoProvider(id))`. 키보드가 올라오면 `MediaQuery.viewInsets` 가 매 프레임 바뀌어 매 프레임 서버를 다시 불렀다
+2. `memoProvider` 가 `MemoRestrictedException` 외 **모든 예외를 null 로** 바꿨다. 화면은 `value == null` 을 "삭제된 메모"로 읽고 pop/홈 이동. provider 가 autoDispose 가 아니라 null 이 남아 다시 들어가도 즉시 닫혔다. 429 가 "삭제됨"으로 둔갑한 것
+
+### 왜 시험이 못 잡았나
+- 위젯 시험이 MediaQuery 변화와 서버 호출 횟수를 보지 않았다 (메모 상세 위젯 시험 자체가 없었다)
+- 오류를 데이터 없음으로 바꾸는 코드에 시험이 없었다. 429/5xx 와 404 를 구분하는 계약 시험이 없었다
+
+### 해결
+- `didChangeDependencies` 에서 invalidate 제거 (수정/삭제 뒤 최신화는 `invalidateMemoProviders` 가 이미 처리)
+- repository 가 404 만 `MemoNotFoundException` 으로 던지고, 429/5xx/네트워크는 일반 예외. provider 는 NotFound 일 때만 null, 나머지는 AsyncError. `memoProvider` 는 autoDispose
+- 화면: AsyncError 면 pop 하지 않고 `initialMemo` 를 유지, 없으면 "불러오지 못했어요" + 다시 시도 버튼 (누를 때만 invalidate)
+- `AsyncError` 에서 `.value` 는 예외를 다시 던진다. `hasValue` 로 가른 뒤 읽을 것
+
+### 규칙
+- **생명주기 콜백 (build, didChangeDependencies, didChangeMetrics)에서 서버 호출/invalidate 금지.** MediaQuery 가 바뀌면 프레임마다 불린다
+- **오류를 null/빈 값으로 삼키지 않는다.** "없음"은 서버가 없다고 말했을 때(404)만. 나머지는 AsyncError 로 흘려 화면이 판단하게 한다
+- **서버를 부르는 위젯은 호출 횟수 시험을 둔다.** viewInsets 를 여러 번 바꿔 pump 해도 호출 1번 (`test/features/memos/memo_detail_refetch_test.dart`)
+
+---
+
 ## 🚨 2026-07-01: Xcode 26 자동 마이그레이션 함정 — Google/Apple 로그인 전면 마비
 
 ### 문제 상황

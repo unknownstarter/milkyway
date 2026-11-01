@@ -55,20 +55,15 @@ void invalidateMemoProviders(
   }
 }
 
-final memoProvider = FutureProvider.family<Memo?, String>((ref, memoId) async {
+/// 메모 상세. 메모가 정말 없을 때만 null(MemoNotFoundException).
+/// 429/5xx/네트워크 오류는 AsyncError 로 그대로 전파한다(오류를 '삭제됨'으로 오인하지 않기).
+/// autoDispose: 화면을 떠나면 오류/삭제 상태가 남지 않아 다시 열면 새로 부른다.
+final memoProvider =
+    FutureProvider.autoDispose.family<Memo?, String>((ref, memoId) async {
+  final repository = ref.watch(memoRepositoryProvider);
   try {
-    log('memoProvider 호출: $memoId');
-    final repository = ref.watch(memoRepositoryProvider);
-    final memo = await repository.getMemoById(memoId);
-    log('memoProvider 성공: userNickname=${memo.userNickname}, userAvatarUrl=${memo.userAvatarUrl}');
-    return memo;
-  } on MemoRestrictedException {
-    // 남의 비공개 메모: 화면이 책 상세로 유도하도록 그대로 전파.
-    rethrow;
-  } catch (e, stackTrace) {
-    // 메모가 삭제되었거나 존재하지 않는 경우 null 반환
-    log('메모 조회 실패 (삭제되었을 수 있음): $e');
-    log('스택 트레이스: $stackTrace');
+    return await repository.getMemoById(memoId);
+  } on MemoNotFoundException {
     return null;
   }
 });
