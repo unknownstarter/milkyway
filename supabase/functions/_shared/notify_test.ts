@@ -355,3 +355,11 @@ Deno.test('FCM data 키 계약: type, memo_id, book_id 불변', () => {
     '',
   );
 });
+
+Deno.test('댓글 미리보기가 비면 빈 따옴표 없이 책 제목만 (4개 언어)', () => {
+  const v = { name: '새벽독서', book: '모모', preview: '' };
+  assertEquals(commentCopy('ko', v).body, '《모모》');
+  assertEquals(commentCopy('en', v).body, 'On "모모"');
+  assertEquals(commentCopy('ja', v).body, '『모모』');
+  assertEquals(commentCopy('zh', v).body, '《모모》');
+});

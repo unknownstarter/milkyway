@@ -142,15 +142,17 @@ export function commentCopy(
   const name = nameOrFallback(v.name, lang);
   const book = bookOrFallback(v.book, lang);
   const p = v.preview;
+  // 미리보기가 비면 빈 따옴표 대신 책 제목만 보인다
+  const has = p.trim().length > 0;
   switch (lang) {
     case 'en':
-      return { title: `${name} commented on your memo`, body: `On "${book}": "${p}"` };
+      return { title: `${name} commented on your memo`, body: has ? `On "${book}": "${p}"` : `On "${book}"` };
     case 'ja':
-      return { title: `${name}さんがメモにコメントしました`, body: `『${book}』「${p}」` };
+      return { title: `${name}さんがメモにコメントしました`, body: has ? `『${book}』「${p}」` : `『${book}』` };
     case 'zh':
-      return { title: `${name} 评论了你的笔记`, body: `《${book}》"${p}"` };
+      return { title: `${name} 评论了你的笔记`, body: has ? `《${book}》"${p}"` : `《${book}》` };
     default:
-      return { title: `${name}님이 내 메모에 댓글을 남겼어요`, body: `《${book}》 "${p}"` };
+      return { title: `${name}님이 내 메모에 댓글을 남겼어요`, body: has ? `《${book}》 "${p}"` : `《${book}》` };
   }
 }
 
