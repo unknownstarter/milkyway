@@ -28,6 +28,9 @@ class NotificationSettingsScreen extends ConsumerStatefulWidget {
 class _NotificationSettingsScreenState
     extends ConsumerState<NotificationSettingsScreen>
     with WidgetsBindingObserver {
+  // 저장 중인 스위치. 같은 스위치 연타가 겹쳐 되돌림이 꼬이지 않게 한다.
+  final Set<Object> _busy = {};
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +56,15 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _toggleAll(bool value) async {
+    if (!_busy.add('all')) return;
+    try {
+      await _toggleAllInner(value);
+    } finally {
+      _busy.remove('all');
+    }
+  }
+
+  Future<void> _toggleAllInner(bool value) async {
     final notifier = ref.read(notificationSettingsProvider.notifier);
     final l10n = AppL10n.of(context);
     final ok = await notifier.setEnabled(value);
@@ -69,11 +81,16 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _toggle(NotificationSwitch which, bool value) async {
-    final msg = AppL10n.of(context).profileNotificationSaveFailed;
-    final ok = await ref
-        .read(notificationSettingsProvider.notifier)
-        .setSwitch(which, value);
-    if (!ok) _toast(msg);
+    if (!_busy.add(which)) return;
+    try {
+      final msg = AppL10n.of(context).profileNotificationSaveFailed;
+      final ok = await ref
+          .read(notificationSettingsProvider.notifier)
+          .setSwitch(which, value);
+      if (!ok) _toast(msg);
+    } finally {
+      _busy.remove(which);
+    }
   }
 
   @override

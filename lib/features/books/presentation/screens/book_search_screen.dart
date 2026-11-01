@@ -32,6 +32,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
   Timer? _debounce;
+  // 책 등록 진행 중 재탭 잠금 (같은 책 1번만 서버로)
+  bool _isRegistering = false;
 
   @override
   void initState() {
@@ -353,6 +355,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
   }
 
   Future<void> _onBookTap(NaverBook book) async {
+    if (_isRegistering) return;
+    _isRegistering = true;
     try {
       await ref
           .read(analyticsProvider)
@@ -386,6 +390,8 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
         ErrorHandler.showError(context, e,
             operation: AppL10n.of(context).bookOpRegister);
       }
+    } finally {
+      _isRegistering = false;
     }
   }
 

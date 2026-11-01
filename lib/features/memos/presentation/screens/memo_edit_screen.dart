@@ -435,6 +435,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
           context, AppL10n.of(context).memoContentRequired);
       return;
     }
+    if (_isLoading) return;
     setState(() => _isLoading = true);
     try {
       if (_bookId == null) throw Exception('책 정보를 불러올 수 없습니다');
@@ -453,7 +454,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         }
       }
 
-      await ref.read(memoFormProvider(_bookId!).notifier).updateMemo(
+      final saved =
+          await ref.read(memoFormProvider(_bookId!).notifier).updateMemo(
             memoId: widget.memoId,
             content: _contentController.text.trim(),
             page: _pageController.text.isNotEmpty
@@ -462,6 +464,11 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
             imageUrl: imageUrl,
             visibility: visibility,
           );
+      if (!saved) {
+        // 실패를 성공으로 읽지 않는다: 수정 토스트/pop 없이 입력 유지
+        throw ref.read(memoFormProvider(_bookId!)).error ??
+            Exception('memo update failed');
+      }
 
       if (mounted) {
         showAppSnackBar(context, AppL10n.of(context).memoUpdated);
@@ -500,6 +507,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
     );
 
     if (shouldDelete == true) {
+      if (_isLoading || !mounted) return;
+      setState(() => _isLoading = true);
       try {
         if (_bookId == null) throw Exception('책 정보를 불러올 수 없습니다');
         await ref.read(deleteMemoActionProvider)(
@@ -508,6 +517,8 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         if (context.mounted) context.pop();
       } catch (e) {
         if (context.mounted) MemoErrorHandler.showError(context, e);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
