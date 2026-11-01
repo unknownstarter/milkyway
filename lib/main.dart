@@ -281,13 +281,17 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   DeepLinkService? _deepLink;
-  final PushTokenLifecycle _pushToken = PushTokenLifecycle(
-    extraSyncs: [TimeZoneSync.live().sync],
+  late final TimeZoneSync _timeZoneSync = TimeZoneSync.live(
+    getLanguage: () => ref.read(effectiveLangProvider),
   );
+  late final PushTokenLifecycle _pushToken =
+      PushTokenLifecycle(extraSyncs: [_timeZoneSync.sync]);
 
   @override
   void initState() {
     super.initState();
+    // 앱 언어가 바뀌면 (language_sheet, 저장된 override 로드) 푸시 문구 언어도 다시 맞춘다.
+    ref.listenManual(effectiveLangProvider, (_, __) => _timeZoneSync.sync());
     // 알림 탭 라우팅.
     NotificationService().onNotificationTapped = (data) {
       final target = resolveNotificationTarget(data);
