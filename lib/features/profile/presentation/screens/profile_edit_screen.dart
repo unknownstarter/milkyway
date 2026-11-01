@@ -40,8 +40,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   @override
   void initState() {
     super.initState();
-    // initState에서는 ref를 사용할 수 없으므로 didChangeDependencies에서 처리
     _nicknameController.addListener(_validateInput);
+    // 진입당 1번만. didChangeDependencies 는 키보드(MediaQuery) 프레임마다 호출된다
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(analyticsProvider).logScreenView('profile_edit_screen');
+      }
+    });
   }
 
   @override
@@ -49,12 +54,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     super.didChangeDependencies();
     // 화면 재진입 시 최신 사용자 정보 로드 (예: 프로필 수정 후 돌아올 때)
     _loadUserData();
-    // Analytics는 빌드 후에 실행
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(analyticsProvider).logScreenView('profile_edit_screen');
-      }
-    });
   }
 
   @override
