@@ -286,10 +286,11 @@ class _MyAppState extends ConsumerState<MyApp> {
     // 알림 탭 라우팅.
     NotificationService().onNotificationTapped = (data) {
       // memo_id가 있으면 메모 상세 화면으로 이동
-      if (data.containsKey('memo_id')) {
+      final memoId = data['memo_id']?.toString();
+      if (memoId != null && memoId.isNotEmpty) {
         router.pushNamed(
           AppRoutes.memoDetailName,
-          pathParameters: {'id': data['memo_id'] as String},
+          pathParameters: {'id': memoId},
         );
       }
     };
