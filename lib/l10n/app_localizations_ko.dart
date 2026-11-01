@@ -1229,6 +1229,33 @@ class AppL10nKo extends AppL10n {
   String get profileOpenSettings => '설정 열기';
 
   @override
+  String get notifSettingsTitle => '알림';
+
+  @override
+  String get notifSettingsAll => '알림 받기';
+
+  @override
+  String get notifSettingsBookMemos => '책에 달린 메모';
+
+  @override
+  String get notifSettingsBookMemosDesc => '내가 담은 책에 다른 사람 메모가 쌓이면 알려줘요';
+
+  @override
+  String get notifSettingsComments => '내 메모에 달린 댓글';
+
+  @override
+  String get notifSettingsQuiet => '밤 10시부터 아침 7시까지 알림 끄기';
+
+  @override
+  String get notifSettingsQuietDesc => '그 사이 온 알림은 아침 7시에 모아서 보내요';
+
+  @override
+  String get notifSettingsPermissionOff => '휴대폰 알림이 꺼져 있어요';
+
+  @override
+  String get notifSettingsOpenPhoneSettings => '휴대폰 설정에서 켜기';
+
+  @override
   String get profileFeedbackTitle => '의견 남기기';
 
   @override

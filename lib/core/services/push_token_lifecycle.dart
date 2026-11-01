@@ -7,7 +7,11 @@ import 'notification_service.dart';
 
 /// 로그인된 상태가 확인되는 순간마다 푸시 토큰을 맞춰 둔다.
 /// 앱 시작(세션 복원), 로그인/세션 이벤트, 앱 복귀(resumed).
+/// [extraSyncs] (예: 시간대 동기화) 도 같은 시점에 함께 돈다.
 class PushTokenLifecycle with WidgetsBindingObserver {
+  PushTokenLifecycle({this.extraSyncs = const []});
+
+  final List<Future<void> Function()> extraSyncs;
   StreamSubscription<AuthState>? _authSub;
 
   void start() {
@@ -16,7 +20,9 @@ class PushTokenLifecycle with WidgetsBindingObserver {
       _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((s) {
         if (s.session != null) _sync();
       });
-    } catch (_) {/* Supabase 미초기화 */}
+    } catch (_) {
+      /* Supabase 미초기화 */
+    }
     _sync();
   }
 
@@ -30,5 +36,10 @@ class PushTokenLifecycle with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) _sync();
   }
 
-  void _sync() => unawaited(NotificationService().registerToken());
+  void _sync() {
+    unawaited(NotificationService().registerToken());
+    for (final extra in extraSyncs) {
+      unawaited(extra());
+    }
+  }
 }

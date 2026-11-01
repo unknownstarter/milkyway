@@ -26,6 +26,7 @@ class AppRoutes {
   static const memoSearch = '/memos/search';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
+  static const notificationSettings = '/profile/notifications';
   static const calendar = '/calendar';
   static const constellation = '/constellation';
   static const myOrb = '/my-orb';
@@ -62,6 +63,7 @@ class AppRoutes {
   static const memoSearchName = 'memo-search';
   static const profileName = 'profile';
   static const profileEditName = 'profile-edit';
+  static const notificationSettingsName = 'notification-settings';
   static const calendarName = 'calendar';
   static const constellationName = 'constellation';
   static const myOrbName = 'myOrb';

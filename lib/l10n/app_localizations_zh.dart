@@ -1225,6 +1225,33 @@ class AppL10nZh extends AppL10n {
   String get profileOpenSettings => '打开设置';
 
   @override
+  String get notifSettingsTitle => '通知';
+
+  @override
+  String get notifSettingsAll => '接收通知';
+
+  @override
+  String get notifSettingsBookMemos => '书上的笔记';
+
+  @override
+  String get notifSettingsBookMemosDesc => '我收藏的书上积累了其他人的笔记时会提醒你';
+
+  @override
+  String get notifSettingsComments => '我的笔记收到的评论';
+
+  @override
+  String get notifSettingsQuiet => '晚上10点到早上7点关闭通知';
+
+  @override
+  String get notifSettingsQuietDesc => '这期间的通知会在早上7点集中发送';
+
+  @override
+  String get notifSettingsPermissionOff => '手机通知已关闭';
+
+  @override
+  String get notifSettingsOpenPhoneSettings => '在手机设置中开启';
+
+  @override
   String get profileFeedbackTitle => '留下意见';
 
   @override

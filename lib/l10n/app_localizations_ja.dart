@@ -1227,6 +1227,33 @@ class AppL10nJa extends AppL10n {
   String get profileOpenSettings => '設定を開く';
 
   @override
+  String get notifSettingsTitle => '通知';
+
+  @override
+  String get notifSettingsAll => '通知を受け取る';
+
+  @override
+  String get notifSettingsBookMemos => '本につくメモ';
+
+  @override
+  String get notifSettingsBookMemosDesc => '保存した本に他の人のメモがたまったらお知らせします';
+
+  @override
+  String get notifSettingsComments => '自分のメモへのコメント';
+
+  @override
+  String get notifSettingsQuiet => '夜10時から朝7時まで通知をオフ';
+
+  @override
+  String get notifSettingsQuietDesc => 'その間の通知は朝7時にまとめてお届けします';
+
+  @override
+  String get notifSettingsPermissionOff => 'スマホの通知がオフになっています';
+
+  @override
+  String get notifSettingsOpenPhoneSettings => 'スマホの設定でオンにする';
+
+  @override
   String get profileFeedbackTitle => 'ご意見を書く';
 
   @override
