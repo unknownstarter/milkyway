@@ -204,7 +204,11 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
       await ref.read(authProvider.notifier).updateOnboardingStatus(true);
 
       // 세션 동기화를 위해 사용자 정보 다시 가져오기
-      await ref.read(authProvider.notifier).getCurrentUser();
+      try {
+        await ref.read(authProvider.notifier).getCurrentUser();
+      } catch (_) {
+        // 완료 표시는 이미 저장됐다. 동기화 조회 실패는 진행을 막지 않는다.
+      }
 
       // 온보딩 완료 이벤트
       await ref.read(analyticsProvider).logEvent('click_complete_in_onboarding');
@@ -251,6 +255,7 @@ class _BookIntroScreenState extends ConsumerState<BookIntroScreen> {
         setState(() {
           _isLoading = false;
         });
+        ErrorHandler.showError(context, e, operation: '온보딩 완료');
       }
     }
   }

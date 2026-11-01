@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../data/current_user_lookup.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/datasources/auth_remote_data_source_impl.dart';
 import '../../../../core/network/edge_function_client.dart';
@@ -135,56 +136,46 @@ class Auth extends _$Auth {
     // (bookDetailProvider, memoProvider, bookMemosProvider, paginatedMemosProvider 등)
   }
 
-  Future<User?> getCurrentUser() async {
-    try {
-      // 세션 갱신 시도 (만료되기 전에 자동 갱신)
-      await _refreshSessionIfNeeded();
-
-      final session = _supabase.auth.currentSession;
-      if (session?.user == null) return null;
-
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('id', session!.user.id)
-          .maybeSingle();
-
-      if (response == null) return null;
-
-      return User.fromJson(response);
-    } catch (e) {
-      developer.log('Error getting current user: $e');
-      return null;
-    }
+  /// 세션 없음/세션 거부/행 없음 -> null. 그 밖의 오류는 throw.
+  Future<User?> getCurrentUser() {
+    return lookupCurrentUser(
+      sessionUserId: () => _supabase.auth.currentSession?.user.id,
+      refreshIfNeeded: _refreshSessionIfNeeded,
+      fetchRow: (userId) =>
+          _supabase.from('users').select().eq('id', userId).maybeSingle(),
+    );
   }
 
   /// 세션이 만료되기 전에 자동으로 갱신
   /// Refresh token을 사용하여 최대 1개월까지 세션 유지 가능
+  /// 네트워크 오류는 삼키고(세션이 아직 유효하면 계속), 서버가 refresh token 을
+  /// 거부한 경우는 [lookupCurrentUser] 가 알 수 있게 그대로 던진다.
   Future<void> _refreshSessionIfNeeded() async {
-    try {
-      final session = _supabase.auth.currentSession;
-      if (session == null) return;
+    final session = _supabase.auth.currentSession;
+    if (session == null) return;
 
-      // 세션이 만료되기 5분 전에 갱신
-      final expiresAt = session.expiresAt;
-      if (expiresAt != null) {
-        final now = DateTime.now().toUtc();
-        final expiresAtDateTime = DateTime.fromMillisecondsSinceEpoch(
-          expiresAt * 1000,
-          isUtc: true,
-        );
-        final timeUntilExpiry = expiresAtDateTime.difference(now);
+    // 세션이 만료되기 5분 전에 갱신
+    final expiresAt = session.expiresAt;
+    if (expiresAt == null) return;
 
-        // 만료되기 5분 전이면 갱신 시도
-        if (timeUntilExpiry.inMinutes < 5) {
-          developer.log('세션 갱신 시도 (만료까지 ${timeUntilExpiry.inMinutes}분 남음)');
-          await _supabase.auth.refreshSession();
-          developer.log('세션 갱신 완료');
-        }
+    final now = DateTime.now().toUtc();
+    final expiresAtDateTime = DateTime.fromMillisecondsSinceEpoch(
+      expiresAt * 1000,
+      isUtc: true,
+    );
+    final timeUntilExpiry = expiresAtDateTime.difference(now);
+
+    // 만료되기 5분 전이면 갱신 시도
+    if (timeUntilExpiry.inMinutes < 5) {
+      developer.log('세션 갱신 시도 (만료까지 ${timeUntilExpiry.inMinutes}분 남음)');
+      try {
+        await _supabase.auth.refreshSession();
+        developer.log('세션 갱신 완료');
+      } catch (e) {
+        developer.log('세션 갱신 실패: $e');
+        if (isSessionRejected(e)) rethrow;
+        // 일시 오류는 무시 (다음 요청 시 다시 시도)
       }
-    } catch (e) {
-      developer.log('세션 갱신 실패: $e');
-      // 세션 갱신 실패는 무시 (다음 요청 시 다시 시도)
     }
   }
 
@@ -252,6 +243,8 @@ class Auth extends _$Auth {
   ///
   /// RLS 정책으로 인해 다른 사용자의 닉네임을 직접 조회할 수 없으므로
   /// Supabase Edge Function을 사용하여 중복 체크를 수행합니다.
+  ///
+  /// 확인 자체가 실패하면(네트워크/서버 오류) false("중복")로 속이지 않고 throw 한다.
   Future<bool> checkNicknameAvailability(String nickname) async {
     try {
       final currentUser = await getCurrentUser();
@@ -270,23 +263,21 @@ class Auth extends _$Auth {
       if (response.status != 200) {
         final errorData = response.data;
         developer.log('닉네임 중복 체크 실패: ${errorData ?? '알 수 없는 오류'}');
-        // 에러 발생 시 안전하게 false 반환 (중복으로 간주)
-        return false;
+        throw Exception('nickname check failed: ${response.status}');
       }
 
       final data = response.data as Map<String, dynamic>?;
       return data?['available'] == true;
     } catch (e) {
       developer.log('닉네임 중복 체크 실패: $e');
-      // 에러 발생 시 안전하게 false 반환 (중복으로 간주)
-      return false;
+      rethrow;
     }
   }
 
   Future<void> updateProfile({String? nickname, String? pictureUrl}) async {
     try {
       final currentUser = await getCurrentUser();
-      if (currentUser == null) return;
+      if (currentUser == null) throw StateError('Not logged in');
 
       final updates = <String, dynamic>{
         'updated_at': nowUtcIso(),
@@ -302,9 +293,13 @@ class Auth extends _$Auth {
 
       // 상태 새로고침 - DB 업데이트 후 약간의 지연을 두고 최신 데이터 가져오기
       await Future.delayed(const Duration(milliseconds: 100));
-      final updatedUser = await getCurrentUser();
-      if (updatedUser != null) {
-        state = AsyncValue.data(updatedUser);
+      try {
+        final updatedUser = await getCurrentUser();
+        if (updatedUser != null) {
+          state = AsyncValue.data(updatedUser);
+        }
+      } catch (e) {
+        developer.log('프로필 새로고침 실패(저장은 성공): $e');
       }
 
       // 프로필 업데이트 시 메모 관련 provider들 무효화하여 최신 프로필 정보 반영
@@ -315,8 +310,11 @@ class Auth extends _$Auth {
       // null (모든 메모)과 특정 bookId들에 대해 무효화
       ref.invalidate(paginatedMemosProvider(null));
       // 다른 bookId들은 사용자가 접근할 때 자동으로 새로 로드됨
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
+      // 저장 실패는 호출부가 알아야 한다(성공 토스트/화면 이동 금지).
+      // state 는 건드리지 않는다 - 로그인 상태가 오류로 바뀌면 로그아웃처럼 보인다.
+      developer.log('프로필 저장 실패: $e');
+      rethrow;
     }
   }
 
@@ -326,7 +324,7 @@ class Auth extends _$Auth {
   Future<void> deleteAccount() async {
     try {
       final currentUser = await getCurrentUser();
-      if (currentUser == null) return;
+      if (currentUser == null) throw StateError('Not logged in');
 
       await _supabase.rpc('soft_delete_account');
 
@@ -351,6 +349,8 @@ class Auth extends _$Auth {
     // 현재는 빈 구현으로 두어 에러 방지
   }
 
+  /// 행이 있고 onboarding_completed 가 true 일 때만 true.
+  /// 조회 오류는 throw (오류를 "온보딩 미완료"로 읽어 온보딩으로 보내지 않는다).
   Future<bool> checkOnboardingStatus() async {
     final user = await getCurrentUser();
     return user?.onboardingCompleted ?? false;
@@ -359,7 +359,7 @@ class Auth extends _$Auth {
   Future<void> updateOnboardingStatus(bool completed) async {
     try {
       final currentUser = await getCurrentUser();
-      if (currentUser == null) return;
+      if (currentUser == null) throw StateError('Not logged in');
 
       await _supabase
           .from('users')
@@ -369,12 +369,16 @@ class Auth extends _$Auth {
           })
           .eq('id', currentUser.id);
 
-      // 상태 새로고침
-      final updatedUser = await getCurrentUser();
-      state = AsyncValue.data(updatedUser);
-    } catch (e, st) {
+      // 상태 새로고침 (실패해도 저장은 끝났으니 state 를 null/오류로 바꾸지 않는다)
+      try {
+        final updatedUser = await getCurrentUser();
+        if (updatedUser != null) state = AsyncValue.data(updatedUser);
+      } catch (e) {
+        developer.log('온보딩 상태 새로고침 실패(저장은 성공): $e');
+      }
+    } catch (e) {
       developer.log('Error updating onboarding status: $e');
-      state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 }

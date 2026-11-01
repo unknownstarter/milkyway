@@ -6,7 +6,9 @@ import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/session_restore.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../splash_user_check.dart';
 import '../widgets/splash_layout.dart';
+import '../widgets/splash_retry_view.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,6 +23,8 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
+  bool _loadFailed = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,17 +68,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         }
 
         // 마지막 위치가 없으면(첫 진입 등) 네트워크로 온보딩 판단 후 홈.
-        final user = await ref.read(authProvider.notifier).getCurrentUser();
+        // 조회 오류는 재시도 후에도 실패하면 throw -> 아래 catch 가 "다시 시도"를 보인다.
+        final destination = await resolveSplashDestination(
+          getUser: () => ref.read(authProvider.notifier).getCurrentUser(),
+        );
         if (!mounted) return;
-        if (user == null) {
-          context.goNamed(AppRoutes.loginName);
-          return;
+        switch (destination) {
+          case SplashDestination.login:
+            context.goNamed(AppRoutes.loginName);
+          case SplashDestination.onboarding:
+            context.goNamed(AppRoutes.onboardingNicknameName);
+          case SplashDestination.home:
+            context.goNamed(AppRoutes.homeName);
         }
-        if (!user.onboardingCompleted) {
-          context.goNamed(AppRoutes.onboardingNicknameName);
-          return;
-        }
-        context.goNamed(AppRoutes.homeName);
         return;
       }
 
@@ -83,10 +89,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     } catch (e) {
       if (e.toString().contains('업데이트가 필요합니다')) {
         _showForceUpdateDialog();
-      } else {
-        if (mounted) context.goNamed(AppRoutes.loginName);
+      } else if (mounted) {
+        // 세션이 살아 있으면 오류를 로그아웃으로 읽지 않는다: 다시 시도.
+        final hasSession =
+            Supabase.instance.client.auth.currentSession != null;
+        if (hasSession) {
+          setState(() => _loadFailed = true);
+        } else {
+          context.goNamed(AppRoutes.loginName);
+        }
       }
     }
+  }
+
+  void _retry() {
+    setState(() => _loadFailed = false);
+    _validateSession();
   }
 
   void _showForceUpdateDialog() {
@@ -115,6 +133,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loadFailed) return SplashRetryView(onRetry: _retry);
     return const SplashLayout();
   }
 }
