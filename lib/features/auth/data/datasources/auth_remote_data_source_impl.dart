@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_remote_data_source.dart';
 import '../models/user_model.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../../../../core/utils/time_utils.dart';
 import '../../../../core/services/analytics_service.dart';
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -194,7 +195,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (currentUser == null) throw Exception('User not authenticated');
 
       final updates = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': nowUtcIso(),
       };
 
       if (nickname != null) updates['nickname'] = nickname;

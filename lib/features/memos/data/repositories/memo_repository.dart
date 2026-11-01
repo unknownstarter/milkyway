@@ -6,6 +6,7 @@ import '../../domain/models/memo_badge_activity.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../domain/memo_exceptions.dart';
 import 'dart:developer';
+import '../../../../core/utils/time_utils.dart';
 import '../../../../core/utils/retry_helper.dart';
 import '../../../../core/utils/response_cache.dart';
 
@@ -295,7 +296,7 @@ class MemoRepository {
     log('Creating memo with imageUrl: $imageUrl, visibility: ${visibility.value}');
     // created_at/updated_at은 동일 타임스탬프로. (따로 now()를 두 번 부르면 새 메모도
     // updated_at이 미세하게 늦어 '수정됨'으로 오검출됨)
-    final now = DateTime.now().toIso8601String();
+    final now = nowUtcIso();
     final response = await _client.from('memos').insert({
       'book_id': bookId,
       'user_id': _client.auth.currentUser!.id,
@@ -371,7 +372,7 @@ class MemoRepository {
       'content': content,
       'page': page,
       'image_url': imageUrl,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': nowUtcIso(),
     };
     
     if (visibility != null) {
