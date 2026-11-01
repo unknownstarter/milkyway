@@ -15,6 +15,7 @@ import '../../../../core/providers/analytics_provider.dart';
 import '../../../home/domain/models/book.dart';
 import '../../../books/presentation/providers/user_books_provider.dart';
 import '../providers/memo_form_provider.dart';
+import '../widgets/memo_compose_layout.dart';
 import '../providers/memo_provider.dart';
 import '../../domain/models/memo_visibility.dart';
 import '../../utils/memo_image_uploader.dart';
@@ -33,6 +34,7 @@ class MemoEditScreen extends ConsumerStatefulWidget {
 
 class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
   final _contentController = TextEditingController();
+  final _editorFocus = FocusNode();
   final _pageController = TextEditingController();
   String? _selectedImagePath;
   bool _isLoading = false;
@@ -60,6 +62,7 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
   @override
   void dispose() {
     _contentController.dispose();
+    _editorFocus.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -151,12 +154,13 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-            _bookChip(book),
-            Expanded(child: _editor()),
+        child: MemoComposeLayout(
+          bookChipBuilder: (_) => _bookChip(book),
+          lyraQuestion: null,
+          lyraLabel: '',
+          editorFocusNode: _editorFocus,
+          editor: _editor(),
+          bottomBars: [
             if (_selectedImagePath != null) _imagePreview(),
             _toolbar(),
             _saveBar(),
@@ -217,9 +221,10 @@ class _MemoEditScreenState extends ConsumerState<MemoEditScreen> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: TextField(
         controller: _contentController,
-        expands: true,
+        focusNode: _editorFocus,
         maxLines: null,
-        minLines: null,
+        minLines: 5,
+        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         textAlignVertical: TextAlignVertical.top,
         cursorColor: Colors.white,
         style: AppTypography.body

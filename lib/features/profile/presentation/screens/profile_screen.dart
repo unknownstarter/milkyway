@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/presentation/widgets/design/keyboard_aware_sheet.dart';
 import '../../../../core/presentation/widgets/design/avatar.dart';
 import '../../../../core/presentation/widgets/design/glass_app_bar.dart';
 import '../../../../core/presentation/widgets/language_sheet.dart';
@@ -259,33 +259,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
-        final h = MediaQuery.of(context).size.height;
         return SlideTransition(
           position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
               .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: double.infinity,
-                  height: h * 0.5,
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                        bottom: math.max(MediaQuery.of(context).viewInsets.bottom,
-                            MediaQuery.viewPaddingOf(context).bottom)),
-                    child: const FeedbackModal(),
-                  ),
-                ),
-              ),
-            ),
+          child: const KeyboardAwareSheet(
+            heightFactor: 0.5,
+            fixedHeight: true,
+            color: Colors.black,
+            radius: 20,
+            child: FeedbackModal(),
           ),
         );
       },
