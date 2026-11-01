@@ -12,6 +12,7 @@ import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/session_restore.dart';
+import 'core/services/push_token_lifecycle.dart';
 import 'core/providers/locale_controller.dart';
 import 'core/router/app_routes.dart';
 import 'l10n/app_localizations.dart';
@@ -279,6 +280,7 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   DeepLinkService? _deepLink;
+  final PushTokenLifecycle _pushToken = PushTokenLifecycle();
 
   @override
   void initState() {
@@ -297,6 +299,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     _deepLink = DeepLinkService(ref)..init();
     // 라우트 변경마다 마지막 위치 저장(콜드스타트 시 스플래시가 복원 -> 재개처럼).
     router.routerDelegate.addListener(_saveLocation);
+    // 로그인된 채 앱을 열어도 푸시 토큰을 최신으로 저장.
+    _pushToken.start();
   }
 
   void _saveLocation() {
@@ -307,6 +311,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   void dispose() {
     router.routerDelegate.removeListener(_saveLocation);
     _deepLink?.dispose();
+    _pushToken.dispose();
     super.dispose();
   }
 

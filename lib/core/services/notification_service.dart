@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:logger/logger.dart';
+import 'push_token_sync.dart';
 
 final log = Logger();
 
@@ -54,43 +55,34 @@ class NotificationService {
     }
   }
 
-  /// FCM 토큰 획득 및 Supabase에 저장
-  Future<String?> registerToken() async {
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) {
-        log.w('사용자가 로그인하지 않았습니다.');
+  late final PushTokenSync _tokenSync = PushTokenSync(
+    hasPermission: () async {
+      final s = await _messaging.getNotificationSettings();
+      return s.authorizationStatus == AuthorizationStatus.authorized ||
+          s.authorizationStatus == AuthorizationStatus.provisional;
+    },
+    getToken: _messaging.getToken,
+    tokenRefreshStream: () => _messaging.onTokenRefresh,
+    currentUserId: () {
+      try {
+        return Supabase.instance.client.auth.currentUser?.id;
+      } catch (_) {
         return null;
       }
-
-      final token = await _messaging.getToken();
-      if (token == null) {
-        log.w('FCM 토큰을 획득할 수 없습니다.');
-        return null;
-      }
-
-      log.i('FCM 토큰 획득: $token');
-
-      // Supabase users 테이블에 토큰 저장
+    },
+    save: (uid, token) async {
       await Supabase.instance.client
           .from('users')
-          .update({'fcm_token': token})
-          .eq('id', user.id);
+          .update({'fcm_token': token}).eq('id', uid);
+    },
+    getApnsToken: Platform.isIOS ? _messaging.getAPNSToken : null,
+  );
 
-      log.i('FCM 토큰 저장 완료');
-
-      // 토큰 갱신 리스너 설정
-      _messaging.onTokenRefresh.listen((newToken) async {
-        log.i('FCM 토큰 갱신: $newToken');
-        if (user.id.isNotEmpty) {
-          await Supabase.instance.client
-              .from('users')
-              .update({'fcm_token': newToken})
-              .eq('id', user.id);
-        }
-      });
-
-      return token;
+  /// FCM 토큰을 Supabase users 에 맞춰 둔다. 로그인 + 알림 권한이 있을 때만,
+  /// 이미 저장한 토큰과 같으면 쓰기를 건너뛴다. 여러 번 불러도 안전하다.
+  Future<String?> registerToken() async {
+    try {
+      return await _tokenSync.sync();
     } catch (e) {
       log.e('FCM 토큰 등록 실패: $e');
       return null;
