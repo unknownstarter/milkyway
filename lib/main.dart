@@ -15,7 +15,7 @@ import 'core/services/session_restore.dart';
 import 'core/services/push_token_lifecycle.dart';
 import 'features/notification_settings/data/time_zone_sync.dart';
 import 'core/providers/locale_controller.dart';
-import 'core/router/app_routes.dart';
+import 'core/services/notification_route.dart';
 import 'l10n/app_localizations.dart';
 import 'package:inspire_blur/inspire_blur.dart';
 
@@ -290,14 +290,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     super.initState();
     // 알림 탭 라우팅.
     NotificationService().onNotificationTapped = (data) {
-      // memo_id가 있으면 메모 상세 화면으로 이동
-      final memoId = data['memo_id']?.toString();
-      if (memoId != null && memoId.isNotEmpty) {
-        router.pushNamed(
-          AppRoutes.memoDetailName,
-          pathParameters: {'id': memoId},
-        );
-      }
+      final target = resolveNotificationTarget(data);
+      if (target == null) return;
+      router.pushNamed(target.routeName, pathParameters: target.pathParameters);
     };
     // 딥링크 수신 시작(콜드=pending 저장 후 스플래시가 소비, 웜=즉시 라우팅).
     _deepLink = DeepLinkService(ref)..init();
