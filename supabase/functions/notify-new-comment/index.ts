@@ -1,4 +1,4 @@
-import { decide, getAdminClient } from '../_shared/notify.ts';
+import { commentPayload, decide, getAdminClient } from '../_shared/notify.ts';
 
 const supabase = getAdminClient();
 
@@ -53,25 +53,17 @@ Deno.serve(async (req) => {
       .eq('id', memo.book_id)
       .single();
 
-    const commenterName = commenter?.nickname || '누군가';
-    const bookTitle = book?.title || '메모';
-    const preview =
-      comment.content && comment.content.length > 50
-        ? comment.content.substring(0, 50) + '...'
-        : comment.content || '새 댓글';
-
     // 4) 수신 판정(전체 끔/댓글 스위치/토큰/방해 금지 시간)은 decide 가 한다. 댓글은 하루 상한 없음.
-    const result = await decide(supabase, authorId, 'comment', {
-      title: `[${bookTitle}] 새 댓글`,
-      body: `${commenterName}님이 댓글을 남겼습니다: "${preview}"`,
-      // data.memo_id -> 기존 딥링크가 메모 상세로 라우팅
-      data: {
-        type: 'new_comment',
-        memo_id: memo.id,
-        book_id: memo.book_id ?? '',
-      },
-      preview,
-    });
+    //    문구는 수신자 언어로 decide 안에서 만든다. data.memo_id -> 기존 딥링크가 메모 상세로 라우팅.
+    const result = await decide(supabase, authorId, 'comment', (lang) =>
+      commentPayload(lang, {
+        memoId: memo.id,
+        bookId: memo.book_id,
+        commenterId,
+        commenterName: commenter?.nickname,
+        bookTitle: book?.title,
+        content: comment.content,
+      }));
 
     return ok({
       success: result.status === 'sent' || result.status === 'queued',

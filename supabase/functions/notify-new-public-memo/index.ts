@@ -1,5 +1,5 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { bookMemoBody, decide, getAdminClient, milestoneFor } from '../_shared/notify.ts';
+import { bookMemoPayload, decide, getAdminClient, milestoneFor } from '../_shared/notify.ts';
 
 const supabase = getAdminClient();
 
@@ -118,7 +118,18 @@ Deno.serve(async (req) => {
       .select('title, cover_url')
       .eq('id', bookId)
       .single();
-    const bookTitle = book?.title || '알 수 없는 책';
+    const bookTitle = book?.title ?? null;
+
+    // n = 1 문구에만 쓰는 첫 메모 작성자 닉네임
+    let firstAuthorName: string | null = null;
+    if (authorId && hits.some((h) => h.n <= 1)) {
+      const { data: author } = await supabase
+        .from('users')
+        .select('nickname')
+        .eq('id', authorId)
+        .maybeSingle();
+      firstAuthorName = author?.nickname ?? null;
+    }
 
     const summary: Record<string, number> = {};
     for (const { userId, n } of hits) {
@@ -126,12 +137,15 @@ Deno.serve(async (req) => {
         summary['already_claimed'] = (summary['already_claimed'] ?? 0) + 1;
         continue;
       }
-      const result = await decide(supabase, userId, 'book_memo', {
-        title: bookTitle,
-        body: bookMemoBody(n),
-        data: { type: 'book_memo', book_id: bookId, memo_id: memoId },
-        image: book?.cover_url ?? null,
-      });
+      const result = await decide(supabase, userId, 'book_memo', (lang) =>
+        bookMemoPayload(lang, {
+          n,
+          bookId,
+          memoId,
+          bookTitle,
+          firstAuthorName,
+          image: book?.cover_url ?? null,
+        }));
       const key = result.status === 'sent' || result.status === 'queued'
         ? result.status
         : `${result.status}:${result.reason}`;

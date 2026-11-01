@@ -97,8 +97,175 @@ export function milestoneFor(n: number, lastMilestone: number): number | null {
   return n > lastMilestone ? n : null;
 }
 
-export function bookMemoBody(n: number): string {
-  return n <= 1 ? '다른 사람의 첫 메모가 생겼어요' : `다른 사람 메모가 ${n}개 쌓였어요`;
+// ───────────── 문구 (언어 x 종류) ─────────────
+
+export type Lang = 'ko' | 'en' | 'ja' | 'zh';
+export const LANGS: readonly Lang[] = ['ko', 'en', 'ja', 'zh'];
+export const PREVIEW_MAX = 40;
+
+export interface Copy {
+  title: string;
+  body: string;
+}
+
+/// null/모르는 값은 ko.
+export function normalizeLang(lang: string | null | undefined): Lang {
+  return (LANGS as readonly string[]).includes(lang ?? '') ? (lang as Lang) : 'ko';
+}
+
+const NAME_FALLBACK: Record<Lang, string> = { ko: '누군가', en: 'Someone', ja: 'だれか', zh: '有人' };
+const BOOK_FALLBACK: Record<Lang, string> = { ko: '책', en: 'a book', ja: '本', zh: '书' };
+
+export function nameOrFallback(name: string | null | undefined, lang: Lang): string {
+  const t = (name ?? '').trim();
+  return t.length > 0 ? t : NAME_FALLBACK[lang];
+}
+
+export function bookOrFallback(book: string | null | undefined, lang: Lang): string {
+  const t = (book ?? '').trim();
+  return t.length > 0 ? t : BOOK_FALLBACK[lang];
+}
+
+/// 줄바꿈은 공백으로, 앞뒤 공백 제거, 40자(유니코드 문자 기준) 넘으면 40자에서 자른다. 말줄임 표시 없음.
+export function makePreview(text: string | null | undefined): string {
+  const flat = (text ?? '').replace(/[\r\n]+/g, ' ').trim();
+  const chars = Array.from(flat);
+  return chars.length > PREVIEW_MAX ? chars.slice(0, PREVIEW_MAX).join('') : flat;
+}
+
+/// 댓글 1개. preview 는 이미 makePreview 를 거친 값.
+export function commentCopy(
+  langIn: string | null | undefined,
+  v: { name?: string | null; book?: string | null; preview: string },
+): Copy {
+  const lang = normalizeLang(langIn);
+  const name = nameOrFallback(v.name, lang);
+  const book = bookOrFallback(v.book, lang);
+  const p = v.preview;
+  switch (lang) {
+    case 'en':
+      return { title: `${name} commented on your memo`, body: `On "${book}": "${p}"` };
+    case 'ja':
+      return { title: `${name}さんがメモにコメントしました`, body: `『${book}』「${p}」` };
+    case 'zh':
+      return { title: `${name} 评论了你的笔记`, body: `《${book}》"${p}"` };
+    default:
+      return { title: `${name}님이 내 메모에 댓글을 남겼어요`, body: `《${book}》 "${p}"` };
+  }
+}
+
+/// 책 메모. n <= 1 이면 첫 메모(name = 그 메모 작성자), 아니면 n개째(name 안 씀).
+export function bookMemoCopy(
+  langIn: string | null | undefined,
+  v: { n: number; book?: string | null; name?: string | null },
+): Copy {
+  const lang = normalizeLang(langIn);
+  const book = bookOrFallback(v.book, lang);
+  const n = v.n;
+  if (n <= 1) {
+    const name = nameOrFallback(v.name, lang);
+    switch (lang) {
+      case 'en':
+        return { title: `${name} left a memo on "${book}"`, body: 'See what another reader is thinking' };
+      case 'ja':
+        return { title: `${name}さんが『${book}』にメモを残しました`, body: '同じ本を読む人の思いを見てみましょう' };
+      case 'zh':
+        return { title: `${name} 在《${book}》留下了笔记`, body: '看看同样读这本书的人在想什么' };
+      default:
+        return { title: `${name}님이 《${book}》에 메모를 남겼어요`, body: '같은 책을 읽는 사람의 생각을 만나보세요' };
+    }
+  }
+  switch (lang) {
+    case 'en':
+      return { title: `${n} memos on "${book}"`, body: 'See what other readers are thinking' };
+    case 'ja':
+      return { title: `『${book}』にメモが${n}件たまりました`, body: '同じ本を読む人たちの思いを見てみましょう' };
+    case 'zh':
+      return { title: `《${book}》已有 ${n} 条笔记`, body: '看看同样读这本书的人们在想什么' };
+    default:
+      return { title: `《${book}》에 메모가 ${n}개 쌓였어요`, body: '같은 책을 읽는 사람들의 생각을 만나보세요' };
+  }
+}
+
+/// 밤사이 댓글 묶음 (k >= 2). m = 서로 다른 사람 수 - 1, name = 가장 최근 댓글 단 사람.
+export function digestCopy(
+  langIn: string | null | undefined,
+  v: { k: number; m: number; name?: string | null },
+): Copy {
+  const lang = normalizeLang(langIn);
+  const name = nameOrFallback(v.name, lang);
+  const { k, m } = v;
+  switch (lang) {
+    case 'en':
+      return {
+        title: `${k} comments came in overnight`,
+        body: m <= 0
+          ? `${name} commented on your memo`
+          : m === 1
+          ? `${name} and 1 other commented on your memo`
+          : `${name} and ${m} others commented on your memo`,
+      };
+    case 'ja':
+      return {
+        title: `夜のあいだにコメントが${k}件届きました`,
+        body: m <= 0 ? `${name}さんがメモにコメントしました` : `${name}さんほか${m}人がメモにコメントしました`,
+      };
+    case 'zh':
+      return {
+        title: `夜里收到了 ${k} 条评论`,
+        body: m <= 0 ? `${name} 评论了你的笔记` : `${name} 等 ${m} 人评论了你的笔记`,
+      };
+    default:
+      return {
+        title: `밤사이 댓글 ${k}개가 달렸어요`,
+        body: m <= 0 ? `${name}님이 내 메모에 댓글을 남겼어요` : `${name}님 외 ${m}명이 내 메모에 댓글을 남겼어요`,
+      };
+  }
+}
+
+/// 댓글 알림 payload 전체 (문구 + FCM data). data 키(type, memo_id, book_id)는 앱 라우팅 계약이다.
+export function commentPayload(
+  lang: string | null | undefined,
+  v: {
+    memoId: string;
+    bookId: string | null;
+    commenterId: string;
+    commenterName?: string | null;
+    bookTitle?: string | null;
+    content?: string | null;
+  },
+) {
+  const preview = makePreview(v.content);
+  const copy = commentCopy(lang, { name: v.commenterName, book: v.bookTitle, preview });
+  return {
+    ...copy,
+    data: { type: 'new_comment', memo_id: v.memoId, book_id: v.bookId ?? '' } as Record<
+      string,
+      string
+    >,
+    preview,
+    actorName: v.commenterName?.trim() || undefined,
+    actorId: v.commenterId,
+  };
+}
+
+/// 책 메모 알림 payload 전체. data 키(type 'book_memo', book_id, memo_id)는 앱 라우팅 계약이다.
+export function bookMemoPayload(
+  lang: string | null | undefined,
+  v: {
+    n: number;
+    bookId: string;
+    memoId: string;
+    bookTitle?: string | null;
+    firstAuthorName?: string | null;
+    image?: string | null;
+  },
+) {
+  return {
+    ...bookMemoCopy(lang, { n: v.n, book: v.bookTitle, name: v.firstAuthorName }),
+    data: { type: 'book_memo', book_id: v.bookId, memo_id: v.memoId } as Record<string, string>,
+    image: v.image ?? null,
+  };
 }
 
 export function dailyLimitReached(sentTodayCount: number, kind: string): boolean {
@@ -132,12 +299,16 @@ export function buildDigests(rows: PendingRow[], bookMemoAllowed: boolean): Dige
     out.push({ kind: 'comment', title: c.title, body: c.body, data: stripPreview(c.data) });
   } else if (comments.length >= 2) {
     const last = comments[comments.length - 1];
-    out.push({
-      kind: 'comment',
-      title: `밤사이 댓글 ${comments.length}개가 달렸어요`,
-      body: last.data?.preview ?? last.body,
-      data: stripPreview(last.data),
+    // 서로 다른 사람 수: actor_id 가 있으면 그것, 없으면 actor_name, 둘 다 없으면 한 사람으로 본다
+    const actors = new Set(
+      comments.map((c) => c.data?.actor_id || c.data?.actor_name || ''),
+    );
+    const copy = digestCopy(last.data?.lang, {
+      k: comments.length,
+      m: actors.size - 1,
+      name: last.data?.actor_name,
     });
+    out.push({ kind: 'comment', title: copy.title, body: copy.body, data: stripPreview(last.data) });
   }
   const memo = sorted.find((r) => r.kind === 'book_memo');
   if (memo && bookMemoAllowed) {
@@ -147,6 +318,6 @@ export function buildDigests(rows: PendingRow[], bookMemoAllowed: boolean): Dige
 }
 
 function stripPreview(data: Record<string, string> | null | undefined): Record<string, string> {
-  const { preview: _p, ...rest } = data ?? {};
+  const { preview: _p, actor_name: _n, actor_id: _i, lang: _l, ...rest } = data ?? {};
   return rest;
 }
