@@ -196,6 +196,21 @@ lib/
 사용자 노출 카피 금지: em dash `—`, en dash `–`, 중간점 `·`, 곡선따옴표 `" " ' '`, 단일 말줄임 `…`. 짧은 구분자는 ` - ` 또는 `/`. 짧은 UI 문구(타이틀/라벨/CTA/안내/빈상태/토스트)는 끝 마침표 금지(문단형 본문은 예외). 카피는 `humanizer` 스킬로 윤문. 상세: `docs/design/01-DESIGN_PHILOSOPHY.md` 원칙 6.
 > **개정 2026-08-17**: 이모지 허용(적당히). Lyra 톤 = 친근·위트(고상/겉멋 폐기). 위 영구금지의 "이모지"는 무효화. 단 AI 금지 기호는 이모지와 무관하게 절대 유지. "당신" 호칭 금지 유지.
 
+## 릴리즈 빌드 전 필수 체크 (MUST, 2026-11-01)
+> 0.2.13(102) 은 `.env` 에 **double-take 프로젝트** Supabase 주소와 키가 들어간 채 빌드돼, 업데이트한 사용자가 로그아웃되고 구글 로그인이 다른 프로젝트로 가서 실패했다. 서비스 롤 키와 Anthropic 키까지 앱에 실려 배포됐다.
+> 마스터: "그런 기본적인건 무조건 빌드 전에 챙기도록 하는 룰을 셋팅해"
+
+`.env` 는 pubspec assets 라 **앱 번들에 파일 그대로 들어간다.** 그래서 빌드 전과 빌드 후 둘 다 본다.
+
+1. **빌드 전**: `bash scripts/check_release_env.sh` 통과 (프로젝트 루트 `.env`)
+2. **빌드 후, 업로드 전**: `bash scripts/check_release_env.sh --built` 통과 (aab, ipa 안의 `flutter_assets/.env`). `scripts/upload_testflight.sh` 는 이걸 자동으로 먼저 돌리고 실패하면 올리지 않는다. Play 에 aab 를 올리기 전에도 같은 명령으로 확인한다
+3. 검사 기준 (스크립트가 본다)
+   - 키는 정확히 셋: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SHARE_LINK_BASE`. 다른 키 (서비스 롤, Anthropic 등) 가 있으면 실패. 그런 값은 `supabase/.env` (엣지 함수 로컬용, 앱에 안 들어감) 에 둔다
+   - `SUPABASE_URL` = `https://hyjgfgzexvxhgfmqgiqu.supabase.co` (운영 milkyway)
+   - anon 키 JWT 의 `ref` 가 같은 프로젝트이고 `role` 이 `anon`
+4. 그 밖에 빌드 전 확인: 버전 번호가 스토어에 올라간 것보다 크다 (iOS 빌드 번호, Android versionCode 둘 다), `flutter analyze --no-fatal-infos` exit 0, `flutter test` 통과, `git status ios/Runner` 깨끗
+5. 다른 프로젝트 (double-take, momo 등) 작업을 같은 맥에서 하므로 `.env` 가 바뀌어 있을 수 있다. **복사해 온 `.env` 를 믿지 말고 매번 스크립트로 확인한다**
+
 ## 게이트 (설치 필수)
 **새 맥에서 클론했으면 이 한 줄을 먼저 칠 것.** 안 치면 pre-push 훅이 조용히 꺼진 채로 개발된다.
 
