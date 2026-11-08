@@ -4,9 +4,31 @@
 
 이 문서는 Milkyway 앱 개발 과정에서 배운 교훈과 실수를 기록하여 향후 유사한 문제를 방지하고, 더 나은 개발을 위한 가이드로 활용합니다.
 
-**최종 업데이트:** 2026-07-01  
+**최종 업데이트:** 2026-11-02  
 **작성자:** AI Assistant  
 **검토자:** 개발팀
+
+---
+
+## 🚨 2026-11-02: 0.2.17 aab 에 서명이 빠져 Play 가 거절 - worktree 에 서명 키가 없었다
+
+### 문제 상황
+- 0.2.17 (108) aab 를 Play 에 올리자 서명이 없다고 거절
+- `jarsigner -verify` 결과 "jar is unsigned"
+
+### 원인 분석
+- 릴리즈 빌드를 git worktree 에서 했다. `.env` 는 복사했지만 gitignore 된 `android/app/key.properties`, `android/app/upload-keystore.jks` 는 복사하지 않았다
+- `android/app/build.gradle` 은 key.properties 가 없으면 signingConfig 를 조용히 건너뛴다. 오류 없이 서명 없는 aab 가 나왔다
+- 빌드 후 검사 (`check_release_env.sh --built`) 는 `.env` 만 보고 서명은 보지 않았다
+
+### 해결 (#100)
+- 키 두 개를 복사해 재빌드. 업로드 인증서 SHA256 이 Play 가 받아 준 0.2.16 과 같은지 확인
+- build.gradle: release 태스크인데 key.properties 가 없으면 빌드 중단
+- `check_release_env.sh --built`: aab 서명, 업로드 인증서 SHA256 (`CD:83:CA:8E...74:75`), 버전이 pubspec 과 같은지까지 검사. `--aab <경로>` 로 아무 aab 나 검사 가능
+
+### 규칙
+- **worktree 에서 릴리즈 빌드하면 `.env` + `key.properties` + `upload-keystore.jks` 를 메인 체크아웃에서 복사한다. 커밋 금지, 끝나면 지운다**
+- **넘기기 전에 `--built` 를 돌린다.** 운영 Supabase, 서명, 인증서, 버전이 모두 ✅ 여야 넘긴다
 
 ---
 
@@ -35,6 +57,36 @@
 - **생명주기 콜백 (build, didChangeDependencies, didChangeMetrics)에서 서버 호출/invalidate 금지.** MediaQuery 가 바뀌면 프레임마다 불린다
 - **오류를 null/빈 값으로 삼키지 않는다.** "없음"은 서버가 없다고 말했을 때(404)만. 나머지는 AsyncError 로 흘려 화면이 판단하게 한다
 - **서버를 부르는 위젯은 호출 횟수 시험을 둔다.** viewInsets 를 여러 번 바꿔 pump 해도 호출 1번 (`test/features/memos/memo_detail_refetch_test.dart`)
+
+### 후속: 왜 "어제는 됐는데" 였나, 그리고 0.2.17 의 근본 수정
+- 서버/DB 변경은 없었다. 같은 날 아침 08:09, 08:11 (KST) 댓글 때도 429 가 수십 번 났지만 폭주의 마지막 응답이 우연히 200 이었다. 16:43, 23:23, 23:25 는 마지막이 429 라 튕겼다
+- Supabase 는 한 기기 요청이 1초 약 50번을 넘으면 `429 RATE_LIMIT_EXCEEDED` (`x_served_by: supabase-edge-runtime`). 공식 문서는 함수 사이 호출만 제한한다고 해 실제와 다르다
+- 아이폰 (120Hz) 은 키보드 한 번에 40~90 요청, 안드로이드 기기는 1초 최대 33번이라 기준선 아래였다. 내 메모/남의 메모 차이는 코드에 없다. 운의 차이
+- 함수 로그는 하루 남짓만 남는다. 의심되면 바로 `query_logs` 로 초 단위 집계를 떠 둘 것
+- 0.2.16 은 이 분석 전에 심사에 올렸다가 회수했다 ("근본적인 원인도 분석 안되었으면서 그냥 올리면 돼?!!!!")
+- 0.2.17 (#95 ~ #98): 모든 엣지 함수 호출을 `lib/core/network/edge_function_client.dart` 로 (같은 요청 합치기, 함수별 1초 8번, 일시 오류 2번 재시도, CI 가 우회 금지). 오류를 없음/로그아웃/성공으로 읽던 곳 전수 수정, 쓰기 버튼 잠금. 상세는 `docs/handoff/2026-11-02-RELEASE-CYCLE-0.2.13-0.2.17.md`
+- 추가 규칙: **엣지 함수는 관문 경유만.** **쓰기 버튼은 보내는 중 잠그고, 실패를 성공 토스트로 보이지 않는다.** **네트워크 오류로 로그인/온보딩 화면에 보내지 않는다**
+
+---
+
+## 🚨 2026-10-31: 0.2.13 로그인 장애 - 다른 프로젝트 `.env` 가 앱에 들어갔다
+
+### 문제 상황
+- Play 에서 0.2.13 (102) 을 받은 사용자의 Google 로그인이 실패. 같은 사용자가 0.2.12 에서는 성공
+
+### 원인 분석
+- 앱 루트 `.env` 에 다른 프로젝트 (double-take) 의 Supabase URL/키가 섞인 채 빌드됐다. `.env` 는 Flutter asset 이라 앱 번들에 그대로 들어간다
+- 처음에 서명키 SHA 를 의심했다가 틀렸다. 마스터가 "이 유저는 12 버전으로 로그인 성공도 했다" 고 짚어 버전 차이로 좁혔다
+- 같은 `.env` 에 서버용 키 (Anthropic API 키, service role 키) 까지 있어 앱 번들에 실려 나갔다
+
+### 해결 (0.2.14, #90)
+- `.env` 는 앱이 쓰는 운영 값 3개 (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SHARE_LINK_BASE`) 만. 서버용 키는 `supabase/.env`
+- `scripts/check_release_env.sh`: 빌드 전 `.env`, 빌드 후 `--built` 로 aab/ipa 안의 `flutter_assets/.env` 가 운영 milkyway 인지 검사. `upload_testflight.sh` 가 먼저 돌린다
+- CLAUDE.md "릴리즈 빌드 전 필수 체크 (MUST)"
+
+### 규칙
+- **가설은 버전 차이부터.** 같은 사용자가 이전 버전에서 됐다면 빌드 입력 (`.env`, 설정 파일) 을 먼저 diff 한다
+- **앱 `.env` 에 서버 비밀값을 두지 않는다.** asset 은 누구나 꺼내 볼 수 있다. 섞여 나간 키는 교체
 
 ---
 
