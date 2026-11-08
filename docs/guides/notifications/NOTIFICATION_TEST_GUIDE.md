@@ -199,6 +199,6 @@ Edge Function 실행 로그를 확인하여 오류가 없는지 확인:
 
 ## 📚 참고 자료
 
-- [FCM 서비스 계정 키 설정 가이드](./FCM_SERVER_KEY_SETUP.md)
+- [FCM 서비스 계정 키 설정 가이드](./FCM_SERVICE_ACCOUNT_SETUP_GUIDE.md)
 - [Notification 시스템 설정 가이드](./NOTIFICATION_SETUP.md)
 

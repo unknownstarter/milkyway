@@ -1,16 +1,22 @@
-# whatif_milkyway_app
+# Milkyway (밀키웨이)
 
-A new Flutter project.
+Personal Reading Intelligence. 읽으며 남긴 생각을 다시 찾고 연결하고 활용하는 독서 메모 앱.
 
-## Getting Started
+- 스택: Flutter, Riverpod, GoRouter, Supabase
 
-This project is a starting point for a Flutter application.
+## 어디부터 읽나
 
-A few resources to get you started if this is your first Flutter project:
+1. `CLAUDE.md` - 작업 규칙과 읽기 순서
+2. `docs/PRD_v2.md` - 제품 정의, BM, 검색 구조
+3. `docs/VISION_v3.md` - 톤, Lyra, 영구 금지
+4. `docs/handoff/README.md` - 인수인계
+5. `docs/LESSONS_LEARNED.md` - 지난 사고와 교훈
+6. `docs/release/` - 릴리즈 노트
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 시작하기
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+git config core.hooksPath scripts/git-hooks   # pre-push 게이트 설치
+cp .env.example .env                          # SUPABASE_URL, SUPABASE_ANON_KEY, SHARE_LINK_BASE 채우기
+flutter run
+```

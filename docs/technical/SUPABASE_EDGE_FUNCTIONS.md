@@ -5,6 +5,33 @@
 
 ---
 
+## 현재 함수 목록 (2026-11-08)
+
+정본은 `supabase/functions/` 디렉터리다. 아래 목록과 어긋나면 디렉터리가 맞다. 공용 코드는 `_shared/`.
+
+| 함수 | 용도 |
+|---|---|
+| `check-nickname` | 닉네임 중복 체크 (RLS 우회) |
+| `connect-memo` | 메모 저장 직후 임베딩(Voyage) 생성, 유사 메모 검색, 관계 4종 판정(Lyra), `memo_edges` 저장 |
+| `delete-user` | 계정 삭제 (사용자 데이터 및 auth.users) |
+| `deliver-pending-notifications` | 방해 금지 시간에 모아둔 알림을 아침 7시(사용자 현지)에 묶어 발송. pg_cron 이 10분마다 호출 |
+| `get-memo-by-id` | 메모 1건 조회 (타 유저 정보 조인용 service role 경유) |
+| `get-public-book-memos` | 책별 공개 메모 목록 (타 유저 정보 조인용 service role 경유) |
+| `get-public-memo-feed` | 전역 공개 메모 피드 (메모 탭 공개, 홈 최근 공개 메모) |
+| `lyra-question` | 책 소개를 바탕으로 사유 확장 물음 1개를 생성해 `book_questions` 에 저장 |
+| `notify-new-comment` | 새 댓글 푸시 알림 |
+| `notify-new-public-memo` | 새 공개 메모 푸시 알림 |
+| `s` | 공유 링크 숏코드 + OG 미리보기 + 딥링크 랜딩 |
+| `search-books` | 책 검색. Google Books, Naver, Open Library 순 폴백 |
+| `search-memos-semantic` | 의미 검색. 검색어 쿼리 임베딩 후 내 메모 벡터 검색 (LLM 호출 없음) |
+| `translate-questions` | Lyra 물음을 en/ja/zh 로 번역해 `question_translations` 에 캐시 |
+
+앱은 엣지 함수를 반드시 `lib/core/network/edge_function_client.dart` 를 통해서만 호출한다 (CI 가 강제한다).
+
+아래 개요와 상세 절은 초기 3개 함수 기준이라 낡았다. 참고용으로만 읽을 것.
+
+---
+
 ## 📋 개요
 
 Milkyway 앱은 Supabase Edge Functions를 사용하여 RLS (Row Level Security) 정책을 우회하고, 서버 사이드 로직을 실행합니다. 현재 배포된 Edge Functions는 다음과 같습니다:
@@ -289,8 +316,8 @@ supabase functions serve my-function
 
 - [Supabase Edge Functions 공식 문서](https://supabase.com/docs/guides/functions)
 - [Deno 런타임 문서](https://deno.land/manual)
-- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - 데이터베이스 스키마
-- [DEVELOPER_RULES.md](./DEVELOPER_RULES.md) - 개발자 규칙
+- [DATABASE_SCHEMA.md](../../DATABASE_SCHEMA.md) - 데이터베이스 스키마
+- [DEVELOPER_RULES.md](../DEVELOPER_RULES.md) - 개발자 규칙
 
 ---
 

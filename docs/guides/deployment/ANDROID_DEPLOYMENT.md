@@ -12,47 +12,11 @@
 
 ## 🛠️ 빌드 환경 설정
 
-### 필수 요구사항
+버전 값은 `pubspec.yaml`, 빌드 환경은 `android/` 설정과 `.github/workflows/ci.yml` 이 정본이다. 이 문서에는 버전 숫자를 적지 않는다.
 
-- **Flutter SDK**: 3.38.2 (Dart 3.10.0)
-- **Java**: 21 (OpenJDK)
-- **Android Gradle Plugin**: 8.7.3
-- **Kotlin**: 2.1.0
-- **Gradle**: 8.9
+### 앱 식별자
 
-### 현재 설정
-
-#### `pubspec.yaml`
-```yaml
-version: 0.1.0+14  # 버전 코드는 항상 증가해야 함
-environment:
-  sdk: ^3.10.0
-```
-
-#### `android/settings.gradle`
 ```gradle
-plugins {
-    id "com.android.application" version "8.7.3"
-    id "org.jetbrains.kotlin.android" version "2.1.0"
-}
-```
-
-#### `android/gradle/wrapper/gradle-wrapper.properties`
-```properties
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-all.zip
-```
-
-#### `android/app/build.gradle`
-```gradle
-compileOptions {
-    sourceCompatibility JavaVersion.VERSION_21
-    targetCompatibility JavaVersion.VERSION_21
-}
-
-kotlinOptions {
-    jvmTarget = '21'
-}
-
 defaultConfig {
     applicationId "com.whatif.milkyway.android"
     minSdkVersion flutter.minSdkVersion  // API 24 (Android 7.0) 이상
@@ -121,7 +85,7 @@ flutter build appbundle --release
 
 ### 버전 코드 관리
 
-- **형식**: `major.minor.patch+buildNumber` (예: `0.1.0+14`)
+- **형식**: `major.minor.patch+buildNumber` (예: `1.2.3+45`)
 - **규칙**: Google Play Console에 업로드할 때마다 버전 코드는 반드시 증가해야 함
 - **업데이트**: `pubspec.yaml`의 `version` 필드 수정
 
@@ -189,7 +153,7 @@ Version code X has already been used. Try another version code.
 
 **해결 방법:**
 - `pubspec.yaml`의 버전 코드 증가
-- 예: `0.1.0+14` → `0.1.0+15`
+- 예: `1.2.3+45` → `1.2.3+46`
 
 ### 3. CocoaPods 동기화 오류 (iOS 빌드 시)
 
@@ -248,21 +212,11 @@ pod install
 
 ---
 
-## 📊 빌드 설정 히스토리
+## 릴리즈 절차 (2026-11)
 
-### 2025-11-27: 안드로이드 빌드 설정 업그레이드
-
-#### 변경 사항
-- Flutter SDK: `^3.6.0` → `^3.10.0`
-- Android Gradle Plugin: `8.2.2` → `8.7.3`
-- Kotlin: `1.9.22` → `2.1.0`
-- Gradle: `8.2` → `8.9`
-- Java: `17` → `21`
-
-#### 해결된 문제
-- `sign_in_with_apple` 패키지 컴파일 에러 해결
-- 중복 설정 파일 정리 (`.kts` 파일 삭제)
-- 서명 키 설정 개선
+- 빌드 전 필수 체크는 루트 `CLAUDE.md` 의 "릴리즈 빌드 전 필수 체크" 절을 따른다
+- 빌드 후 `scripts/check_release_env.sh --built` 로 확인한다. 번들된 `.env` 가 운영 Supabase 인지, aab 서명과 업로드 인증서 SHA256 이 맞는지, 버전이 올라갔는지 본다
+- git worktree 에는 `key.properties` 와 `upload-keystore.jks` 가 없다. 메인 체크아웃에서 복사해 쓰고, 절대 커밋하지 않는다
 
 ---
 
