@@ -614,7 +614,7 @@ final response = await _supabase.functions.invoke(
 - 복잡한 서버 사이드 로직이 필요한 경우
 - Service Role Key가 필요한 경우 (RLS 우회)
 
-**참고 문서**: [SUPABASE_EDGE_FUNCTIONS.md](./SUPABASE_EDGE_FUNCTIONS.md)
+**참고 문서**: [SUPABASE_EDGE_FUNCTIONS.md](./technical/SUPABASE_EDGE_FUNCTIONS.md)
 
 ### 2. Edge Function 배포 규칙
 - **배포 전 테스트 필수**: 로컬 환경에서 충분히 테스트 후 배포

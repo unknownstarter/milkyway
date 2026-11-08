@@ -34,18 +34,15 @@
 
 ---
 
-### 2. FCM 서버 키 설정 (필수)
+### 2. FCM 서비스 계정 설정 (필수)
 
-**자세한 설정 방법은 `docs/FCM_SERVER_KEY_SETUP.md` 참고**
+푸시는 FCM HTTP v1 을 쓴다. 레거시 서버 키(`FCM_SERVER_KEY`)는 더 이상 쓰지 않는다.
+서비스 계정 JSON 을 Supabase 시크릿 `FCM_SERVICE_ACCOUNT_JSON` 으로 넣는다.
+자세한 방법은 [FCM_SERVICE_ACCOUNT_SETUP_GUIDE.md](./FCM_SERVICE_ACCOUNT_SETUP_GUIDE.md) 참고.
+발송 코드는 `supabase/functions/_shared/notify.ts`.
 
-**간단 요약:**
-1. Firebase Console → 프로젝트 설정 → Cloud Messaging
-2. "서버 키" 복사
-3. Supabase Dashboard → Settings → Edge Functions → Secrets
-4. `FCM_SERVER_KEY` 이름으로 서버 키 추가
-
-**주의:** 
-- FCM 서버 키는 민감한 정보이므로 환경 변수로 관리
+**주의:**
+- 서비스 계정 키는 민감한 정보이므로 시크릿으로만 관리
 - Git에 커밋하지 않도록 주의
 
 ---

@@ -391,9 +391,9 @@ Push Notification에 책 표지 이미지를 추가하여 사용자 경험을 �
 - Edge-to-Edge 지원을 미리 준비하지 않음
 
 ### 참고 문서
-- [SUPABASE_EDGE_FUNCTIONS.md](./SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
+- [SUPABASE_EDGE_FUNCTIONS.md](./technical/SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
 - [DEVELOPER_RULES.md](./DEVELOPER_RULES.md) - Supabase Edge Functions 규칙
-- [ANDROID_DEPLOYMENT.md](./ANDROID_DEPLOYMENT.md) - 안드로이드 배포 가이드
+- [ANDROID_DEPLOYMENT.md](./guides/deployment/ANDROID_DEPLOYMENT.md) - 안드로이드 배포 가이드
 
 ---
 
@@ -470,8 +470,8 @@ Push Notification에 책 표지 이미지를 추가하여 사용자 경험을 �
 - `centerTitle`을 설정하지 않아 안드로이드에서 타이틀이 왼쪽 정렬
 
 ### 참고 문서
-- [ANDROID_DEPLOYMENT.md](./ANDROID_DEPLOYMENT.md) - 안드로이드 배포 가이드
-- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - 배포 체크리스트
+- [ANDROID_DEPLOYMENT.md](./guides/deployment/ANDROID_DEPLOYMENT.md) - 안드로이드 배포 가이드
+- [CLAUDE.md](../CLAUDE.md) "릴리즈 빌드 전 필수 체크" 절 - 배포 체크리스트
 
 ---
 
@@ -531,7 +531,7 @@ Push Notification에 책 표지 이미지를 추가하여 사용자 경험을 �
 - 첫 페이지도 재시도 로직을 적용하여 불필요한 지연 발생
 
 ### 참고 문서
-- [SUPABASE_EDGE_FUNCTIONS.md](./SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
+- [SUPABASE_EDGE_FUNCTIONS.md](./technical/SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
 - [DEVELOPER_RULES.md](./DEVELOPER_RULES.md) - Supabase Edge Functions 규칙
 
 ---
@@ -566,7 +566,7 @@ Push Notification에 책 표지 이미지를 추가하여 사용자 경험을 �
 - 쿼리 실패 시 에러 처리가 부족하여 잘못된 결과 반환
 
 ### 참고 문서
-- [SUPABASE_EDGE_FUNCTIONS.md](./SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
+- [SUPABASE_EDGE_FUNCTIONS.md](./technical/SUPABASE_EDGE_FUNCTIONS.md) - Edge Functions 가이드
 - [DEVELOPER_RULES.md](./DEVELOPER_RULES.md) - Supabase Edge Functions 규칙
 
 ---
